@@ -60,5 +60,45 @@
 - Decision: Add report-level room/furnishing metrics and multi-program Visual cases before claiming broader arbitrary-size/room progress.
 - Why: A single `living|colony` target-room case does not prove the user's requested end state. Visual Workbench can remain read-only while its reports expose production `room_count`, `target_room_count`, room-count satisfaction, and generated object counts for acceptance assertions.
 
+## D-016: Move exterior entry ownership into semantic opening solve
+- Decision: Stop calling `build_building_doors()` from `stage_geometry` before semantic layout. This slice introduces an opening-solver step inside the semantic layout flow so exterior entry selection is part of topology/route/opening generation evidence.
+- Why: The approved contract says doors are generator responsibility but must be derived after topology/route constraints, not selected by a boundary pre-pass and repaired later.
+
+## D-017: Remove legacy room-first callable entrypoints before helper cleanup
+- Decision: Delete the dead top-level `build_building_room_first_layout()` and `build_building_micro_layout()` procs after proving they have no external callsites. Leave lower-level `room_first_*` utility/helper cleanup for a separate bounded pass because `get_room_first_region_specs_for_zone()` is still used by emitter reporting.
+- Why: M1 forbids the old monolithic solver remaining callable as a fallback. Removing the callable entrypoints improves fidelity without a risky broad delete of helper code that still shares reporting logic.
+
+## D-018: Keep solver knobs internal, not public UI contract
+- Decision: Restrict `building_layout` public server UI fields to program, style, seed, and a coarse size profile. Existing detailed params such as explicit half sizes, target room count, blocker overrides, detail/window budgets, and service/back exits remain accepted for regression cases and internal callers but are not advertised as user-facing controls.
+- Why: The current user contract says users provide only program/style/size-or-shape/direction/seed; doors, rooms, routes, furniture, infrastructure, and validation are generator responsibilities.
+
+## D-019: Bridge support reports through validation verdict payloads
+- Decision: Keep the existing support report list keys for current UI/Workbench compatibility, but make `world_edit_validation_verdict` the source payload embedded in each support/preflight report and preserved in plan metadata.
+- Why: M4 requires one feasibility/verdict contract across support, preview, tests, Workbench, and UI. Replacing every consumer in one pass is too broad; embedding the typed verdict first removes the ad-hoc status gap without breaking existing consumers.
+
+## D-020: Make generated-plan verdict authoritative for supported semantic reports
+- Decision: For successfully generated previews, emit a generation/hard-validation verdict payload from candidate validation into candidate reports and plan metadata, and make Workbench supported `report.json` use that payload as top-level `validation_verdict`. Preserve support/preflight verdict separately as `support_validation_verdict`.
+- Why: A supported preflight only proves the request was allowed. The semantic report source of truth must also prove that the bounded candidate search, partition, routes/openings, furnishing, and hard validation produced a valid plan.
+
+## D-021: Preserve generation verdict while adding apply and undo phase verdicts
+- Decision: Add `apply_validation_verdict` and `undo_validation_verdict` as phase payloads instead of replacing the supported report's top-level generation `validation_verdict`.
+- Why: The report must prove generation, apply, and undo independently. Replacing the top-level generation verdict with `applied` would hide candidate hard-validation evidence; leaving apply/undo as booleans would keep M4 partial.
+
+## D-022: Reuse production candidate solve as feasibility dry solve
+- Decision: Add a bounded dry-solve probe to support/preflight that reuses `build_building_layout_candidate_state()` with an internal recursion guard, records candidate attempts, and only reports `supported` when at least one hard-valid in-memory candidate exists.
+- Why: The PR99 contract forbids area-only feasibility. Reusing the production candidate path preserves parity with generation better than adding a parallel estimator, while the guard prevents `resolve_shape_footprint()` support re-entry from recursing.
+
+## D-023: Prove same-seed determinism with production preview replay
+- Decision: Add an opt-in Visual Workbench semantic report check that runs the same production preview twice before apply and compares `layout_hash` plus component hashes; `building_living_target_rooms_6` will require the boolean expectation.
+- Why: The PR99 hard-pass explicitly requires same seed -> same layout hash. A single green preview/apply or stable PNG is not enough evidence, and the visualizer must stay a read-only reporter rather than manufacturing deterministic output.
+
+## D-024: Gate mandatory regression on production hard-pass counters
+- Decision: Extend generator validation/reporting and Workbench metric export so `building_living_target_rooms_6` asserts the remaining hard-pass topology counters from semantic report data, including a new production `door_corner_count`.
+- Why: The required regression is only authoritative if the JSON report proves topology/route/opening constraints directly. PNG review and a single `valid_plan` verdict are not granular enough to prove every hard-pass item.
+
+## D-025: Enforce preview target-state hash at apply time
+- Decision: Treat `plan.metadata["target_state_hash"]` as a production apply precondition, not diagnostics. If the live target hash differs from the preview hash, `apply_plan()` must return a typed `world_conflict` before mutation and suppress history.
+- Why: PR99 atomic apply requires stale preview/live world drift to be blocked. Runtime blocker checks and request-key checks do not cover all live target changes and cannot substitute for the preview target hash contract.
+
 ## Pending Decisions
 - None yet. Any deviation from the PR99 rewrite contract must be recorded here before implementation proceeds.

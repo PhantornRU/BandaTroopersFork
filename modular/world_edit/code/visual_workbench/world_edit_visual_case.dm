@@ -97,10 +97,10 @@
 	// be possible. This keeps "what would be placed" aligned with real runtime
 	// acceptance rather than a partial UI hover preview.
 	if(support["shape_locked"] || support["locked"] || support["request_locked"] || !support["can_preview"] || !support["can_apply"])
-		return finish_locked(list(
-			"reason_code" = support["lock_code"] || "request.locked",
-			"reason" = support["reason"] || "Request is locked.",
-		))
+		var/list/locked_support = support.Copy()
+		locked_support["reason_code"] = support["lock_code"] || "request.locked"
+		locked_support["reason"] = support["reason"] || "Request is locked."
+		return finish_locked(locked_support)
 
 	profiler.enter_stage(WORLD_EDIT_VISUAL_STAGE_PREVIEW)
 	// This is the production plan builder. Any preview-stage validation error
@@ -110,6 +110,9 @@
 	profiler.leave_stage(WORLD_EDIT_VISUAL_STAGE_PREVIEW, preview_result)
 	if(preview_result["error"])
 		return finish_error(WORLD_EDIT_VISUAL_STAGE_PREVIEW, preview_result["error"], preview_result)
+	var/list/determinism_result = null
+	if(should_run_determinism_replay())
+		determinism_result = build_determinism_replay_result(generator, shape_contract, params, placement_context, preview_result)
 
 	profiler.enter_stage(WORLD_EDIT_VISUAL_STAGE_APPLY)
 	// Apply is also production code. It creates the real turfs/objects and can
@@ -139,7 +142,7 @@
 	var/list/undo_result = run_undo_validation(apply_result_datum)
 	profiler.leave_stage(WORLD_EDIT_VISUAL_STAGE_UNDO, undo_result)
 
-	var/list/final_report = finish_supported(preview_result, apply_result, post_emit_result, export_result, undo_result)
+	var/list/final_report = finish_supported(preview_result, apply_result, post_emit_result, export_result, undo_result, determinism_result)
 	report = final_report
 	return final_report
 
@@ -270,6 +273,64 @@
 		"placement_count" = length(plan.placements),
 	)
 
+/datum/world_edit_visual_case/proc/should_run_determinism_replay()
+	if(!isnull(expect_config?["same_seed_layout_hash"]))
+		return TRUE
+	if(render_config?["determinism_replay"])
+		return TRUE
+	return FALSE
+
+/datum/world_edit_visual_case/proc/build_determinism_replay_result(datum/world_edit_generator/building_layout/generator, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context, list/preview_result)
+	var/list/result = list(
+		"status" = "not_run",
+		"same_seed_layout_hash" = FALSE,
+		"all_hashes_match" = FALSE,
+		"layout_hash" = null,
+		"replay_layout_hash" = null,
+		"hash_mismatches" = list(),
+	)
+	var/list/first_meta = preview_result?["metadata"]
+	if(!istype(generator) || !istype(shape_contract) || !islist(first_meta))
+		result["status"] = "failed"
+		result["error"] = "determinism_replay_missing_inputs"
+		return result
+	var/datum/world_edit_plan/replay_plan = generator.build_plan_from_shape_contract(null, shape_contract, params, placement_context)
+	var/list/replay_preview = build_preview_result(replay_plan)
+	if(replay_preview["error"])
+		result["status"] = "failed"
+		result["error"] = replay_preview["error"]
+		result["replay_metadata"] = islist(replay_preview["metadata"]) ? replay_preview["metadata"] : list()
+		return result
+	var/list/replay_meta = replay_preview["metadata"]
+	if(!islist(replay_meta))
+		result["status"] = "failed"
+		result["error"] = "determinism_replay_missing_metadata"
+		return result
+	var/list/hash_keys = list(
+		"layout_hash",
+		"footprint_hash",
+		"room_graph_hash",
+		"route_hash",
+		"wall_hash",
+		"pattern_credit_hash",
+		"determinism_check_hash",
+	)
+	var/list/mismatches = list()
+	for(var/hash_key as anything in hash_keys)
+		var/first_hash = first_meta[hash_key]
+		var/replay_hash = replay_meta[hash_key]
+		result[hash_key] = first_hash
+		result["replay_[hash_key]"] = replay_hash
+		if("[first_hash]" != "[replay_hash]")
+			mismatches += "[hash_key]"
+	result["hash_mismatches"] = mismatches
+	result["layout_hash"] = first_meta["layout_hash"]
+	result["replay_layout_hash"] = replay_meta["layout_hash"]
+	result["same_seed_layout_hash"] = "[first_meta["layout_hash"]]" == "[replay_meta["layout_hash"]]"
+	result["all_hashes_match"] = !length(mismatches)
+	result["status"] = result["same_seed_layout_hash"] ? "matched" : "mismatched"
+	return result
+
 /datum/world_edit_visual_case/proc/build_apply_result(datum/world_edit_apply_result/result)
 	if(!istype(result))
 		return list("error" = "apply_returned_invalid_result")
@@ -291,17 +352,30 @@
 	return list("warning" = "post_emit_validation_missing", "post_emit_validation_error_count" = -1)
 
 /datum/world_edit_visual_case/proc/run_undo_validation(datum/world_edit_apply_result/apply_result)
+	var/datum/world_edit_validation_verdict/verdict
 	if(!istype(apply_result))
 		add_error("undo_apply_result_missing", "Cannot validate undo without a valid apply result.", WORLD_EDIT_VISUAL_STAGE_UNDO)
-		return list("status" = "failed", "restored" = FALSE, "error" = "undo_apply_result_missing")
+		verdict = new(WORLD_EDIT_BUILDING_WORKBENCH_FAILED, WORLD_EDIT_BUILDING_STAGE_WORKBENCH)
+		verdict.add_hard_error("undo_apply_result_missing", "Cannot validate undo without a valid apply result.")
+		return list("status" = "failed", "restored" = FALSE, "error" = "undo_apply_result_missing", "undo_validation_verdict" = verdict.as_payload())
 	if(!istype(apply_result.changeset))
 		add_error("undo_changeset_missing", "Apply result did not provide a changeset for undo validation.", WORLD_EDIT_VISUAL_STAGE_UNDO)
-		return list("status" = "failed", "restored" = FALSE, "error" = "undo_changeset_missing")
+		verdict = new(WORLD_EDIT_BUILDING_WORKBENCH_FAILED, WORLD_EDIT_BUILDING_STAGE_WORKBENCH)
+		verdict.add_hard_error("undo_changeset_missing", "Apply result did not provide a changeset for undo validation.")
+		return list("status" = "failed", "restored" = FALSE, "error" = "undo_changeset_missing", "undo_validation_verdict" = verdict.as_payload())
 	var/list/undo_result = GLOB.world_edit_changesets.revert_changeset(apply_result.changeset)
 	var/outcome = "[undo_result["outcome"] || "none"]"
 	var/restored = outcome == "full"
 	undo_result["status"] = restored ? "restored" : "failed"
 	undo_result["restored"] = restored ? TRUE : FALSE
+	verdict = new(restored ? WORLD_EDIT_BUILDING_WORKBENCH_PASSED : WORLD_EDIT_BUILDING_WORKBENCH_FAILED, WORLD_EDIT_BUILDING_STAGE_WORKBENCH)
+	verdict.set_metric("undo_status", undo_result["status"])
+	verdict.set_metric("undo_outcome", outcome)
+	verdict.set_metric("undo_restored", restored ? TRUE : FALSE)
+	verdict.set_metric("undo_reverted_count", undo_result["reverted_count"] || 0)
+	verdict.set_metric("undo_skipped_count", undo_result["skipped_count"] || 0)
 	if(!restored)
 		add_error("undo_not_restored", "Undo validation did not fully restore the applied changeset.", WORLD_EDIT_VISUAL_STAGE_UNDO, null, undo_result)
+		verdict.add_hard_error("undo_not_restored", "Undo validation did not fully restore the applied changeset.", undo_result)
+	undo_result["undo_validation_verdict"] = verdict.as_payload()
 	return undo_result

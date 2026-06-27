@@ -390,6 +390,9 @@
 			continue
 		var/door_dir = state.geometry.door_dirs[door_turf] || get_outward_dir(door_turf, state.geometry.footprint_lookup, (state.geometry.bounds["min_x"] + state.geometry.bounds["max_x"]) / 2, (state.geometry.bounds["min_y"] + state.geometry.bounds["max_y"]) / 2, state.placement_dir)
 		var/turf/inward_turf = get_step(door_turf, turn(door_dir, 180))
+		if(state.geometry.boundary_lookup[door_turf] && is_corner_boundary_turf(door_turf, state.geometry.footprint_lookup) && building_has_non_corner_boundary_door_option(state, door_dir))
+			state.validation.door_corner_count++
+			state.add_error("Exterior door at [GLOB.world_edit_helpers.turf_to_text(door_turf)] is on an avoidable corner.")
 		if(!state.geometry.floor_lookup[inward_turf] && door_turf == state.geometry.front_door_turf)
 			state.validation.door_buffer_conflict_count++
 			state.validation.door_cone_blocked_count++
@@ -398,6 +401,21 @@
 			state.validation.door_buffer_conflict_count++
 			state.validation.door_cone_blocked_count++
 			state.add_error("Door buffer at [GLOB.world_edit_helpers.turf_to_text(inward_turf)] is blocked by a fixture.")
+
+/datum/world_edit_generator/building_layout/proc/building_has_non_corner_boundary_door_option(datum/world_edit_building_layout_state/state, door_dir)
+	if(!istype(state) || !(door_dir in GLOB.cardinals))
+		return FALSE
+	for(var/turf/boundary_turf as anything in state.geometry.boundary)
+		if(!istype(boundary_turf) || !state.geometry.boundary_lookup[boundary_turf] || !state.geometry.wall_lookup[boundary_turf])
+			continue
+		if(is_corner_boundary_turf(boundary_turf, state.geometry.footprint_lookup))
+			continue
+		if(!boundary_turf_has_outside_dir(boundary_turf, state.geometry.footprint_lookup, door_dir))
+			continue
+		var/turf/inward_turf = get_step(boundary_turf, turn(door_dir, 180))
+		if(state.geometry.floor_lookup[inward_turf] && !building_turf_has_dense_fixture(state, inward_turf))
+			return TRUE
+	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/validate_building_windows(datum/world_edit_building_layout_state/state)
 	var/list/door_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(state.geometry.door_turfs)

@@ -381,6 +381,7 @@
 	validation.mandatory_fixture_access_unreachable_count = 0
 	validation.reserved_walk_blocked_count = 0
 	validation.door_cone_blocked_count = 0
+	validation.door_corner_count = 0
 	validation.double_wall_error_count = 0
 	validation.double_wall_repair_count = 0
 	validation.diagonal_only_contact_count = 0

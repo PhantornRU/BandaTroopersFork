@@ -204,6 +204,25 @@
 	TEST_ASSERT(living_plan_has_slot(plan, "table", "table"), "Living template contract did not emit a table.")
 	TEST_ASSERT(living_plan_has_slot(plan, "toilet", "sanitation"), "Living template contract did not emit a toilet.")
 
+/datum/unit_test/world_edit_building_layout/public_ui_field_contract/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/list/fields = generator.get_ui_fields(list(
+		"archetype_id" = "living",
+		"faction_preset" = "colony",
+	))
+	var/list/allowed_ids = list("archetype_id", "faction_preset", "building_seed", "size_profile")
+	var/list/seen_ids = list()
+	for(var/list/field as anything in fields)
+		var/field_id = "[field["id"]]"
+		TEST_ASSERT(field_id in allowed_ids, "Building layout public UI exposed unexpected field '[field_id]'.")
+		TEST_ASSERT(!(field_id in seen_ids), "Building layout public UI exposed duplicate field '[field_id]'.")
+		seen_ids += field_id
+	for(var/required_id as anything in allowed_ids)
+		TEST_ASSERT(required_id in seen_ids, "Building layout public UI did not expose required field '[required_id]'.")
+	var/list/forbidden_ids = list("auto_size", "half_width", "half_depth", "target_room_count", "window_density", "detail_budget", "back_exit", "respect_blockers", "replace_blocked_turfs", "confirm_large_replacement")
+	for(var/forbidden_id as anything in forbidden_ids)
+		TEST_ASSERT(!(forbidden_id in seen_ids), "Building layout public UI still exposes internal solver field '[forbidden_id]'.")
+
 /datum/unit_test/world_edit_building_layout/default_living_preview/Run()
 	var/datum/world_edit_generator/building_layout/generator = new
 	var/list/config = generator.normalize_building_params(list())
@@ -214,8 +233,34 @@
 	var/datum/world_edit_plan/plan = build_living_point_plan(list())
 	TEST_ASSERT_NOTNULL(plan, "Default living preview did not return a plan.")
 	TEST_ASSERT(!plan.metadata["error"], "[plan.metadata["error"]]")
+	var/list/support_report = plan.metadata["support_status_report"]
+	TEST_ASSERT(islist(support_report), "Default living preview did not include support diagnostics.")
+	var/list/support_verdict = support_report["verdict"]
+	TEST_ASSERT(islist(support_verdict), "Default living preview support diagnostics did not include a validation verdict.")
+	TEST_ASSERT_EQUAL(support_verdict["status"], "supported", "Default living preview support verdict returned the wrong status.")
+	TEST_ASSERT_EQUAL(support_report["feasibility_dry_solve_status"], "solved", "Default living preview support did not run a solved feasibility dry solve.")
+	TEST_ASSERT(round(text2num("[support_report["feasibility_dry_solve_attempt_count"]]") || 0) > 0, "Default living preview dry solve did not attempt any candidates.")
+	TEST_ASSERT(round(text2num("[support_report["feasibility_dry_solve_valid_candidate_count"]]") || 0) > 0, "Default living preview dry solve did not prove a valid candidate.")
+	var/list/hard_errors = support_verdict["hard_errors"]
+	TEST_ASSERT_EQUAL(length(hard_errors), 0, "Default living preview support verdict should not contain hard errors.")
+	var/list/generation_verdict = plan.metadata["generation_validation_verdict"]
+	TEST_ASSERT(islist(generation_verdict), "Default living preview did not include a generation validation verdict.")
+	TEST_ASSERT_EQUAL(generation_verdict["status"], "valid_plan", "Default living preview generation verdict returned the wrong status.")
+	TEST_ASSERT_EQUAL(generation_verdict["stage"], "candidate_validation", "Default living preview generation verdict returned the wrong stage.")
+	var/list/generation_hard_errors = generation_verdict["hard_errors"]
+	TEST_ASSERT_EQUAL(length(generation_hard_errors), 0, "Default living preview generation verdict should not contain hard errors.")
+	var/list/final_verdict = plan.metadata["validation_verdict"]
+	TEST_ASSERT(islist(final_verdict), "Default living preview did not include a final validation verdict.")
+	TEST_ASSERT_EQUAL(final_verdict["status"], "valid_plan", "Default living preview final verdict should come from generation validation.")
 	TEST_ASSERT_EQUAL(plan.metadata["post_emit_validation_error_count"] || 0, 0, "Default living preview should pass post-emit validation.")
 	TEST_ASSERT_EQUAL(plan.metadata["reachability_failure_count"] || 0, 0, "Default living preview should have no route-touch failures.")
+	TEST_ASSERT_EQUAL(plan.metadata["door_corner_count"] || 0, 0, "Default living preview should not place an avoidable corner door.")
+	TEST_ASSERT_EQUAL(plan.metadata["mandatory_room_missing_count"] || 0, 0, "Default living preview should not miss mandatory rooms.")
+	TEST_ASSERT_EQUAL(plan.metadata["mandatory_room_no_access_count"] || 0, 0, "Default living preview should keep mandatory rooms reachable.")
+	var/datum/world_edit_plan/replay_plan = build_living_point_plan(list())
+	TEST_ASSERT_NOTNULL(replay_plan, "Default living replay preview did not return a plan.")
+	TEST_ASSERT(!replay_plan.metadata["error"], "[replay_plan.metadata["error"]]")
+	TEST_ASSERT_EQUAL("[plan.metadata["layout_hash"]]", "[replay_plan.metadata["layout_hash"]]", "Default living same-seed replay changed layout_hash.")
 	assert_living_template_plan_contract(plan)
 
 /datum/unit_test/world_edit_building_layout/direction_matrix/Run()
@@ -451,6 +496,13 @@
 	var/list/support_report = plan.metadata["support_status_report"]
 	TEST_ASSERT(islist(support_report), "Small explicit building did not include support diagnostics.")
 	TEST_ASSERT_EQUAL(support_report["lock_code"], "program.insufficient_footprint", "Small explicit building returned the wrong lock code.")
+	var/list/support_verdict = support_report["verdict"]
+	TEST_ASSERT(islist(support_verdict), "Small explicit building support diagnostics did not include a validation verdict.")
+	TEST_ASSERT_EQUAL(support_verdict["status"], "unsupported", "Small explicit building support verdict returned the wrong status.")
+	var/list/hard_errors = support_verdict["hard_errors"]
+	TEST_ASSERT(length(hard_errors) > 0, "Small explicit building support verdict did not include a hard error.")
+	var/list/first_error = hard_errors[1]
+	TEST_ASSERT_EQUAL(first_error["code"], "program.insufficient_footprint", "Small explicit building support verdict returned the wrong hard error code.")
 	TEST_ASSERT(!GLOB.world_edit_helpers.parse_bool(plan.metadata["program_shedding"]), "Small explicit building enabled hidden program shedding.")
 	TEST_ASSERT_EQUAL(length(plan.placements), 0, "Small explicit building emitted placements despite rejection.")
 
@@ -472,6 +524,13 @@
 	var/list/support_report = plan.metadata["support_status_report"]
 	TEST_ASSERT(islist(support_report), "Micro building did not include support diagnostics.")
 	TEST_ASSERT_EQUAL(support_report["lock_code"], "program.insufficient_footprint", "Micro building returned the wrong lock code.")
+	var/list/support_verdict = support_report["verdict"]
+	TEST_ASSERT(islist(support_verdict), "Micro building support diagnostics did not include a validation verdict.")
+	TEST_ASSERT_EQUAL(support_verdict["status"], "unsupported", "Micro building support verdict returned the wrong status.")
+	var/list/hard_errors = support_verdict["hard_errors"]
+	TEST_ASSERT(length(hard_errors) > 0, "Micro building support verdict did not include a hard error.")
+	var/list/first_error = hard_errors[1]
+	TEST_ASSERT_EQUAL(first_error["code"], "program.insufficient_footprint", "Micro building support verdict returned the wrong hard error code.")
 	TEST_ASSERT(!GLOB.world_edit_helpers.parse_bool(plan.metadata["program_shedding"]), "Micro building enabled hidden program shedding.")
 	TEST_ASSERT(!GLOB.world_edit_helpers.parse_bool(plan.metadata["micro_layout"]), "Micro building used hidden micro layout.")
 	TEST_ASSERT_EQUAL(length(plan.placements), 0, "Micro building emitted placements despite rejection.")
@@ -491,6 +550,73 @@
 		"shape_radius" = 5,
 	))
 	TEST_ASSERT(key_a != key_b, "Building runtime request key should change when shape params change.")
+
+/datum/unit_test/world_edit_building_layout/atomic_apply_rejects_stale_target_state/Run()
+	var/turf/anchor_turf = get_test_anchor_turf()
+	TEST_ASSERT_NOTNULL(anchor_turf, "Atomic apply test could not resolve an anchor turf.")
+	prepare_building_test_canvas(anchor_turf, 16)
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/datum/world_edit_shape_contract/shape_contract = build_point_shape_contract(anchor_turf)
+	var/list/params = list(
+		"archetype_id" = "living",
+		"faction_preset" = "colony",
+		"building_seed" = 31,
+		"detail_budget" = 60,
+		"replace_blocked_turfs" = TRUE,
+		"respect_blockers" = FALSE,
+	)
+	var/datum/world_edit_plan/plan = generator.build_plan_from_shape_contract(null, shape_contract, params, build_point_context(shape_contract, anchor_turf))
+	TEST_ASSERT_NOTNULL(plan, "Atomic apply test did not create a preview plan.")
+	TEST_ASSERT(!plan.metadata["error"], "Atomic apply preview failed: [plan.metadata["error"]]")
+	var/expected_target_hash = round(text2num("[plan.metadata["target_state_hash"]]") || 0)
+	TEST_ASSERT(expected_target_hash > 0, "Preview plan did not stamp a target-state hash.")
+
+	var/turf/drift_turf = null
+	for(var/list/placement as anything in plan.placements)
+		if(!islist(placement))
+			continue
+		var/kind = "[placement["kind"]]"
+		if(!(kind in list("floor", "wall")))
+			continue
+		var/turf/candidate_turf = get_plan_placement_turf(placement)
+		if(istype(candidate_turf) && !istype(candidate_turf, /turf/closed/wall))
+			drift_turf = candidate_turf
+			break
+	TEST_ASSERT_NOTNULL(drift_turf, "Atomic apply test could not find a mutable target turf.")
+	var/original_type = drift_turf.type
+	var/original_baseturfs = islist(drift_turf.baseturfs) ? drift_turf.baseturfs.Copy() : drift_turf.baseturfs
+	var/turf/changed_turf = drift_turf.ChangeTurf(/turf/closed/wall)
+	TEST_ASSERT(istype(changed_turf, /turf/closed/wall), "Atomic apply test failed to mutate the target turf after preview.")
+	var/current_target_hash = round(text2num("[generator.build_building_target_state_hash(plan)]") || 0)
+	TEST_ASSERT(current_target_hash != expected_target_hash, "Target-state hash did not change after live target mutation.")
+
+	var/datum/world_edit_apply_result/apply_result = generator.apply_plan(null, params, plan)
+	TEST_ASSERT_NOTNULL(apply_result, "Stale target apply did not return an apply result.")
+	TEST_ASSERT(!apply_result.success, "Stale target apply must not report success.")
+	TEST_ASSERT(apply_result.suppress_history, "Stale target apply must suppress history.")
+	TEST_ASSERT(isnull(apply_result.changeset), "Stale target apply must not create a committed changeset.")
+	TEST_ASSERT_EQUAL(apply_result.meta["transaction_committed"], FALSE, "Stale target apply must not commit a transaction.")
+	TEST_ASSERT_EQUAL(apply_result.meta["changed_turf_count"] || 0, 0, "Stale target apply must not change turfs.")
+	TEST_ASSERT_EQUAL(apply_result.meta["created_object_count"] || 0, 0, "Stale target apply must not create objects.")
+	TEST_ASSERT(apply_result.meta["target_state_mismatch"], "Stale target apply did not report target-state mismatch.")
+	var/list/apply_verdict = apply_result.meta["apply_validation_verdict"]
+	TEST_ASSERT(islist(apply_verdict), "Stale target apply did not include an apply validation verdict.")
+	TEST_ASSERT_EQUAL(apply_verdict["status"], "world_conflict", "Stale target apply returned the wrong verdict status.")
+	var/list/verdict_metrics = apply_verdict["metrics"]
+	TEST_ASSERT(islist(verdict_metrics), "Stale target apply verdict did not include metrics.")
+	TEST_ASSERT_EQUAL(verdict_metrics["transaction_committed"], FALSE, "Stale target apply verdict must report no commit.")
+	TEST_ASSERT_EQUAL(verdict_metrics["suppress_history"], TRUE, "Stale target apply verdict must report history suppression.")
+	TEST_ASSERT_EQUAL(verdict_metrics["changed_turf_count"] || 0, 0, "Stale target apply verdict must report zero turf changes.")
+	TEST_ASSERT_EQUAL(verdict_metrics["created_object_count"] || 0, 0, "Stale target apply verdict must report zero created objects.")
+	var/list/hard_errors = apply_verdict["hard_errors"]
+	var/found_stale_error = FALSE
+	for(var/list/error_entry as anything in hard_errors)
+		if(islist(error_entry) && error_entry["code"] == "apply_target_state_mismatch")
+			found_stale_error = TRUE
+			break
+	TEST_ASSERT(found_stale_error, "Stale target apply verdict did not include apply_target_state_mismatch.")
+	TEST_ASSERT(istype(changed_turf, /turf/closed/wall), "Stale target apply mutated the drift target despite failure.")
+	changed_turf.ChangeTurf(original_type, original_baseturfs)
 
 /datum/unit_test/world_edit_building_layout/safe_blocker_defaults/Run()
 	var/datum/world_edit_generator/building_layout/generator = new
@@ -553,3 +679,10 @@
 		), null)
 		TEST_ASSERT(support["shape_locked"], "Unsupported shape [shape_id] should be shape-locked.")
 		TEST_ASSERT_EQUAL(support["lock_code"], "shape.unsupported_for_building_layout", "Unsupported shape [shape_id] returned the wrong lock code.")
+		var/list/support_verdict = support["verdict"]
+		TEST_ASSERT(islist(support_verdict), "Unsupported shape [shape_id] support report did not include a validation verdict.")
+		TEST_ASSERT_EQUAL(support_verdict["status"], "unsupported", "Unsupported shape [shape_id] support verdict returned the wrong status.")
+		var/list/hard_errors = support_verdict["hard_errors"]
+		TEST_ASSERT(length(hard_errors) > 0, "Unsupported shape [shape_id] support verdict did not include a hard error.")
+		var/list/first_error = hard_errors[1]
+		TEST_ASSERT_EQUAL(first_error["code"], "shape.unsupported_for_building_layout", "Unsupported shape [shape_id] support verdict returned the wrong hard error code.")

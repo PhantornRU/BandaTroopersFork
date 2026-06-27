@@ -634,6 +634,7 @@
 	plan.metadata["mandatory_pattern_failure_count"] = state.validation.mandatory_pattern_failure_count
 	plan.metadata["reserved_walk_blocked_count"] = state.validation.reserved_walk_blocked_count
 	plan.metadata["door_cone_blocked_count"] = state.validation.door_cone_blocked_count
+	plan.metadata["door_corner_count"] = state.validation.door_corner_count
 	plan.metadata["mandatory_fixture_access_unreachable_count"] = state.validation.mandatory_fixture_access_unreachable_count
 	plan.metadata["double_wall_error_count"] = state.validation.double_wall_error_count
 	plan.metadata["diagonal_only_contact_count"] = state.validation.diagonal_only_contact_count
@@ -842,6 +843,9 @@
 	plan.metadata["emit_state_mismatch_count"] = state.validation.emit_state_mismatch_count
 	plan.metadata["semantic_credit_without_emitted_slots_count"] = state.validation.semantic_credit_without_emitted_slots_count
 	plan.metadata["hard_counters"] = build_building_state_hard_counter_report(state)
+	var/datum/world_edit_validation_verdict/generation_verdict = build_building_generation_validation_verdict(state)
+	plan.metadata["generation_validation_verdict"] = generation_verdict.as_payload()
+	plan.metadata["validation_verdict"] = plan.metadata["generation_validation_verdict"]
 	plan.metadata["debug_stage_separation_report"] = detailed_reports ? list(
 		"planned_rooms" = list(
 			"mandatory_room_count" = state.validation.mandatory_room_count,

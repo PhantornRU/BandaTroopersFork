@@ -33,6 +33,8 @@
 	state.stage_seed_patterns = round(text2num("[state.config["stage_seed_fixtures"]]") || build_stage_seed(state.root_seed, "fixtures"))
 	state.stage_seed_details = round(text2num("[state.config["stage_seed_microvariation"]]") || build_stage_seed(state.root_seed, "microvariation"))
 	state.set_support_status(state.config["current_request_support_status"] || WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED, state.config["user_facing_failure_reason"] || "")
+	if(islist(state.config["support_status_report"]))
+		state.validation.support_status_report = state.config["support_status_report"].Copy()
 	state.add_stage_report("state_init", "ok", null, list("root_seed" = state.root_seed))
 	state.geometry.footprint = validated["footprint"]
 	state.geometry.boundary = validated["boundary"]
@@ -85,21 +87,32 @@
 
 	return state
 
-/datum/world_edit_generator/building_layout/proc/build_building_doors(datum/world_edit_building_layout_state/state)
+/datum/world_edit_generator/building_layout/proc/solve_building_exterior_openings(datum/world_edit_building_layout_state/state)
+	if(!istype(state) || !istype(state.semantic_plan))
+		return FALSE
 	state.validation.door_reports.Cut()
+	state.geometry.door_turfs.Cut()
+	state.geometry.door_dirs.Cut()
+	state.geometry.front_door_turf = null
 	var/center_x = (state.geometry.bounds["min_x"] + state.geometry.bounds["max_x"]) / 2
 	var/center_y = (state.geometry.bounds["min_y"] + state.geometry.bounds["max_y"]) / 2
 	var/list/door_policy = islist(state.semantic_plan?.door_policy) ? state.semantic_plan.door_policy : list()
 	if(("front" in door_policy) && !GLOB.world_edit_helpers.parse_bool(door_policy["front"]))
 		state.add_error("Door policy for [state.archetype.id] does not allow a front entry.")
-		return
+		return FALSE
 	var/turf/front_door_turf = select_boundary_turf_for_dir(state.geometry.boundary, center_x, center_y, state.placement_dir, null, state.geometry.footprint_lookup)
 	if(!istype(front_door_turf))
 		state.add_error("Unable to select a building entry door turf.")
-		return
+		return FALSE
 	state.geometry.front_door_turf = front_door_turf
 	state.append_unique_turf(state.geometry.door_turfs, front_door_turf)
 	state.geometry.door_dirs[front_door_turf] = get_outward_dir(front_door_turf, state.geometry.footprint_lookup, center_x, center_y, state.placement_dir)
+	state.geometry.actual_entry_direction = state.geometry.door_dirs[front_door_turf] || state.placement_dir
+	if(state.geometry.actual_entry_direction == state.geometry.requested_direction)
+		state.validation.direction_honored_count = 1
+	else
+		state.validation.direction_fallback_count = 1
+		state.geometry.direction_fallback_reason = "Opening solver could not emit entry on requested direction."
 	state.validation.door_reports += list(list(
 		"turf" = front_door_turf,
 		"dir" = state.geometry.door_dirs[front_door_turf],
@@ -122,131 +135,7 @@
 			"kind" = "service_exit",
 			"requested_direction" = turn(state.placement_dir, 180),
 		))
-
-/datum/world_edit_generator/building_layout/proc/build_building_micro_layout(datum/world_edit_building_layout_state/state)
-	if(!istype(state) || !istype(state.semantic_plan))
-		return FALSE
-	state.clear_room_layout()
-	prepare_building_local_metrics(state)
-	var/primary_zone_id = state.semantic_plan.primary_zone_id
-	if(!length("[primary_zone_id]"))
-		primary_zone_id = state.semantic_plan.hub_zone_id
-	if(!length("[primary_zone_id]"))
-		primary_zone_id = state.semantic_plan.entry_zone_id
-	if(!length("[primary_zone_id]"))
-		primary_zone_id = "main"
-	var/list/micro_turfs = list()
-	for(var/turf/interior_turf as anything in state.geometry.interior)
-		if(istype(interior_turf))
-			micro_turfs += interior_turf
-	if(!length(micro_turfs) && istype(state.geometry.center_turf))
-		micro_turfs += state.geometry.center_turf
-	if(!length(micro_turfs))
-		state.add_error("Micro building layout has no usable tile.")
-		return FALSE
-	var/datum/world_edit_building_room/room = new("room_micro_main", primary_zone_id, "hub")
-	for(var/turf/micro_turf as anything in micro_turfs)
-		state.add_zone(micro_turf, primary_zone_id)
-		state.add_corridor_turf(micro_turf)
-		room.add_turf(micro_turf)
-	room.focus_turf = micro_turfs[1]
-	state.add_solved_room(room)
-	state.set_zone_focus(primary_zone_id, room.focus_turf)
-	state.geometry.semantic_hub_turf = room.focus_turf
-	state.geometry.center_turf = room.focus_turf
-	state.config["micro_layout"] = TRUE
-	state.config["room_first_layout"] = TRUE
-	state.config["room_count"] = 1
-	state.config["corridor_turf_count"] = length(state.geometry.corridor_turfs)
-	state.validation.room_reports.Cut()
-	state.validation.room_reports += list(list(
-		"id" = room.id,
-		"zone_id" = room.zone_id,
-		"role" = room.role,
-		"area" = length(room.turfs),
-		"useful_area" = length(room.turfs),
-		"tiny" = TRUE,
-	))
-	state.validation.zone_reports.Cut()
-	state.validation.zone_reports += list(list(
-		"id" = primary_zone_id,
-		"area" = length(room.turfs),
-		"focus" = room.focus_turf,
-	))
-	state.validation.corridor_report = list(
-		"reserved_walk_count" = length(state.geometry.primary_route_turfs),
-		"corridor_turf_count" = length(state.geometry.corridor_turfs),
-		"front_door_turf" = state.geometry.front_door_turf,
-		"micro_layout" = TRUE,
-	)
 	return TRUE
-
-/datum/world_edit_generator/building_layout/proc/build_building_room_first_layout(datum/world_edit_building_layout_state/state)
-	if(!istype(state) || !istype(state.semantic_plan))
-		return FALSE
-	if(length(state.geometry.interior) < 3 || "[state.config["size_degrade_level"]]" == WORLD_EDIT_BUILDING_DEGRADE_MICRO)
-		return build_building_micro_layout(state)
-	state.clear_room_layout()
-	prepare_building_local_metrics(state)
-	var/corridor_zone_id = select_room_first_corridor_zone_id(state)
-	var/entry_zone_id = length("[state.semantic_plan.entry_zone_id]") ? state.semantic_plan.entry_zone_id : "entry_buffer"
-	var/list/free_lookup = GLOB.world_edit_placement_shapes.world_edit_build_turf_lookup(state.geometry.interior)
-	if(istype(state.geometry.front_door_turf))
-		free_lookup[state.geometry.front_door_turf] = TRUE
-	if(!length(free_lookup))
-		state.add_error("Building room solver found no usable BSP room area.")
-		return FALSE
-	var/list/required_room_specs = get_room_first_zone_specs(state, corridor_zone_id, entry_zone_id)
-	var/room_candidate_target = max(length(required_room_specs) + 2, 5)
-	var/list/room_candidates = build_room_first_bsp_candidates(state, free_lookup, room_candidate_target, max(length(required_room_specs), 1))
-	if(!length(room_candidates))
-		state.add_error("Building room solver could not derive BSP rooms from the footprint.")
-		return FALSE
-	var/list/adjacency_edges = build_room_first_candidate_adjacency_edges(state, room_candidates)
-	annotate_room_first_candidate_adjacency(state, room_candidates, adjacency_edges)
-	annotate_room_first_route_access(state, room_candidates)
-	assign_room_first_zone_rooms(state, room_candidates, required_room_specs, corridor_zone_id, entry_zone_id)
-	allocate_room_first_required_zone_remnants(state, free_lookup, room_candidates, required_room_specs, corridor_zone_id, entry_zone_id)
-	assign_room_first_unclaimed_floor_to_hub(state, free_lookup, room_candidates, corridor_zone_id)
-	rebuild_room_first_corridor_from_hub(state, corridor_zone_id, entry_zone_id)
-	build_room_first_internal_walls(state)
-	ensure_room_first_required_room_access(state)
-	refresh_building_zone_foci(state)
-	state.geometry.semantic_hub_turf = state.get_zone_focus(state.semantic_plan.hub_zone_id) || state.get_zone_focus(corridor_zone_id) || state.geometry.semantic_hub_turf
-	state.geometry.center_turf = state.geometry.semantic_hub_turf || state.geometry.center_turf || state.geometry.front_door_turf
-	state.config["room_first_layout"] = TRUE
-	state.config["room_count"] = length(state.geometry.solved_rooms)
-	state.config["corridor_turf_count"] = length(state.geometry.corridor_turfs)
-	state.validation.room_reports.Cut()
-	for(var/datum/world_edit_building_room/room as anything in state.geometry.solved_rooms)
-		if(!istype(room))
-			continue
-		state.validation.room_reports += list(list(
-			"id" = room.id,
-			"zone_id" = room.zone_id,
-			"role" = room.role,
-			"area" = room.area,
-			"useful_area" = length(room.turfs),
-			"bounds" = list("x1" = room.x1, "y1" = room.y1, "x2" = room.x2, "y2" = room.y2),
-			"focus" = room.focus_turf,
-			"tiny" = room.tiny,
-		))
-	state.validation.zone_reports.Cut()
-	for(var/zone_id as anything in state.geometry.zone_turfs)
-		var/list/zone_turfs = state.geometry.zone_turfs[zone_id]
-		state.validation.zone_reports += list(list(
-			"id" = "[zone_id]",
-			"area" = islist(zone_turfs) ? length(zone_turfs) : 0,
-			"focus" = state.geometry.zone_focus_turfs[zone_id],
-		))
-	state.validation.corridor_report = list(
-		"reserved_walk_count" = length(state.geometry.primary_route_turfs),
-		"corridor_turf_count" = length(state.geometry.corridor_turfs),
-		"separator_lane_count" = length(state.geometry.separator_lane_turfs),
-		"door_transition_count" = length(state.validation.door_reports),
-		"front_door_turf" = state.geometry.front_door_turf,
-	)
-	return length(state.geometry.solved_rooms) > 0 && length(state.geometry.corridor_turfs) > 0
 
 /datum/world_edit_generator/building_layout/proc/build_building_semantic_layout(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !istype(state.semantic_plan))
@@ -259,6 +148,17 @@
 	if(!length(state.geometry.zone_turfs))
 		state.add_error("Building semantic region solver produced no zones.")
 		return FALSE
+	if(!solve_building_exterior_openings(state))
+		if(!state.has_errors())
+			state.add_error("Building opening solver could not select a valid exterior entry.")
+		state.add_stage_report("opening_solver", "failed", format_building_messages(state.validation.errors))
+		return FALSE
+	state.add_stage_report("opening_solver", "ok", null, list(
+		"door_count" = length(state.geometry.door_turfs),
+		"front_door_turf" = state.geometry.front_door_turf,
+		"requested_direction" = state.geometry.requested_direction,
+		"actual_entry_direction" = state.geometry.actual_entry_direction,
+	))
 	build_building_preliminary_circulation(state)
 	build_building_primary_routes(state)
 	build_building_zone_dividers(state)

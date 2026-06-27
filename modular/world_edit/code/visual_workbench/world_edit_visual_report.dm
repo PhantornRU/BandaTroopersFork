@@ -109,6 +109,37 @@
 		if("direction_honored")
 			var/list/direction = report_data?["direction"]
 			return direction?["honored"] ? TRUE : FALSE
+		if("generation")
+			var/list/generation_verdict = report_data?["validation_verdict"]
+			return generation_verdict?["status"]
+		if("generation_stage")
+			var/list/generation_stage_verdict = report_data?["validation_verdict"]
+			return generation_stage_verdict?["stage"]
+		if("preflight")
+			var/list/preflight_verdict = report_data?["support_validation_verdict"]
+			return preflight_verdict?["status"]
+		if("feasibility_dry_solve")
+			var/list/support_report = report_data?["support"]
+			return support_report?["feasibility_dry_solve_status"]
+		if("same_seed_layout_hash")
+			var/list/determinism = report_data?["determinism_replay"]
+			return determinism?["same_seed_layout_hash"] ? TRUE : FALSE
+		if("mandatory_room_unreachable_count")
+			var/list/metrics_for_room_access = report_data?["metrics"]
+			return metrics_for_room_access?["mandatory_room_no_access_count"] || 0
+		if("post_apply_error_count")
+			var/list/apply_error_verdict = report_data?["apply_validation_verdict"]
+			var/list/apply_error_metrics = apply_error_verdict?["metrics"]
+			return apply_error_metrics?["post_apply_validation_error_count"] || 0
+		if("apply")
+			var/list/apply_verdict = report_data?["apply_validation_verdict"]
+			return apply_verdict?["status"]
+		if("apply_stage")
+			var/list/apply_stage_verdict = report_data?["apply_validation_verdict"]
+			return apply_stage_verdict?["stage"]
+		if("undo_validation")
+			var/list/undo_verdict = report_data?["undo_validation_verdict"]
+			return undo_verdict?["status"]
 		if("undo")
 			var/list/undo = report_data?["undo"]
 			return undo?["status"]
@@ -146,6 +177,67 @@
 	report_data["artifacts"]["semantic_json"] = "semantic.json"
 	report_data["artifacts"]["semantic_png"] = "semantic.png"
 
+/datum/world_edit_visual_case/proc/attach_support_verdict(list/report_data, list/source, as_top_level = TRUE)
+	if(!islist(report_data) || !islist(source))
+		return
+	var/list/support = null
+	if(islist(source["support_status_report"]))
+		support = source["support_status_report"]
+	else
+		var/list/meta = source["metadata"]
+		if(islist(meta) && islist(meta["support_status_report"]))
+			support = meta["support_status_report"]
+	if(!islist(support))
+		return
+	report_data["support"] = support.Copy()
+	var/list/verdict = support["verdict"]
+	if(islist(verdict))
+		report_data["support_validation_verdict"] = verdict.Copy()
+		if(as_top_level)
+			report_data["validation_verdict"] = verdict.Copy()
+
+/datum/world_edit_visual_case/proc/attach_generation_validation_verdict(list/report_data, list/source)
+	if(!islist(report_data) || !islist(source))
+		return
+	var/list/verdict = null
+	if(islist(source["generation_validation_verdict"]))
+		verdict = source["generation_validation_verdict"]
+	else if(islist(source["validation_verdict"]))
+		verdict = source["validation_verdict"]
+	else
+		var/list/meta = source["metadata"]
+		if(islist(meta))
+			if(islist(meta["generation_validation_verdict"]))
+				verdict = meta["generation_validation_verdict"]
+			else if(islist(meta["validation_verdict"]))
+				verdict = meta["validation_verdict"]
+	if(islist(verdict))
+		report_data["validation_verdict"] = verdict.Copy()
+
+/datum/world_edit_visual_case/proc/attach_apply_validation_verdict(list/report_data, list/source, as_top_level = FALSE)
+	if(!islist(report_data) || !islist(source))
+		return
+	var/list/verdict = null
+	if(islist(source["apply_validation_verdict"]))
+		verdict = source["apply_validation_verdict"]
+	else
+		var/list/meta = source["metadata"]
+		if(islist(meta) && islist(meta["apply_validation_verdict"]))
+			verdict = meta["apply_validation_verdict"]
+	if(islist(verdict))
+		report_data["apply_validation_verdict"] = verdict.Copy()
+		if(as_top_level)
+			report_data["validation_verdict"] = verdict.Copy()
+
+/datum/world_edit_visual_case/proc/attach_undo_validation_verdict(list/report_data, list/source, as_top_level = FALSE)
+	if(!islist(report_data) || !islist(source))
+		return
+	var/list/verdict = source["undo_validation_verdict"]
+	if(islist(verdict))
+		report_data["undo_validation_verdict"] = verdict.Copy()
+		if(as_top_level)
+			report_data["validation_verdict"] = verdict.Copy()
+
 /datum/world_edit_visual_case/proc/finish_locked(list/support)
 	profiler.end_total()
 	// Locked is a successful workbench outcome, not a crash. It means the real
@@ -158,6 +250,7 @@
 	out["reason"] = support["reason"]
 	out["canvas_changed"] = FALSE
 	out["metrics"] = list("generated_turf_count" = 0, "generated_object_count" = 0, "post_emit_validation_error_count" = 0)
+	attach_support_verdict(out, list("support_status_report" = support))
 	mark_semantic_artifacts(out)
 	export_semantic_json(out)
 	write_report(out)
@@ -174,13 +267,20 @@
 		out["details"] = details
 		out["metrics"] = merge_metrics(details, null, null)
 		attach_building_diagnostics(out, details)
+		attach_support_verdict(out, details, FALSE)
+		if(stage == WORLD_EDIT_VISUAL_STAGE_APPLY)
+			attach_apply_validation_verdict(out, details, TRUE)
+		if(!islist(out["validation_verdict"]))
+			attach_generation_validation_verdict(out, details)
+		if(!islist(out["validation_verdict"]))
+			attach_support_verdict(out, details)
 	out["canvas_changed"] = canvas?.has_changed() ? TRUE : FALSE
 	mark_semantic_artifacts(out)
 	export_semantic_json(out)
 	write_report(out)
 	return out
 
-/datum/world_edit_visual_case/proc/finish_supported(list/preview, list/apply, list/post_emit, list/export_result, list/undo_result = null)
+/datum/world_edit_visual_case/proc/finish_supported(list/preview, list/apply, list/post_emit, list/export_result, list/undo_result = null, list/determinism_result = null)
 	profiler.end_total()
 	var/list/out = base_report(WORLD_EDIT_VISUAL_STATUS_SUPPORTED, WORLD_EDIT_VISUAL_STAGE_POST_EMIT_VALIDATE)
 	out["canvas_changed"] = canvas?.has_changed() ? TRUE : FALSE
@@ -188,9 +288,16 @@
 	apply_undo_metrics(out["metrics"], undo_result)
 	out["direction"] = build_direction_report(preview)
 	out["undo"] = islist(undo_result) ? undo_result.Copy() : list("status" = "not_run", "restored" = FALSE)
+	if(islist(determinism_result))
+		out["determinism_replay"] = determinism_result.Copy()
+		out["same_seed_layout_hash"] = determinism_result["same_seed_layout_hash"] ? TRUE : FALSE
 	out["rooms"] = preview?["rooms"] || list()
 	out["routes"] = preview?["routes"] || list()
 	attach_building_diagnostics(out, preview)
+	attach_support_verdict(out, preview, FALSE)
+	attach_generation_validation_verdict(out, preview)
+	attach_apply_validation_verdict(out, apply)
+	attach_undo_validation_verdict(out, undo_result)
 	if(islist(post_emit))
 		if(islist(post_emit["route_blocking_samples"]))
 			out["route_blocking_samples"] = post_emit["route_blocking_samples"].Copy()
@@ -282,7 +389,14 @@
 			"room_count_divider_count",
 			"room_count_satisfied",
 			"room_count_gap",
+			"mandatory_room_missing_count",
+			"mandatory_room_no_bounds_count",
+			"mandatory_room_no_access_count",
+			"mandatory_fixture_access_unreachable_count",
+			"reachability_failure_count",
 			"reserved_walk_blocked_count",
+			"door_cone_blocked_count",
+			"door_corner_count",
 			"semantic_credit_without_emitted_slots_count",
 			"mandatory_pattern_failure_count",
 			"post_emit_validation_error_count",
@@ -310,6 +424,7 @@
 	if(islist(apply))
 		metrics["changed_turf_count"] = apply["changed_turf_count"] || 0
 		metrics["created_object_count"] = apply["created_object_count"] || 0
+		metrics["post_apply_validation_error_count"] = apply["post_apply_validation_error_count"] || 0
 	if(islist(post_emit))
 		for(var/key as anything in post_emit)
 			if(findtext("[key]", "_count"))

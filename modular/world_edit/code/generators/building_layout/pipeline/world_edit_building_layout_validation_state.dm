@@ -53,6 +53,7 @@
 	var/mandatory_fixture_access_unreachable_count = 0
 	var/reserved_walk_blocked_count = 0
 	var/door_cone_blocked_count = 0
+	var/door_corner_count = 0
 	var/double_wall_error_count = 0
 	var/double_wall_repair_count = 0
 	var/diagonal_only_contact_count = 0

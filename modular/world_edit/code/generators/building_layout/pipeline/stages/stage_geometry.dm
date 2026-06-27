@@ -3,18 +3,6 @@
 
 /datum/world_edit_generation_stage/geometry/execute(datum/world_edit_generation_context/context)
 	var/datum/world_edit_generator/building_layout/generator = context.generator
-	generator.build_building_doors(context.state)
-	if(context.has_errors())
-		context.state.add_stage_report("doors", "failed", generator.format_building_messages(context.state.validation.errors))
-		return FALSE
-	context.state.geometry.actual_entry_direction = context.state.geometry.door_dirs[context.state.geometry.front_door_turf] || context.state.placement_dir
-	if(context.state.geometry.actual_entry_direction == context.state.geometry.requested_direction)
-		context.state.validation.direction_honored_count = 1
-	else
-		context.state.validation.direction_fallback_count = 1
-		context.state.geometry.direction_fallback_reason = "Selected footprint could not emit entry on requested direction."
-	context.state.add_stage_report("doors", "ok", null, list("door_count" = length(context.state.geometry.door_turfs)))
-
 	if(!generator.build_building_semantic_layout(context.state))
 		if(!context.has_errors())
 			context.state.add_error("Selected building footprint cannot be decomposed into semantic regions and an entry route.")

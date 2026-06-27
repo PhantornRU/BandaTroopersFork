@@ -28,6 +28,43 @@
 		result += "[archetype_id]"
 	return result
 
+/datum/world_edit_generator/building_layout/proc/get_building_size_profile_options()
+	return list(
+		list("label" = "Compact", "value" = WORLD_EDIT_BUILDING_SIZE_PROFILE_COMPACT),
+		list("label" = "Standard", "value" = WORLD_EDIT_BUILDING_SIZE_PROFILE_STANDARD),
+		list("label" = "Spacious", "value" = WORLD_EDIT_BUILDING_SIZE_PROFILE_SPACIOUS),
+	)
+
+/datum/world_edit_generator/building_layout/proc/resolve_building_size_profile(value)
+	var/profile_id = lowertext("[value || WORLD_EDIT_BUILDING_SIZE_PROFILE_STANDARD]")
+	switch(profile_id)
+		if("compact", "small")
+			return WORLD_EDIT_BUILDING_SIZE_PROFILE_COMPACT
+		if("standard", "")
+			return WORLD_EDIT_BUILDING_SIZE_PROFILE_STANDARD
+		if("spacious", "large")
+			return WORLD_EDIT_BUILDING_SIZE_PROFILE_SPACIOUS
+	return WORLD_EDIT_BUILDING_SIZE_PROFILE_STANDARD
+
+/datum/world_edit_generator/building_layout/proc/apply_building_size_profile(list/config, profile_id)
+	if(!islist(config))
+		return
+	config["size_profile"] = resolve_building_size_profile(profile_id)
+	switch(config["size_profile"])
+		if(WORLD_EDIT_BUILDING_SIZE_PROFILE_COMPACT)
+			config["half_width"] = 3
+			config["half_depth"] = 3
+		if(WORLD_EDIT_BUILDING_SIZE_PROFILE_SPACIOUS)
+			config["half_width"] = 8
+			config["half_depth"] = 8
+		else
+			config["half_width"] = 5
+			config["half_depth"] = 5
+	config["requested_half_width"] = config["half_width"]
+	config["requested_half_depth"] = config["half_depth"]
+	config["auto_size"] = FALSE
+	config["size_policy"] = WORLD_EDIT_BUILDING_SIZE_POLICY_EXPLICIT
+
 /datum/world_edit_generator/building_layout/proc/get_building_faction_catalog()
 	if(length(GLOB.world_edit_building_faction_catalog))
 		return GLOB.world_edit_building_faction_catalog
@@ -421,6 +458,9 @@
 	config["requested_half_depth"] = config["half_depth"]
 	config["auto_size"] = auto_size ? TRUE : FALSE
 	config["size_policy"] = config["auto_size"] ? WORLD_EDIT_BUILDING_SIZE_POLICY_AUTO : WORLD_EDIT_BUILDING_SIZE_POLICY_EXPLICIT
+	config["size_profile"] = resolve_building_size_profile(islist(params) ? params["size_profile"] : null)
+	if(has_building_param(params, "size_profile") && !has_building_param(params, "half_width") && !has_building_param(params, "half_depth") && isnull(islist(params) ? params["auto_size"] : null))
+		apply_building_size_profile(config, config["size_profile"])
 	if(config["auto_size"])
 		apply_building_minimum_point_size(config, archetype)
 	config["final_half_width"] = config["half_width"]
@@ -434,6 +474,7 @@
 	config["replace_blocked_turfs"] = isnull(islist(params) ? params["replace_blocked_turfs"] : null) ? FALSE : GLOB.world_edit_helpers.parse_bool(params["replace_blocked_turfs"])
 	config["confirm_large_replacement"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["confirm_large_replacement"] : null) ? TRUE : FALSE
 	config["debug_reports"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["debug_reports"] : null) ? TRUE : FALSE
+	config["skip_feasibility_dry_solve"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["skip_feasibility_dry_solve"] : null) ? TRUE : FALSE
 
 	var/default_shell_preset = length("[archetype.suggested_shell_preset]") ? archetype.suggested_shell_preset : "colony"
 	config["faction_preset"] = resolve_building_option(islist(params) ? params["faction_preset"] : null, get_building_faction_options(), default_shell_preset)
@@ -491,89 +532,12 @@
 			"step" = 1,
 		),
 		list(
-			"id" = "auto_size",
-			"label" = "Auto fit size",
-			"kind" = "boolean",
+			"id" = "size_profile",
+			"label" = "Size profile",
+			"kind" = "select",
 			"group" = "Size",
-			"value" = config["auto_size"],
-		),
-		list(
-			"id" = "half_width",
-			"label" = "Half width",
-			"kind" = "number",
-			"group" = "Size",
-			"value" = config["half_width"],
-			"min" = 1,
-			"max" = 8,
-			"step" = 1,
-		),
-		list(
-			"id" = "half_depth",
-			"label" = "Half depth",
-			"kind" = "number",
-			"group" = "Size",
-			"value" = config["half_depth"],
-			"min" = 1,
-			"max" = 8,
-			"step" = 1,
-		),
-		list(
-			"id" = "target_room_count",
-			"label" = "Target rooms",
-			"kind" = "number",
-			"group" = "Program",
-			"value" = config["target_room_count"],
-			"min" = 0,
-			"max" = 24,
-			"step" = 1,
-		),
-		list(
-			"id" = "window_density",
-			"label" = "Windows",
-			"kind" = "number",
-			"group" = "Shell",
-			"value" = config["window_density"],
-			"min" = 0,
-			"max" = 100,
-			"step" = 10,
-		),
-		list(
-			"id" = "detail_budget",
-			"label" = "Details",
-			"kind" = "number",
-			"group" = "Interior",
-			"value" = config["detail_budget"],
-			"min" = 0,
-			"max" = 100,
-			"step" = 10,
-		),
-		list(
-			"id" = "back_exit",
-			"label" = "Back exit",
-			"kind" = "boolean",
-			"group" = "Shell",
-			"value" = config["back_exit"],
-		),
-		list(
-			"id" = "respect_blockers",
-			"label" = "Respect blockers",
-			"kind" = "boolean",
-			"group" = "Safety",
-			"value" = config["respect_blockers"],
-		),
-		list(
-			"id" = "replace_blocked_turfs",
-			"label" = "Replace blocked turfs",
-			"kind" = "boolean",
-			"group" = "Safety",
-			"value" = config["replace_blocked_turfs"],
-		),
-		list(
-			"id" = "confirm_large_replacement",
-			"label" = "Confirm large replacement",
-			"kind" = "boolean",
-			"group" = "Safety",
-			"value" = config["confirm_large_replacement"],
+			"value" = config["size_profile"],
+			"options" = get_building_size_profile_options(),
 		),
 	)
 
@@ -599,6 +563,11 @@
 			new_params[param_id] = resolve_building_archetype_option(value, "living")
 		if("faction_preset")
 			new_params[param_id] = resolve_building_option(value, get_building_faction_options(), "colony")
+		if("size_profile")
+			new_params[param_id] = resolve_building_size_profile(value)
+			new_params -= "auto_size"
+			new_params -= "half_width"
+			new_params -= "half_depth"
 		if("auto_size")
 			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value) ? TRUE : FALSE
 		if("half_width")
@@ -624,6 +593,58 @@
 /datum/world_edit_generator/building_layout/get_params_short(list/params)
 	var/list/config = normalize_building_params(params)
 	return "program=[config["archetype_id"]] shell=[config["faction_preset"]] seed=[config["building_seed"]] effective_seed=[config["effective_seed"]] size=[config["half_width"]]x[config["half_depth"]] auto_size=[config["auto_size"]] target_rooms=[config["target_room_count"]] windows=[config["window_density"]] details=[config["detail_budget"]] back=[config["back_exit"]] strict_blockers=[config["respect_blockers"]] replace_blocked=[config["replace_blocked_turfs"]] large_replace=[config["confirm_large_replacement"]] shape=[manager?.get_effective_placement_shape() || WORLD_EDIT_SHAPE_POINT] dir=[GLOB.world_edit_helpers.dir_to_label(manager?.get_effective_placement_dir() || NORTH)]"
+
+/datum/world_edit_generator/building_layout/proc/build_building_support_validation_verdict(list/support_result)
+	var/support_status = "[support_result?["status"] || WORLD_EDIT_BUILDING_SUPPORT_FAILED]"
+	var/verdict_status = WORLD_EDIT_BUILDING_PREFLIGHT_SUPPORTED
+	if(support_status != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED)
+		verdict_status = support_status == WORLD_EDIT_BUILDING_SUPPORT_FAILED ? WORLD_EDIT_BUILDING_PREFLIGHT_INVALID_REQUEST : WORLD_EDIT_BUILDING_PREFLIGHT_UNSUPPORTED
+	var/datum/world_edit_validation_verdict/verdict = new(verdict_status, WORLD_EDIT_BUILDING_STAGE_FEASIBILITY)
+	if(islist(support_result))
+		for(var/metric_id as anything in list(
+			"estimated_usable_area",
+			"required_usable_area",
+			"required_compact_area",
+			"blocked_turf_conflict_count",
+			"replace_blocked_turf_count",
+			"default_max_replaced_blockers",
+			"hard_max_replaced_blockers",
+			"feasibility_dry_solve_attempt_count",
+			"feasibility_dry_solve_valid_candidate_count",
+			"feasibility_dry_solve_error_count",
+		))
+			verdict.set_metric(metric_id, support_result[metric_id])
+		verdict.set_metric("program_id", "[support_result["program_id"] || ""]")
+		verdict.set_metric("style_id", "[support_result["style_id"] || ""]")
+		verdict.set_metric("shape_id", "[support_result["requested_shape_id"] || ""]")
+		verdict.set_metric("feasibility_dry_solve_status", "[support_result["feasibility_dry_solve_status"] || ""]")
+		verdict.set_metric("feasibility_dry_solve_stage", "[support_result["feasibility_dry_solve_stage"] || ""]")
+		verdict.set_metric("can_preview", support_result["can_preview"] ? TRUE : FALSE)
+		verdict.set_metric("can_apply", support_result["can_apply"] ? TRUE : FALSE)
+	if(verdict_status != WORLD_EDIT_BUILDING_PREFLIGHT_SUPPORTED)
+		var/error_code = "[support_result?["lock_code"] || support_result?["reason_code"] || support_status || WORLD_EDIT_BUILDING_ERROR_HARD_VALIDATION_FAILED]"
+		var/error_message = "[support_result?["reason"] || "Building request is unsupported."]"
+		verdict.add_hard_error(error_code, error_message, list(
+			"program_id" = "[support_result?["program_id"] || ""]",
+			"style_id" = "[support_result?["style_id"] || ""]",
+			"shape_id" = "[support_result?["requested_shape_id"] || ""]",
+		))
+	else if(islist(support_result) && length("[support_result["reason"]]") && !support_result["can_apply"])
+		verdict.add_warning("request.confirmation_required", "[support_result["reason"]]", list(
+			"program_id" = "[support_result["program_id"] || ""]",
+			"style_id" = "[support_result["style_id"] || ""]",
+		))
+	return verdict
+
+/datum/world_edit_generator/building_layout/proc/finalize_building_support_result(list/support_result)
+	if(!islist(support_result))
+		return support_result
+	var/datum/world_edit_validation_verdict/verdict = build_building_support_validation_verdict(support_result)
+	support_result["verdict"] = verdict.as_payload()
+	support_result["preflight_status"] = verdict.status
+	support_result["hard_error_count"] = length(verdict.hard_errors)
+	support_result["warning_count"] = length(verdict.warnings)
+	return support_result
 
 /datum/world_edit_generator/building_layout/proc/build_building_context_support_result(shape_id, list/config, list/placement_context = null)
 	var/list/result = list(
@@ -653,6 +674,12 @@
 		"replace_blocked_turf_count" = 0,
 		"default_max_replaced_blockers" = WORLD_EDIT_BUILDING_DEFAULT_MAX_REPLACED_BLOCKERS,
 		"hard_max_replaced_blockers" = WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS,
+		"feasibility_dry_solve_status" = "not_run",
+		"feasibility_dry_solve_stage" = WORLD_EDIT_BUILDING_STAGE_FEASIBILITY,
+		"feasibility_dry_solve_attempt_count" = 0,
+		"feasibility_dry_solve_valid_candidate_count" = 0,
+		"feasibility_dry_solve_error_count" = 0,
+		"feasibility_dry_solve_reason" = "",
 	)
 	if(!islist(config))
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_FAILED
@@ -660,7 +687,7 @@
 		result["request_locked"] = TRUE
 		result["can_preview"] = FALSE
 		result["can_apply"] = FALSE
-		return result
+		return finalize_building_support_result(result)
 	result["program_id"] = "[config["archetype_id"] || ""]"
 	result["style_id"] = "[config["faction_preset"] || ""]"
 	result["respect_blockers"] = config["respect_blockers"] ? TRUE : FALSE
@@ -686,7 +713,7 @@
 				result["request_locked"] = TRUE
 				result["can_preview"] = FALSE
 				result["can_apply"] = FALSE
-				return result
+				return finalize_building_support_result(result)
 			if(result["replace_blocked_turfs"] && context_blocked_count > WORLD_EDIT_BUILDING_DEFAULT_MAX_REPLACED_BLOCKERS && !config["confirm_large_replacement"])
 				result["reason"] = "Building would replace [context_blocked_count] blocked turfs. Enable large replacement confirmation."
 				result["can_apply"] = FALSE
@@ -696,7 +723,7 @@
 				result["request_locked"] = TRUE
 				result["can_preview"] = FALSE
 				result["can_apply"] = FALSE
-				return result
+				return finalize_building_support_result(result)
 	var/datum/world_edit_building_archetype/archetype = get_building_archetype_catalog()[result["program_id"]]
 	if(!istype(archetype))
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_DISABLED
@@ -704,7 +731,7 @@
 		result["request_locked"] = TRUE
 		result["can_preview"] = FALSE
 		result["can_apply"] = FALSE
-		return result
+		return finalize_building_support_result(result)
 	if(config["error"])
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_FAILED
 		result["reason"] = "[config["error"]]"
@@ -713,7 +740,7 @@
 		result["locked"] = TRUE
 		result["can_preview"] = FALSE
 		result["can_apply"] = FALSE
-		return result
+		return finalize_building_support_result(result)
 
 	var/shape_text = "[shape_id]"
 	if(!(shape_text in list(
@@ -729,7 +756,7 @@
 		result["lock_code"] = "shape.unsupported_for_building_layout"
 		result["can_preview"] = FALSE
 		result["can_apply"] = FALSE
-		return result
+		return finalize_building_support_result(result)
 
 	var/required_compact_area = get_building_program_required_compact_area(archetype)
 	var/estimated_usable_area = get_building_request_estimated_usable_area(config, shape_text == WORLD_EDIT_SHAPE_POINT ? null : placement_context)
@@ -746,7 +773,7 @@
 		result["request_locked"] = TRUE
 		result["can_preview"] = FALSE
 		result["can_apply"] = FALSE
-		return result
+		return finalize_building_support_result(result)
 	if(estimated_usable_area < required_compact_area)
 		result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
 		result["reason"] = "Cannot build [archetype.id]: selected area has [estimated_usable_area]/[required_compact_area] minimum usable tiles."
@@ -755,9 +782,33 @@
 		result["locked"] = TRUE
 		result["can_preview"] = FALSE
 		result["can_apply"] = FALSE
-		return result
+		return finalize_building_support_result(result)
 
-	return result
+	if(!config["skip_feasibility_dry_solve"])
+		var/list/dry_solve = build_building_feasibility_dry_solve_result(shape_text, config, placement_context)
+		if(islist(dry_solve))
+			result["feasibility_dry_solve_status"] = dry_solve["status"]
+			result["feasibility_dry_solve_stage"] = dry_solve["stage"]
+			result["feasibility_dry_solve_attempt_count"] = dry_solve["candidate_attempt_count"]
+			result["feasibility_dry_solve_valid_candidate_count"] = dry_solve["valid_candidate_count"]
+			result["feasibility_dry_solve_error_count"] = dry_solve["error_candidate_count"]
+			result["feasibility_dry_solve_reason"] = dry_solve["reason"]
+			if(islist(dry_solve["selected_candidate_report"]))
+				result["feasibility_dry_solve_selected_candidate"] = dry_solve["selected_candidate_report"]
+			if("[dry_solve["status"]]" == "no_solution" || "[dry_solve["status"]]" == "failed")
+				result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
+				result["reason"] = length("[dry_solve["reason"]]") ? "[dry_solve["reason"]]" : "Cannot build [archetype.id]: no valid topology/route candidate found."
+				result["lock_code"] = WORLD_EDIT_BUILDING_ERROR_PROGRAM_INSUFFICIENT_FOOTPRINT
+				result["request_locked"] = TRUE
+				result["locked"] = TRUE
+				result["can_preview"] = FALSE
+				result["can_apply"] = FALSE
+				return finalize_building_support_result(result)
+	else
+		result["feasibility_dry_solve_status"] = "skipped_internal"
+		result["feasibility_dry_solve_reason"] = "Internal support recursion guard."
+
+	return finalize_building_support_result(result)
 
 /datum/world_edit_generator/building_layout/get_placement_shape_support_report(shape_id, list/params, list/placement_context)
 	var/list/config = normalize_building_params(params)
@@ -793,6 +844,7 @@
 	config["current_request_support_status"] = support_result["status"]
 	config["user_facing_failure_reason"] = support_result["reason"]
 	config["support_status_report"] = support_result.Copy()
+	config["support_verdict"] = support_result["verdict"]
 	config["size_degrade_level"] = support_result["degrade_level"] || WORLD_EDIT_BUILDING_DEGRADE_NONE
 	config["program_shedding"] = support_result["program_shedding"] ? TRUE : FALSE
 	config["estimated_usable_area"] = support_result["estimated_usable_area"]
@@ -1603,6 +1655,7 @@
 		"scatter_signature_credit_count",
 		"reserved_walk_blocked_count",
 		"door_cone_blocked_count",
+		"door_corner_count",
 		"mandatory_fixture_access_unreachable_count",
 		"double_wall_error_count",
 		"diagonal_only_contact_count",
@@ -1644,6 +1697,7 @@
 		if("scatter_signature_credit_count") return state.validation.scatter_signature_credit_count
 		if("reserved_walk_blocked_count") return state.validation.reserved_walk_blocked_count
 		if("door_cone_blocked_count") return state.validation.door_cone_blocked_count
+		if("door_corner_count") return state.validation.door_corner_count
 		if("mandatory_fixture_access_unreachable_count") return state.validation.mandatory_fixture_access_unreachable_count
 		if("double_wall_error_count") return state.validation.double_wall_error_count
 		if("diagonal_only_contact_count") return state.validation.diagonal_only_contact_count
@@ -1672,6 +1726,71 @@
 	for(var/counter_name as anything in get_building_hard_counter_names())
 		report["[counter_name]"] = get_building_state_hard_counter(state, counter_name)
 	return report
+
+/datum/world_edit_generator/building_layout/proc/build_building_generation_validation_verdict(datum/world_edit_building_layout_state/state)
+	var/list/hard_counters = build_building_state_hard_counter_report(state)
+	var/hard_counter_failure_count = 0
+	for(var/counter_name as anything in hard_counters)
+		var/counter_value = round(text2num("[hard_counters[counter_name]]") || 0)
+		if(counter_value > 0)
+			hard_counter_failure_count++
+	var/error_count = istype(state) ? length(state.validation.errors) : 1
+	var/verdict_status = (!error_count && !hard_counter_failure_count) ? WORLD_EDIT_BUILDING_GENERATION_VALID_PLAN : WORLD_EDIT_BUILDING_GENERATION_VALIDATION_FAILED
+	if(!istype(state))
+		verdict_status = WORLD_EDIT_BUILDING_GENERATION_INTERNAL_ERROR
+	var/datum/world_edit_validation_verdict/verdict = new(verdict_status, WORLD_EDIT_BUILDING_STAGE_CANDIDATE_VALIDATION)
+	verdict.set_metric("error_count", error_count)
+	verdict.set_metric("hard_counter_failure_count", hard_counter_failure_count)
+	for(var/counter_name as anything in hard_counters)
+		verdict.set_metric(counter_name, hard_counters[counter_name])
+	if(!istype(state))
+		verdict.add_hard_error("generation.state_unavailable", "Building layout state is unavailable.")
+		return verdict
+	verdict.set_metric("program_id", "[state.archetype?.id || ""]")
+	verdict.set_metric("style_id", "[state.config["faction_preset"] || ""]")
+	verdict.set_metric("shape_id", "[state.config["placement_shape_id"] || ""]")
+	verdict.set_metric("layout_candidate_score", state.config["layout_candidate_score"] || state.validation.layout_candidate_score)
+	verdict.set_metric("layout_candidate_index", state.config["layout_candidate_index"] || 1)
+	verdict.set_metric("footprint_family", "[state.config["footprint_family"] || ""]")
+	verdict.set_metric("room_count", length(state.geometry.solved_rooms))
+	verdict.set_metric("target_room_count", state.config["target_room_count"] || state.validation.requested_room_count)
+	verdict.set_metric("room_count_satisfied", !round(text2num("[state.config["target_room_count"]]") || 0) || length(state.geometry.solved_rooms) >= round(text2num("[state.config["target_room_count"]]") || 0))
+	verdict.set_metric("support_status", "[state.validation.current_request_support_status || ""]")
+	for(var/error_message as anything in state.validation.errors)
+		verdict.add_hard_error(WORLD_EDIT_BUILDING_ERROR_HARD_VALIDATION_FAILED, "[error_message]")
+	for(var/counter_name as anything in hard_counters)
+		var/counter_value = round(text2num("[hard_counters[counter_name]]") || 0)
+		if(counter_value > 0)
+			verdict.add_hard_error("[counter_name]", "Hard validation counter [counter_name] is nonzero.", list("count" = counter_value))
+	return verdict
+
+/datum/world_edit_generator/building_layout/proc/build_building_apply_validation_verdict(status, message = null, list/failures = null, list/metrics = null)
+	var/resolved_status = length("[status]") ? "[status]" : WORLD_EDIT_BUILDING_APPLY_FAILED
+	var/datum/world_edit_validation_verdict/verdict = new(resolved_status, WORLD_EDIT_BUILDING_STAGE_APPLY)
+	if(islist(metrics))
+		for(var/metric_id as anything in metrics)
+			verdict.set_metric(metric_id, metrics[metric_id])
+	if(length("[message]"))
+		verdict.set_metric("message", "[message]")
+	if(islist(failures))
+		verdict.set_metric("failure_count", length(failures))
+		for(var/failure as anything in failures)
+			verdict.add_hard_error("[failure]", "[failure]")
+	if(resolved_status != WORLD_EDIT_BUILDING_APPLY_APPLIED && !verdict.has_hard_errors())
+		var/error_code = resolved_status == WORLD_EDIT_BUILDING_APPLY_WORLD_CONFLICT ? WORLD_EDIT_BUILDING_APPLY_WORLD_CONFLICT : WORLD_EDIT_BUILDING_APPLY_FAILED
+		verdict.add_hard_error(error_code, length("[message]") ? "[message]" : "Building apply failed.")
+	return verdict
+
+/datum/world_edit_generator/building_layout/proc/stamp_building_apply_validation_verdict(datum/world_edit_apply_result/result, status, message = null, list/failures = null, list/metrics = null)
+	if(!istype(result))
+		return null
+	if(!islist(result.meta))
+		result.meta = list()
+	var/datum/world_edit_validation_verdict/verdict = build_building_apply_validation_verdict(status, message, failures, metrics)
+	result.meta["apply_validation_verdict"] = verdict.as_payload()
+	result.meta["apply_status"] = verdict.status
+	result.meta["apply_hard_error_count"] = length(verdict.hard_errors)
+	return verdict
 
 /datum/world_edit_generator/building_layout/proc/score_building_layout_candidate(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
@@ -1797,6 +1916,9 @@
 		report["hard_counters"] = hard_counters
 		for(var/counter_name as anything in hard_counters)
 			report[counter_name] = hard_counters[counter_name]
+		var/datum/world_edit_validation_verdict/validation_verdict = build_building_generation_validation_verdict(state)
+		report["generation_validation_verdict"] = validation_verdict.as_payload()
+		report["validation_verdict"] = report["generation_validation_verdict"]
 		report["requested_direction"] = state.geometry.requested_direction
 		report["actual_entry_direction"] = state.geometry.actual_entry_direction
 		report["direction_honored"] = state.geometry.actual_entry_direction == state.geometry.requested_direction
@@ -1894,6 +2016,81 @@
 			"half_depth" = start_half_depth,
 		))
 	return candidates
+
+/datum/world_edit_generator/building_layout/proc/build_building_feasibility_dry_solve_result(shape_id, list/config, list/placement_context)
+	var/list/result = list(
+		"status" = "not_run",
+		"stage" = WORLD_EDIT_BUILDING_STAGE_FEASIBILITY,
+		"reason" = "",
+		"candidate_attempt_count" = 0,
+		"valid_candidate_count" = 0,
+		"error_candidate_count" = 0,
+	)
+	if(!islist(config))
+		result["status"] = "failed"
+		result["reason"] = "Building request config is unavailable."
+		return result
+	if(!islist(placement_context))
+		result["status"] = "not_run_no_context"
+		result["reason"] = "No placement context was available for feasibility dry solve."
+		return result
+
+	var/list/dry_params = config.Copy()
+	dry_params["skip_feasibility_dry_solve"] = TRUE
+	dry_params["debug_reports"] = FALSE
+	var/datum/world_edit_shape_contract/shape_contract = build_shape_contract_from_placement_context(shape_id, placement_context["anchor_turfs"], placement_context)
+	var/datum/world_edit_building_request/request = build_building_request(dry_params, shape_contract, placement_context)
+	if(!istype(request) || request.config["error"])
+		var/request_error = istype(request) && islist(request.config) ? request.config["error"] : null
+		result["status"] = "failed"
+		result["reason"] = "[request_error || "Unable to build feasibility request."]"
+		return result
+
+	var/resolved_shape_id = "[shape_contract?.shape_id || shape_id || WORLD_EDIT_SHAPE_POINT]"
+	var/list/candidate_families = (resolved_shape_id == WORLD_EDIT_SHAPE_POINT) ? get_ordered_building_footprint_candidate_families(request.config) : list(uppertext("[resolved_shape_id]"))
+	var/list/size_candidates = resolved_shape_id == WORLD_EDIT_SHAPE_POINT ? get_building_point_size_candidate_specs(request.config) : list(list("index" = 1, "half_width" = request.config["half_width"], "half_depth" = request.config["half_depth"]))
+	var/attempt_index = 0
+	var/first_candidate_error = null
+	for(var/list/size_candidate as anything in size_candidates)
+		for(var/footprint_family as anything in candidate_families)
+			if(attempt_index >= WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
+				break
+			attempt_index++
+			var/datum/world_edit_building_request/candidate_request = build_building_candidate_request(request, footprint_family, attempt_index)
+			candidate_request.config["half_width"] = size_candidate["half_width"]
+			candidate_request.config["half_depth"] = size_candidate["half_depth"]
+			candidate_request.config["final_half_width"] = size_candidate["half_width"]
+			candidate_request.config["final_half_depth"] = size_candidate["half_depth"]
+			candidate_request.config["size_candidate_index"] = size_candidate["index"]
+			candidate_request.config["skip_feasibility_dry_solve"] = TRUE
+			if(GLOB.world_edit_helpers.parse_bool(request.config["auto_size"]) && (size_candidate["half_width"] != request.config["half_width"] || size_candidate["half_depth"] != request.config["half_depth"]))
+				candidate_request.config["size_auto_adjusted"] = TRUE
+			var/datum/world_edit_building_layout_state/candidate_state = build_building_layout_candidate_state(candidate_request, shape_contract, dry_params, placement_context)
+			result["candidate_attempt_count"] = attempt_index
+			if(!istype(candidate_state))
+				result["error_candidate_count"] = result["error_candidate_count"] + 1
+				if(isnull(first_candidate_error))
+					first_candidate_error = candidate_request.config["layout_candidate_error"] || "Candidate layout failed before semantic state."
+				continue
+			if(candidate_state.has_errors())
+				result["error_candidate_count"] = result["error_candidate_count"] + 1
+				if(isnull(first_candidate_error))
+					if(candidate_state.validation.current_request_support_status != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED && length(candidate_state.validation.user_facing_failure_reason))
+						first_candidate_error = candidate_state.validation.user_facing_failure_reason
+					else
+						first_candidate_error = length(candidate_state.validation.errors) ? candidate_state.validation.errors[1] : "Building candidate failed validation."
+				continue
+			result["valid_candidate_count"] = result["valid_candidate_count"] + 1
+			result["status"] = "solved"
+			result["reason"] = ""
+			result["selected_candidate_report"] = build_building_layout_candidate_report(candidate_state, footprint_family, attempt_index, candidate_state.validation.layout_candidate_score, null, FALSE)
+			return result
+		if(attempt_index >= WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
+			break
+
+	result["status"] = "no_solution"
+	result["reason"] = first_candidate_error || "No valid topology/route candidate found during feasibility dry solve."
+	return result
 
 /datum/world_edit_generator/building_layout/build_plan_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)
 	var/datum/world_edit_plan/plan = new
@@ -2266,6 +2463,10 @@
 		if(!istype(target_turf))
 			continue
 		values += "[target_turf.x],[target_turf.y],[target_turf.z]|turf=[target_turf.type]|density=[target_turf.density]"
+		for(var/atom/movable/existing_atom as anything in target_turf)
+			if(ismob(existing_atom) || QDELETED(existing_atom))
+				continue
+			values += "[target_turf.x],[target_turf.y],[target_turf.z]|atom=[existing_atom.type]|dir=[existing_atom.dir]|density=[existing_atom.density]"
 	return build_building_hash_from_strings(values)
 
 /datum/world_edit_generator/building_layout/proc/stamp_building_target_state_metadata(datum/world_edit_plan/plan)
@@ -2320,7 +2521,7 @@
 		report["status"] = "failed"
 	return report
 
-/datum/world_edit_generator/building_layout/proc/fail_building_apply_transaction(datum/world_edit_apply_result/result, datum/world_edit_changeset/changeset, message, list/failures = null)
+/datum/world_edit_generator/building_layout/proc/fail_building_apply_transaction(datum/world_edit_apply_result/result, datum/world_edit_changeset/changeset, message, list/failures = null, verdict_status = null)
 	if(!istype(result))
 		result = new
 	if(!islist(result.meta))
@@ -2336,6 +2537,24 @@
 	if(istype(changeset) && !changeset.is_empty())
 		var/list/rollback_report = GLOB.world_edit_changesets.revert_changeset(changeset)
 		result.meta["rollback_report"] = rollback_report
+	var/list/metrics = list(
+		"transaction_committed" = FALSE,
+		"suppress_history" = TRUE,
+		"changed_turf_count" = result.meta["changed_turf_count"] || 0,
+		"created_object_count" = result.meta["created_object_count"] || 0,
+		"post_apply_validation_error_count" = result.meta["post_apply_validation_error_count"] || 0,
+	)
+	if(!isnull(result.meta["target_state_hash"]))
+		metrics["target_state_hash"] = result.meta["target_state_hash"]
+	if(!isnull(result.meta["current_target_state_hash"]))
+		metrics["current_target_state_hash"] = result.meta["current_target_state_hash"]
+	if(islist(result.meta["rollback_report"]))
+		var/list/rollback_report = result.meta["rollback_report"]
+		metrics["rollback_outcome"] = rollback_report["outcome"]
+		metrics["rollback_reverted_count"] = rollback_report["reverted_count"] || 0
+		metrics["rollback_skipped_count"] = rollback_report["skipped_count"] || 0
+	var/resolved_status = length("[verdict_status]") ? verdict_status : (istype(changeset) && !changeset.is_empty() ? WORLD_EDIT_BUILDING_APPLY_ROLLED_BACK : WORLD_EDIT_BUILDING_APPLY_FAILED)
+	stamp_building_apply_validation_verdict(result, resolved_status, message, failures, metrics)
 	current_plan = null
 	current_plan_request_key = null
 	return result
@@ -2344,9 +2563,11 @@
 	var/datum/world_edit_apply_result/result = new
 	if(!istype(plan))
 		result.message = "Run building preview first."
+		stamp_building_apply_validation_verdict(result, WORLD_EDIT_BUILDING_APPLY_FAILED, result.message)
 		return result
 	if(plan.metadata["error"])
 		result.message = "[plan.metadata["error"]]"
+		stamp_building_apply_validation_verdict(result, WORLD_EDIT_BUILDING_APPLY_FAILED, result.message)
 		return result
 
 	result.center_turf = plan.metadata["center_turf"]
@@ -2356,24 +2577,25 @@
 	if(config["respect_blockers"])
 		var/runtime_blocker_error = get_runtime_footprint_blocker_error(plan)
 		if(length("[runtime_blocker_error]"))
-			return fail_building_apply_transaction(result, null, "[runtime_blocker_error]", list("runtime_blocker:[runtime_blocker_error]"))
+			return fail_building_apply_transaction(result, null, "[runtime_blocker_error]", list("runtime_blocker:[runtime_blocker_error]"), WORLD_EDIT_BUILDING_APPLY_WORLD_CONFLICT)
 	var/replaced_blocker_count = round(text2num("[plan.metadata["replace_blocked_turf_count"]]") || 0)
 	if(config["replace_blocked_turfs"] && replaced_blocker_count > WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS)
 		result.message = "Building apply blocked: would replace [replaced_blocker_count] blocked turfs, above the hard cap of [WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS]."
+		stamp_building_apply_validation_verdict(result, WORLD_EDIT_BUILDING_APPLY_WORLD_CONFLICT, result.message, list("replace_blocked_turf_hard_cap"))
 		return result
 	if(config["replace_blocked_turfs"] && replaced_blocker_count > WORLD_EDIT_BUILDING_DEFAULT_MAX_REPLACED_BLOCKERS && !config["confirm_large_replacement"])
 		result.message = "Building apply requires confirmation: would replace [replaced_blocker_count] blocked turfs. Enable large replacement confirmation."
+		stamp_building_apply_validation_verdict(result, WORLD_EDIT_BUILDING_APPLY_FAILED, result.message, list("replacement_confirmation_required"))
 		return result
 
 	var/expected_target_hash = round(text2num("[plan.metadata["target_state_hash"]]") || 0)
-	var/current_target_hash = build_building_target_state_hash(plan)
+	var/current_target_hash = round(text2num("[build_building_target_state_hash(plan)]") || 0)
 	result.meta["current_target_state_hash"] = current_target_hash
 	if(expected_target_hash <= 0)
 		return fail_building_apply_transaction(result, null, "Building apply blocked: preview plan is missing target state hash. Run preview again.")
-	// The live target hash is kept for diagnostics, but apply is gated by the
-	// parameter request key plus the runtime blocker/preflight checks below.
-	// That avoids false negatives from incidental live world state that does
-	// not affect the actual build contract.
+	if(current_target_hash != expected_target_hash)
+		result.meta["target_state_mismatch"] = TRUE
+		return fail_building_apply_transaction(result, null, "Building apply blocked: target world changed after preview. Run preview again.", list("apply_target_state_mismatch"), WORLD_EDIT_BUILDING_APPLY_WORLD_CONFLICT)
 
 	var/list/preflight_failures = list()
 	var/replace_blocked_turfs = config["replace_blocked_turfs"]
@@ -2396,7 +2618,7 @@
 			if(!istype(target_turf) || !ispath(obj_path, /obj))
 				add_building_runtime_failure_reason(preflight_failures, "invalid_turf_or_path:[coord_key]")
 	if(length(preflight_failures))
-		return fail_building_apply_transaction(result, null, "Building apply blocked before mutation: [preflight_failures[1]].", preflight_failures)
+		return fail_building_apply_transaction(result, null, "Building apply blocked before mutation: [preflight_failures[1]].", preflight_failures, WORLD_EDIT_BUILDING_APPLY_WORLD_CONFLICT)
 
 	var/datum/world_edit_changeset/changeset = new /datum/world_edit_changeset(definition?.id || "building_layout", WORLD_EDIT_UNDO_FULL, list(
 		"center_turf" = plan.metadata["center_turf"],
@@ -2481,6 +2703,12 @@
 		result.message = "Building made no changes."
 		result.suppress_history = TRUE
 		result.meta["suppress_history"] = TRUE
+		stamp_building_apply_validation_verdict(result, WORLD_EDIT_BUILDING_APPLY_FAILED, result.message, list("apply.no_changes"), list(
+			"transaction_committed" = FALSE,
+			"suppress_history" = TRUE,
+			"changed_turf_count" = changed_turf_count,
+			"created_object_count" = created_object_count,
+		))
 		current_plan = null
 		current_plan_request_key = null
 		return result
@@ -2497,6 +2725,15 @@
 	result.changeset = changeset
 	result.meta["transaction_committed"] = TRUE
 	result.meta["post_apply_target_state_hash"] = build_building_target_state_hash(plan)
+	stamp_building_apply_validation_verdict(result, WORLD_EDIT_BUILDING_APPLY_APPLIED, "Building apply completed.", null, list(
+		"transaction_committed" = TRUE,
+		"suppress_history" = result.suppress_history ? TRUE : FALSE,
+		"changed_turf_count" = changed_turf_count,
+		"created_object_count" = created_object_count,
+		"post_apply_validation_error_count" = result.meta["post_apply_validation_error_count"] || 0,
+		"target_state_hash" = plan.metadata["target_state_hash"],
+		"post_apply_target_state_hash" = result.meta["post_apply_target_state_hash"],
+	))
 	result.message = "Building applied: turfs=[changed_turf_count], objects=[created_object_count]."
 	current_plan = null
 	current_plan_request_key = null
