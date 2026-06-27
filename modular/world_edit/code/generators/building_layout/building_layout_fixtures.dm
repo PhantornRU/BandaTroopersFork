@@ -1336,13 +1336,14 @@
 		return FALSE
 	if(!building_place_rule_allows_turf(state, target_turf, place_rule, dir_to_use, wall_dir))
 		return FALSE
+	var/is_required_cluster = istype(cluster_spec) && cluster_spec.required
 	var/budget = state.get_category_budget(category)
-	if(isnum(budget) && budget > 0 && (state.fixtures.category_counts["[category]"] || 0) >= budget)
+	if(!is_required_cluster && isnum(budget) && budget > 0 && (state.fixtures.category_counts["[category]"] || 0) >= budget)
 		return FALSE
 	var/list/repeat_penalties = state.semantic_plan?.repeat_penalties
 	var/list/repeat_rule = islist(repeat_penalties) && islist(repeat_penalties["[category]"]) ? repeat_penalties["[category]"] : list()
 	var/hard_percent = round(text2num("[repeat_rule["hard_percent"]]") || 0)
-	if(!major && hard_percent > 0 && state.fixtures.fixture_count >= 4)
+	if(!is_required_cluster && !major && hard_percent > 0 && state.fixtures.fixture_count >= 4)
 		var/projected_percent = round(((state.fixtures.category_counts["[category]"] || 0) + 1) * 100 / max(state.fixtures.fixture_count + 1, 1))
 		if(projected_percent > hard_percent)
 			return FALSE
