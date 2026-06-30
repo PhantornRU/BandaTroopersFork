@@ -528,6 +528,8 @@
 /datum/world_edit_generator/building_layout/proc/get_cluster_effective_needs_wall(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_place_rule/place_rule)
 	if(istype(cluster_spec) && cluster_spec.slot == "toilet" && cluster_spec.category == "sanitation")
 		return FALSE
+	if(istype(cluster_spec) && !cluster_spec.wall_required && cluster_spec.pattern != "wall_object" && is_building_semantic_furniture_slot(cluster_spec.slot, cluster_spec.category))
+		return FALSE
 	var/needs_wall = cluster_spec.wall_required || place_rule.needs_wall
 	if(!needs_wall)
 		return FALSE
@@ -706,6 +708,8 @@
 		return null
 	var/datum/world_edit_building_cluster_spec/substitute_spec = source_spec.clone()
 	var/source_macro_id = substitute_spec.macro_id
+	if(parent_spec.required && is_building_semantic_furniture_slot(parent_spec.slot, parent_spec.category))
+		substitute_spec.anchors = islist(parent_spec.anchors) ? parent_spec.anchors.Copy() : list()
 	substitute_spec.required = parent_spec.required
 	substitute_spec.signature_required = parent_spec.signature_required
 	substitute_spec.failure_severity = parent_spec.failure_severity
@@ -765,7 +769,8 @@
 		if(!building_fixture_matches_semantic_zone_contract(state, floor_turf, cluster_spec.slot, cluster_spec.category, cluster_spec))
 			continue
 		var/fallback_dir = get_cardinal_dir_toward(floor_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, SOUTH)
-		if(!fixture_turf_satisfies_place_rule(state, floor_turf, place_rule, fallback_dir, effective_needs_wall))
+		var/list/place_context = (effective_needs_wall && is_building_semantic_furniture_slot(cluster_spec.slot, cluster_spec.category)) ? build_building_module_front_clear_place_context(state, floor_turf, place_rule, fallback_dir, effective_needs_wall, cluster_spec, anchor_ids) : build_building_fixture_place_context(state, floor_turf, place_rule, fallback_dir, effective_needs_wall, cluster_spec, anchor_ids)
+		if(!islist(place_context))
 			continue
 		capacity++
 	return capacity
@@ -800,6 +805,8 @@
 	if(!istype(state) || !istype(cluster_spec))
 		return 0
 	var/fixture_capacity = count_building_cluster_fixture_capacity_for_anchors(state, cluster_spec, anchor_ids)
+	if(is_building_semantic_furniture_slot(cluster_spec.slot, cluster_spec.category))
+		return fixture_capacity
 	var/template_capacity = count_building_cluster_template_capacity_for_anchors(state, cluster_spec, anchor_ids)
 	return max(fixture_capacity, template_capacity)
 
@@ -810,7 +817,7 @@
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
 	var/macro_id = length(cluster_spec.macro_id) ? cluster_spec.macro_id : get_building_macro_id_for_cluster(cluster_spec, state)
 	var/planned_credit_count = 0
-	if(length(macro_id))
+	if(length(macro_id) && !is_building_semantic_furniture_slot(cluster_spec.slot, cluster_spec.category))
 		var/resolved_macro_id = resolve_existing_building_template_chunk_id(macro_id)
 		if(length(resolved_macro_id))
 			cluster_spec.macro_id = resolved_macro_id
@@ -861,6 +868,7 @@
 	var/effective_needs_wall = get_cluster_effective_needs_wall(state, cluster_spec, place_rule)
 	while(planned_credit_count < target_count && length(candidates))
 		var/turf/best_turf = null
+		var/list/best_place_context = null
 		var/best_score = -999999999
 		for(var/turf/candidate_turf as anything in candidates)
 			if(!istype(candidate_turf) || planned_lookup[candidate_turf])
@@ -877,17 +885,29 @@
 			if(!building_fixture_matches_semantic_zone_contract(state, candidate_turf, cluster_spec.slot, cluster_spec.category, cluster_spec))
 				continue
 			var/fallback_dir = get_cardinal_dir_toward(candidate_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, SOUTH)
-			if(!fixture_turf_satisfies_place_rule(state, candidate_turf, place_rule, fallback_dir, effective_needs_wall))
+			var/list/place_context = (effective_needs_wall && is_building_semantic_furniture_slot(cluster_spec.slot, cluster_spec.category)) ? build_building_module_front_clear_place_context(state, candidate_turf, place_rule, fallback_dir, effective_needs_wall, cluster_spec, anchor_ids) : build_building_fixture_place_context(state, candidate_turf, place_rule, fallback_dir, effective_needs_wall, cluster_spec, anchor_ids)
+			if(!islist(place_context))
 				continue
 			var/score = score_fixture_turf(state, candidate_turf, anchor_ids, effective_needs_wall, cluster_spec, place_rule)
 			if(!istype(best_turf) || score > best_score)
 				best_turf = candidate_turf
+				best_place_context = place_context
 				best_score = score
 		if(!istype(best_turf))
 			break
+		if(!state.can_place_fixture(best_turf))
+			candidates -= best_turf
+			continue
+		if(!state.reserve_semantic_slot(requirement_id, best_turf))
+			candidates -= best_turf
+			continue
 		planned_turfs += best_turf
 		planned_lookup[best_turf] = TRUE
-		state.reserve_semantic_slot(requirement_id, best_turf)
+		if(effective_needs_wall && is_building_semantic_furniture_slot(cluster_spec.slot, cluster_spec.category) && islist(best_place_context))
+			var/front_dir = get_building_place_rule_front_dir(best_place_context["dir"], best_place_context["wall_dir"], place_rule)
+			var/turf/front_turf = front_dir ? get_step(best_turf, front_dir) : null
+			if(istype(front_turf))
+				state.reserve_semantic_slot_clearance(requirement_id, front_turf)
 		planned_credit_count += max(get_building_fixture_count_credit(cluster_spec, cluster_spec.slot, cluster_spec.category), 1)
 		candidates -= best_turf
 	return planned_turfs
@@ -1012,6 +1032,10 @@
 	state.validation.semantic_slot_capacity_count = 0
 	state.validation.semantic_slot_shortage_count = 0
 	state.validation.semantic_slot_fallback_count = 0
+	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
+		if(!istype(cluster_spec) || !cluster_spec.required)
+			continue
+		preflight_building_cluster_slots(state, cluster_spec, "program")
 	if(length(state.geometry.floor_turfs) >= 12)
 		var/list/anchors = build_infrastructure_anchor_list(state)
 		for(var/list/spec_data as anything in get_building_infrastructure_specs(state))
@@ -1039,10 +1063,6 @@
 				spec_data["macro"]
 			)
 			preflight_building_cluster_slots(state, cluster_spec, "infrastructure")
-	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
-		if(!istype(cluster_spec) || !cluster_spec.required)
-			continue
-		preflight_building_cluster_slots(state, cluster_spec, "program")
 
 /datum/world_edit_generator/building_layout/proc/get_effective_cluster_min_count(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
 	if(!istype(cluster_spec))

@@ -41,6 +41,10 @@
 | C18 | MUST | Fix semantic module placement so required multi-slot rack/staging/workbench clusters use reserved/compact semantic slot turfs atomically. | [x] |
 | C19 | MUST | Remove storage forbidden fallback / route repair / required-room-without-module failures through production placement fixes, not validator hiding. | [x] |
 | C20 | CHECK | Re-run storage, workshop, and living target-room visual workflows after the residual fix. | [x] |
+| C21 | MUST | Strengthen wall-module front clearance to reject wall, fixture, reserved route, door, and door-cone front cells. | [x] |
+| C22 | MUST | Remove `tools/world_edit_visual/cases/user_test.json` scratch case with incomplete expectations. | [x] |
+| C23 | CHECK | Run living, storage/workshop, and office/dormitory/hydroponics visual acceptance matrix. | [x] |
+| C24 | CHECK | Inspect required `semantic_sprites.png` outputs visually and record door/room/furniture/route quality. | [x] |
 
 ## Forbidden Substitutions
 

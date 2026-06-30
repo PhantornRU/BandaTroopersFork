@@ -279,6 +279,8 @@
 		return FALSE
 	if(fixtures.fixture_lookup[target_turf])
 		return FALSE
+	if(fixtures.semantic_slot_clearance_by_turf[target_turf])
+		return FALSE
 	if(!allow_reserved && geometry.reserved_lookup[target_turf])
 		return FALSE
 	if(has_anchor("door_cone", target_turf))
@@ -541,10 +543,15 @@
 /datum/world_edit_building_layout_state/proc/clear_semantic_slot_reservations()
 	fixtures.semantic_slot_reservation_by_turf.Cut()
 	fixtures.semantic_slot_reserved_turfs.Cut()
+	fixtures.semantic_slot_clearance_by_turf.Cut()
 	validation.semantic_slot_reservation_conflict_count = 0
 
 /datum/world_edit_building_layout_state/proc/reserve_semantic_slot(requirement_id, turf/target_turf)
 	if(!length("[requirement_id]") || !istype(target_turf))
+		return FALSE
+	var/clearance_owner = "[fixtures.semantic_slot_clearance_by_turf[target_turf] || ""]"
+	if(length(clearance_owner) && clearance_owner != "[requirement_id]")
+		validation.semantic_slot_reservation_conflict_count++
 		return FALSE
 	var/owner = "[fixtures.semantic_slot_reservation_by_turf[target_turf] || ""]"
 	if(length(owner) && owner != "[requirement_id]")
@@ -562,6 +569,25 @@
 	if(!istype(target_turf))
 		return ""
 	return "[fixtures.semantic_slot_reservation_by_turf[target_turf] || ""]"
+
+/datum/world_edit_building_layout_state/proc/reserve_semantic_slot_clearance(requirement_id, turf/target_turf)
+	if(!length("[requirement_id]") || !istype(target_turf))
+		return FALSE
+	var/slot_owner = "[fixtures.semantic_slot_reservation_by_turf[target_turf] || ""]"
+	if(length(slot_owner) && slot_owner != "[requirement_id]")
+		validation.semantic_slot_reservation_conflict_count++
+		return FALSE
+	var/clearance_owner = "[fixtures.semantic_slot_clearance_by_turf[target_turf] || ""]"
+	if(length(clearance_owner) && clearance_owner != "[requirement_id]")
+		validation.semantic_slot_reservation_conflict_count++
+		return FALSE
+	fixtures.semantic_slot_clearance_by_turf[target_turf] = "[requirement_id]"
+	return TRUE
+
+/datum/world_edit_building_layout_state/proc/get_semantic_slot_clearance_owner(turf/target_turf)
+	if(!istype(target_turf))
+		return ""
+	return "[fixtures.semantic_slot_clearance_by_turf[target_turf] || ""]"
 
 /datum/world_edit_building_layout_state/proc/get_category_budget(category)
 	var/budget = fixtures.category_budgets["[category]"]

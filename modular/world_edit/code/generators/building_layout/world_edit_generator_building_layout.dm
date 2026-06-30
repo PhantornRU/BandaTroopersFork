@@ -1694,7 +1694,6 @@
 		"blocked_wall_conflict_count",
 		"blocked_fixture_conflict_count",
 		"replace_blocked_turf_count",
-		"route_access_repair_count",
 		"counter_wrong_facing_count",
 		"entry_face_mismatch_count",
 		"emit_missing_path_count",

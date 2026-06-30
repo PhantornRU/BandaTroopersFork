@@ -320,6 +320,14 @@
 		if(istype(zone_spec) && !seen[zone_spec.id])
 			zones += zone_spec.id
 			seen[zone_spec.id] = TRUE
+			continue
+		for(var/zone_id as anything in archetype.zone_specs_by_id)
+			var/datum/world_edit_building_zone_spec/tagged_zone_spec = archetype.zone_specs_by_id[zone_id]
+			if(!istype(tagged_zone_spec) || seen[tagged_zone_spec.id])
+				continue
+			if("[anchor_id]" in tagged_zone_spec.anchor_tags)
+				zones += tagged_zone_spec.id
+				seen[tagged_zone_spec.id] = TRUE
 	if(!length(zones))
 		switch("[cluster_spec.slot]")
 			if("bed")
@@ -439,7 +447,7 @@
 	var/already_placed = get_building_placed_requirement_count(state, requirement_id, cluster_spec.id, cluster_spec.signature_id)
 	var/placed_credit = 0
 	var/required_remaining = effective_minimum - already_placed
-	if(required_remaining > 1 && is_building_semantic_furniture_slot(cluster_spec.slot, cluster_spec.category))
+	if(required_remaining > 0 && is_building_semantic_furniture_slot(cluster_spec.slot, cluster_spec.category))
 		placed_credit += place_building_reserved_slot_module(state, cluster_spec, modules, major, required_remaining)
 	var/attempts = 0
 	while(already_placed + placed_credit < max(target_count, effective_minimum) && attempts < WORLD_EDIT_BUILDING_MAX_CLUSTER_STEPS && state.fixtures.fixture_count < WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
@@ -457,7 +465,7 @@
 	return placed_credit
 
 /datum/world_edit_generator/building_layout/proc/place_building_reserved_slot_module(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, list/modules, major, needed_count)
-	if(!istype(state) || !istype(cluster_spec) || !islist(modules) || needed_count <= 1)
+	if(!istype(state) || !istype(cluster_spec) || !islist(modules) || needed_count <= 0)
 		return 0
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
 	var/list/reserved_turfs = state.fixtures.semantic_slot_reserved_turfs["[requirement_id]"]
@@ -512,7 +520,7 @@
 		var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(placement_spec.slot, placement_spec.category)
 		var/needs_wall = selected_module.wall_required || get_cluster_effective_needs_wall(state, placement_spec, place_rule)
 		var/fallback_dir = get_cardinal_dir_toward(reserved_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, state.placement_dir || SOUTH)
-		var/list/place_context = build_building_fixture_place_context(state, reserved_turf, place_rule, fallback_dir, needs_wall, placement_spec, placement_spec.anchors)
+		var/list/place_context = selected_module.wall_required || selected_module.pattern == "wall_object" ? build_building_module_front_clear_place_context(state, reserved_turf, place_rule, fallback_dir, needs_wall, placement_spec, placement_spec.anchors, null) : build_building_fixture_place_context(state, reserved_turf, place_rule, fallback_dir, needs_wall, placement_spec, placement_spec.anchors)
 		if(!islist(place_context))
 			continue
 		member_plans += list(list(
@@ -611,7 +619,7 @@
 		var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(slot, category)
 		var/needs_wall = member["wall_required"] || module.wall_required || get_cluster_effective_needs_wall(state, cluster_spec, place_rule)
 		var/fallback_dir = get_cardinal_dir_toward(member_turf, state.geometry.semantic_hub_turf || state.geometry.center_turf, dir_to_use)
-		var/list/place_context = build_building_fixture_place_context(state, member_turf, place_rule, fallback_dir, needs_wall, cluster_spec, cluster_spec.anchors)
+		var/list/place_context = module.wall_required || module.pattern == "wall_object" ? build_building_module_front_clear_place_context(state, member_turf, place_rule, fallback_dir, needs_wall, cluster_spec, cluster_spec.anchors, occupied_lookup) : build_building_fixture_place_context(state, member_turf, place_rule, fallback_dir, needs_wall, cluster_spec, cluster_spec.anchors)
 		if(!islist(place_context))
 			return null
 		occupied_lookup[member_turf] = TRUE
@@ -636,7 +644,7 @@
 			var/turf/clearance_turf = front_dir ? get_step(member_turf, front_dir) : null
 			if(!istype(clearance_turf) || occupied_lookup[clearance_turf])
 				continue
-			if(state.geometry.door_dirs[clearance_turf] || state.has_anchor("door_cone", clearance_turf))
+			if(building_module_front_clearance_cell_blocked(state, clearance_turf, occupied_lookup, requirement_id))
 				return null
 	else
 		for(var/offset_key as anything in module.clearance_offsets)
@@ -652,6 +660,42 @@
 	if(state.has_anchor("focus_center", origin))
 		score += 100
 	return list("module" = module, "room" = room, "origin" = origin, "dir" = dir_to_use, "members" = member_plans, "occupied_turfs" = occupied_turfs, "score" = score)
+
+/datum/world_edit_generator/building_layout/proc/building_module_front_clearance_cell_blocked(datum/world_edit_building_layout_state/state, turf/clearance_turf, list/occupied_lookup = null, allowed_clearance_owner = null)
+	if(!istype(state) || !istype(clearance_turf))
+		return FALSE
+	if(islist(occupied_lookup) && occupied_lookup[clearance_turf])
+		return FALSE
+	var/clearance_owner = state.get_semantic_slot_clearance_owner(clearance_turf)
+	if(length(clearance_owner) && clearance_owner != "[allowed_clearance_owner || ""]")
+		return TRUE
+	return state.geometry.wall_lookup[clearance_turf] || state.geometry.door_dirs[clearance_turf] || state.fixtures.fixture_lookup[clearance_turf] || state.geometry.reserved_lookup[clearance_turf] || state.has_anchor("door_cone", clearance_turf)
+
+/datum/world_edit_generator/building_layout/proc/build_building_module_front_clear_place_context(datum/world_edit_building_layout_state/state, turf/target_turf, datum/world_edit_building_place_rule/place_rule, fallback_dir = null, force_wall = FALSE, datum/world_edit_building_cluster_spec/cluster_spec = null, list/anchor_ids = null, list/occupied_lookup = null)
+	if(!istype(state) || !istype(target_turf))
+		return null
+	if(!istype(place_rule))
+		place_rule = resolve_building_place_rule(null, null)
+	var/list/best_context = null
+	var/best_score = -999999999
+	var/requirement_id = istype(cluster_spec) ? get_building_cluster_requirement_id(cluster_spec) : ""
+	for(var/wall_dir as anything in get_adjacent_wall_dirs_for_state(state, target_turf))
+		var/list/context = score_building_fixture_wall_context(state, target_turf, place_rule, wall_dir, cluster_spec, anchor_ids)
+		if(!islist(context))
+			continue
+		var/front_dir = get_building_place_rule_front_dir(context["dir"], context["wall_dir"], place_rule)
+		var/turf/clearance_turf = front_dir ? get_step(target_turf, front_dir) : null
+		if(building_module_front_clearance_cell_blocked(state, clearance_turf, occupied_lookup, requirement_id))
+			continue
+		var/context_score = round(text2num("[context["score"]]") || 0)
+		if(!islist(best_context) || context_score > best_score)
+			best_context = context
+			best_score = context_score
+	if(islist(best_context))
+		return best_context
+	if(force_wall || place_rule.needs_wall)
+		return null
+	return build_building_fixture_place_context(state, target_turf, place_rule, fallback_dir, force_wall, cluster_spec, anchor_ids)
 
 /datum/world_edit_generator/building_layout/proc/commit_building_module_candidate(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, list/candidate, major)
 	var/datum/world_edit_building_placement_module/module = candidate["module"]

@@ -48,5 +48,17 @@
 - Decision: Fix `building_storage_target_rooms_5` and `building_workshop_target_rooms_6` residual hard gates in production placement logic.
 - Why: The user asked to finish the remaining items after living acceptance passed, and current reports prove the remaining blockers are required module/pattern placement failures.
 
+## D-013: Remove scratch `user_test.json`
+- Decision: Delete `tools/world_edit_visual/cases/user_test.json` instead of promoting it to a curated regression case.
+- Why: The case is a local scratch case with unsafe overrides and incomplete expectations; curated directional cases already cover this path better.
+
+## D-014: Explicit floor storage modules override generic wall-biased place rules
+- Decision: For semantic furniture clusters with `wall_required = FALSE` and non-`wall_object` patterns, the cluster contract overrides generic `place_rule.needs_wall`.
+- Why: Beds, lockers, seed cabinets, workshop benches, and storage racks are floor furniture groups. Treating them as wall-mounted objects caused impossible capacity and fallback despite valid room-local floor placements.
+
+## D-015: `route_access_repair_count` remains telemetry, not a Variant A hard furniture gate
+- Decision: Keep tracking `route_access_repair_count`, but remove it from `get_building_hard_counter_names()`.
+- Why: The Variant A hard-counter list does not include this repair telemetry. Keeping it as hard blocked hydroponics after all semantic module/furniture counters were valid and zero.
+
 ## Pending Decisions
 - None.

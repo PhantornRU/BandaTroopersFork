@@ -27,6 +27,7 @@
 	var/list/semantic_requirement_minimums = list()
 	var/list/semantic_slot_reservation_by_turf = list()
 	var/list/semantic_slot_reserved_turfs = list()
+	var/list/semantic_slot_clearance_by_turf = list()
 	var/usable_fixture_area = 0
 	var/fixture_count = 0
 	var/major_fixture_count = 0

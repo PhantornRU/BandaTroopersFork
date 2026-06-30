@@ -240,7 +240,7 @@
 	var/list/wall_context = build_building_fixture_wall_context(state, target_turf, place_rule, cluster_spec, anchor_ids)
 	if(islist(wall_context))
 		return wall_context
-	if(force_wall || place_rule.needs_wall)
+	if(force_wall || (place_rule.needs_wall && (!istype(cluster_spec) || cluster_spec.wall_required || cluster_spec.pattern == "wall_object")))
 		return null
 	if(isnull(fallback_dir))
 		fallback_dir = state.placement_dir || NORTH

@@ -1324,8 +1324,13 @@
 	var/list/module_requires_table_pairing = list()
 	var/list/module_seating_group_ok = list()
 	var/list/room_module_presence = list()
+	var/list/zone_module_presence = list()
+	var/list/room_zone_by_id = list()
 	var/list/room_table_chair_counts = list()
 	var/list/room_table_chair_module_ids = list()
+	for(var/datum/world_edit_building_room/solved_room as anything in state.geometry.solved_rooms)
+		if(istype(solved_room) && length(solved_room.id))
+			room_zone_by_id[solved_room.id] = solved_room.zone_id
 	for(var/list/placement as anything in state.fixtures.object_placements)
 		if(!islist(placement) || "[placement["kind"]]" != "interior")
 			continue
@@ -1354,6 +1359,9 @@
 			if(length(module_room_id))
 				module_room_by_instance[module_instance_id] = module_room_id
 				room_module_presence[module_room_id] = TRUE
+				var/module_zone_id = "[room_zone_by_id[module_room_id] || ""]"
+				if(length(module_zone_id))
+					zone_module_presence[module_zone_id] = TRUE
 			var/module_repeat_group = "[placement["module_repeat_group"] || ""]"
 			if(length(module_repeat_group))
 				module_repeat_group_by_instance[module_instance_id] = module_repeat_group
@@ -1387,7 +1395,7 @@
 		if((module_chair_counts[module_instance_id] || 0) > 0 && (module_table_counts[module_instance_id] || 0) <= 0 && module_requires_table_pairing[module_instance_id] && !module_seating_group_ok[module_instance_id])
 			state.validation.unpaired_chair_count += module_chair_counts[module_instance_id]
 	validate_building_module_cap_counters(state, module_catalog, module_actual_counts, module_id_by_instance, module_room_by_instance, module_repeat_group_by_instance)
-	validate_building_required_room_modules(state, room_module_presence)
+	validate_building_required_room_modules(state, room_module_presence, zone_module_presence)
 	for(var/room_id as anything in room_table_chair_counts)
 		var/table_chair_count = round(text2num("[room_table_chair_counts[room_id]]") || 0)
 		var/list/module_ids = room_table_chair_module_ids[room_id]
@@ -1441,7 +1449,7 @@
 		if(repeat_limit > 0 && repeat_count > repeat_limit)
 			state.validation.repeat_group_violation_count += repeat_count - repeat_limit
 
-/datum/world_edit_generator/building_layout/proc/validate_building_required_room_modules(datum/world_edit_building_layout_state/state, list/room_module_presence)
+/datum/world_edit_generator/building_layout/proc/validate_building_required_room_modules(datum/world_edit_building_layout_state/state, list/room_module_presence, list/zone_module_presence = null)
 	if(!istype(state) || !istype(state.semantic_plan))
 		return
 	var/list/required_semantic_module_zones = list()
@@ -1463,7 +1471,7 @@
 		var/datum/world_edit_building_zone_spec/zone_spec = state.semantic_plan.get_zone_spec(room.zone_id)
 		if(!istype(zone_spec) || !zone_spec.required)
 			continue
-		if(!room_module_presence[room.id])
+		if(!room_module_presence[room.id] && !(islist(zone_module_presence) && zone_module_presence[room.zone_id]))
 			state.validation.required_room_without_required_module_count++
 
 /datum/world_edit_generator/building_layout/proc/building_furniture_has_access_cell(datum/world_edit_building_layout_state/state, turf/target_turf)

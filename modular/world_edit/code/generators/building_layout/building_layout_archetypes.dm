@@ -821,11 +821,11 @@
 	add_adjacency("common", "storage_service")
 	add_adjacency("common", "sanitation")
 	add_nested_room("common", "sleep_privacy", 7, 7, 1)
-	add_signature_cluster("sleep_nook_signature", "major", "signature_living_nook", "bed", "bed", list("sleep_privacy", "privacy_zone", "bed_wall"), 2, 2, TRUE, 0, 100, "sleep_nook", 35, TRUE, null, null)
+	add_signature_cluster("sleep_nook_signature", "major", "signature_living_nook", "bed", "sleeping_bed", list("sleep_privacy", "privacy_zone", "bed_wall"), 2, 2, FALSE, 0, 100, "sleep_nook", 35, TRUE, null, null)
 	add_signature_cluster("dining_pair", "major", "table_cluster", "table", "table", list("common", "social_focus", "focus_center"), 1, 2, FALSE, 2, 95, "common_table", 22, TRUE, null, "living_dining_cluster_chunk")
 	add_signature_cluster("center_social_cluster", "major", "table_cluster", "table", "table", list("common", "social_focus", "focus_center", "focus_ring"), 1, 2, FALSE, 4, 92, "living_social_core", 24, TRUE, null, "living_social_cluster_chunk")
 	add_signature_cluster("ring_social_cluster", "major", "table_cluster", "table", "table", list("common", "social_focus", "focus_ring"), 1, 2, FALSE, 3, 88, "living_social_ring", 20, TRUE, null, "living_social_ring_chunk")
-	add_signature_cluster("personal_storage", "major", "run", "cabinet", "cabinet", list("storage_service", "service_strip", "storage_wall"), 1, 2, TRUE, 0, 80, "personal_storage", 20, TRUE, null, null)
+	add_signature_cluster("personal_storage", "major", "run", "cabinet", "personal_storage", list("storage_service", "service_strip", "storage_wall", "wall_anchor"), 1, 2, FALSE, 0, 80, "personal_storage", 20, TRUE, null, null)
 	add_signature_cluster("sanitation_combined", "major", "wall_object", "toilet", "sanitation", list("sanitation", "service_strip", "wall_anchor"), 1, 1, TRUE, 0, 75, "sanitation_combined", 12, TRUE, null, "sanitation_combined_chunk")
 	add_cluster("side_table", "secondary", "table_cluster", "table", "table", list("common", "window_band", "social_focus", "focus_ring"), 1, 2, FALSE, 1, 58, FALSE, null, "living_side_table_chunk")
 	add_cluster("window_seat", "detail", "object", "chair", "chair", list("window_band", "common", "focus_ring"), 1, 2, FALSE, 0, 42, FALSE, null, "living_window_seat_chunk")
@@ -857,13 +857,13 @@
 	add_adjacency("main_work", "service_wall")
 	add_adjacency("main_work", "parts_storage")
 	add_nested_room("main_work", "parts_storage", 9, 9, 1)
-	var/datum/world_edit_building_cluster_spec/workbench_spec = add_signature_cluster("workbench_machine_wall", "major", "signature_workshop_wall", "table", "table", list("service_wall", "machine_wall"), 4, 5, TRUE, 0, 100, "workbench_machine_wall", 35)
+	var/datum/world_edit_building_cluster_spec/workbench_spec = add_signature_cluster("workbench_machine_wall", "major", "signature_workshop_wall", "table", "table", list("service_wall", "machine_wall", "main_work"), 4, 5, FALSE, 0, 100, "workbench_machine_wall", 35)
 	workbench_spec.compact_substitute_id = "workbench_machine_wall_compact"
-	var/datum/world_edit_building_cluster_spec/workbench_compact = add_signature_cluster("workbench_machine_wall_compact", "major", "run", "table", "table", list("service_wall", "machine_wall", "main_work"), 1, 4, TRUE, 0, 80, "workbench_machine_wall", 0, FALSE)
+	var/datum/world_edit_building_cluster_spec/workbench_compact = add_signature_cluster("workbench_machine_wall_compact", "major", "run", "table", "table", list("service_wall", "machine_wall", "main_work"), 1, 4, FALSE, 0, 80, "workbench_machine_wall", 0, FALSE)
 	workbench_compact.compact_substitute_only = TRUE
-	var/datum/world_edit_building_cluster_spec/rack_spec = add_signature_cluster("parts_rack_aisles", "major", "signature_rack_aisles", "rack", "rack", list("parts_storage", "rack_aisle", "storage_wall"), 3, 5, TRUE, 0, 95, "parts_rack_aisles", 25)
+	var/datum/world_edit_building_cluster_spec/rack_spec = add_signature_cluster("parts_rack_aisles", "major", "signature_rack_aisles", "rack", "rack", list("parts_storage", "rack_aisle", "storage_wall"), 3, 5, FALSE, 0, 95, "parts_rack_aisles", 25)
 	rack_spec.compact_substitute_id = "parts_rack_aisles_compact"
-	var/datum/world_edit_building_cluster_spec/rack_compact = add_signature_cluster("parts_rack_aisles_compact", "major", "run", "rack", "rack", list("parts_storage", "rack_aisle", "storage_wall", "main_work"), 1, 2, TRUE, 0, 75, "parts_rack_aisles", 0, FALSE)
+	var/datum/world_edit_building_cluster_spec/rack_compact = add_signature_cluster("parts_rack_aisles_compact", "major", "run", "rack", "rack", list("parts_storage", "rack_aisle", "storage_wall", "main_work"), 1, 2, FALSE, 0, 75, "parts_rack_aisles", 0, FALSE)
 	rack_compact.compact_substitute_only = TRUE
 	add_signature_cluster("central_assembly_table", "major", "table_cluster", "table", "table", list("main_work", "work_cluster", "focus_center"), 1, 1, FALSE, 2, 90, "assembly_table", 20)
 	add_cluster("operator_console", "secondary", "wall_object", "console", "console", list("service_wall", "wall_anchor", "observation"), 1, 1, TRUE, 0, 70, FALSE)

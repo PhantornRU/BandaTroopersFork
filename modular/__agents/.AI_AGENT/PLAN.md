@@ -1,6 +1,6 @@
 # PLAN - Variant A Building Layout Furnishing
 
-Status: IMPLEMENTED - LIVING/STORAGE/WORKSHOP ACCEPTANCE PASS
+Status: COMPLETE - WALL CLEARANCE AND VISUAL REVIEW FOLLOW-UP
 Date: 2026-06-30
 
 ## Goal
@@ -58,6 +58,9 @@ Implement Variant A for `building_layout` furnishing in the production DM genera
 - O5. DONE: Fix residual storage/workshop support hard gates exposed after Variant A living acceptance.
 - O6. DONE: Storage target-room case satisfies `rack_aisles` and `loading_staging` without forbidden fallback, route access repair, or required-room module gaps.
 - O7. DONE: Workshop target-room case satisfies `workbench_machine_wall` and `parts_rack_aisles` through modules, including compact semantic slots.
+- O8. DONE: Close wall-module front-clearance gap so front cells reject walls, fixtures, reserved routes, doors, and door cones.
+- O9. DONE: Remove local `tools/world_edit_visual/cases/user_test.json` scratch case instead of keeping an incomplete expectation set.
+- O10. DONE: Run visual acceptance matrix and inspect `semantic_sprites.png` outputs by eye for readable rooms, doors, grouped furniture, and no route/door-cone object clutter.
 
 ## Review Follow-Up MUST
 - RF1. Wall-required placement modules must still define clearance cells, and the solver must allow the adjacent wall context while preserving front/side clearance blocking.

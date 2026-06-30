@@ -86,6 +86,39 @@ Date: 2026-06-30
 - Current compile checks: `tools\build\build --define=UNIT_TESTS dm` PASS with `colonialmarines.dmb - 0 errors, 0 warnings`; `tools\build\build clean; .\BUILD.cmd` PASS with `colonialmarines.dmb - 0 errors, 0 warnings`.
 - Current hygiene: `git diff --check` PASS with line-ending warnings only; no DreamDaemon/DreamMaker process remains running.
 
+## Wall Clearance / Visual Review Follow-Up Discovery
+
+Date: 2026-06-30
+
+- `TOOLS/AI_INDEX/ai_index.py` is absent; discovery used targeted reads.
+- `build_building_module_candidate()` wall-required/wall-object front-clearance branch currently rejects only `door_dirs[clearance_turf]` and `door_cone`. It does not reject a wall, existing fixture, or reserved route in the module front cell.
+- `tools/world_edit_visual/cases/user_test.json` exists as `building_living_point_colony_west`, uses `respect_blockers=false` and `replace_blocked_turfs=true`, and has an incomplete expectation set compared with current hard-counter coverage.
+- Required visual artifacts to inspect after rerun: `tools/world_edit_visual/out/building_living_target_rooms_6/semantic_sprites.png`, `tools/world_edit_visual/out/building_storage_target_rooms_5/semantic_sprites.png`, and `tools/world_edit_visual/out/building_workshop_target_rooms_6/semantic_sprites.png`.
+
+## Wall Clearance / Visual Review Follow-Up Implementation Evidence
+
+- `building_module_front_clearance_cell_blocked()` now rejects wall, door, existing fixture, reserved route, conflicting semantic clearance owner, and door-cone front cells for wall-required/wall-object module placement.
+- Wall semantic slot preflight now reserves semantic front-clearance cells before module commit, so later modules cannot claim another module's working side as an occupied slot.
+- `stage_semantic_slots` reserves immediate door cones before semantic slot preflight, preventing planned furniture slots from being generated in entry clearance.
+- Explicit floor semantic groups now override generic wall-biased place rules when `wall_required = FALSE` and the pattern is not `wall_object`; workshop racks/benches, dorm beds/lockers, and hydro seed cabinets place as floor groups.
+- Required compact substitutes inherit parent anchors for semantic furniture, so compact fallbacks cannot satisfy a required storage/workshop cluster in an unrelated zone.
+- `required_room_without_required_module_count` now credits module presence at zone level, avoiding false failures for split room fragments when a required zone already received a module.
+- `route_access_repair_count` remains exported telemetry but is no longer part of the hard-counter gate; it is not in the Variant A hard-counter contract.
+- Deleted `tools/world_edit_visual/cases/user_test.json`; `Test-Path` returned `False`.
+
+## Wall Clearance / Visual Review Follow-Up Verification
+
+- `tools\build\build --define=UNIT_TESTS dm`: PASS with `colonialmarines.dmb - 0 errors, 0 warnings`.
+- `py -3 tools/world_edit_visual/scripts/render_workflow.py --case building_living_target_rooms_6 --case building_storage_target_rooms_5 --case building_workshop_target_rooms_6 --timeout-seconds 240 --poll-seconds 3 --no-ascii`: PASS. `rendered=3`, `failures=0`.
+- `py -3 tools/world_edit_visual/scripts/render_workflow.py --case building_office_rectangle_target_rooms_6 --case building_dormitory_target_rooms_7 --case building_hydroponics_target_rooms_7 --timeout-seconds 240 --poll-seconds 3 --no-ascii`: PASS. `rendered=3`, `failures=0`.
+- Directional visual checks: point east/south/west rendered in the combined directional run; rectangle north/south/west passed when rerun separately with `--timeout-seconds 360`. The combined six-case run timed out on rectangle exports, but the failed items passed individually.
+- Case scan found no current `building_medbay`, `building_kitchen`, `building_security`, or `building_checkpoint` visual case files under `tools/world_edit_visual/cases`.
+- Report counter audit across living/storage/workshop/office/dormitory/hydroponics and six directional living cases: every requested Variant A provider/module/loose/group/role/overfill/route/door-clearance counter was `0`.
+- Manual PNG review: living/storage/workshop required `semantic_sprites.png` artifacts exist and show readable doors/rooms/walls, grouped table/chair/rack/workbench furniture, no table/chair mosaic, no obvious furniture in route or door cone. Office, dormitory, hydroponics, and directional living PNGs were also visually checked and looked readable.
+- `git diff --check`: PASS with line-ending warnings only.
+- `tools\build\build clean`: PASS.
+- `.\BUILD.cmd`: PASS. Normal CBT build and tgui build completed successfully; DM output `colonialmarines.dmb - 0 errors, 0 warnings`.
+
 ## Plan Fidelity Matrix
 
 | ID | Type | Requirement | Evidence | Status |
