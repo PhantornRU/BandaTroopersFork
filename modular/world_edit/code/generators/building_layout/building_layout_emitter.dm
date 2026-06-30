@@ -645,7 +645,12 @@
 	plan.metadata["scatter_signature_credit_count"] = state.validation.scatter_signature_credit_count
 	plan.metadata["semantic_credit_without_emitted_slots_count"] = state.validation.semantic_credit_without_emitted_slots_count
 	plan.metadata["forbidden_fallback_count"] = state.validation.forbidden_fallback_count
+	plan.metadata["unique_provider_path_count"] = state.validation.unique_provider_path_count
+	plan.metadata["unique_functional_provider_path_count"] = state.validation.unique_functional_provider_path_count
+	plan.metadata["unique_decorative_provider_path_count"] = state.validation.unique_decorative_provider_path_count
 	plan.metadata["hard_counters"] = build_building_state_hard_counter_report(state)
+	for(var/counter_name as anything in plan.metadata["hard_counters"])
+		plan.metadata["[counter_name]"] = plan.metadata["hard_counters"][counter_name]
 	plan.metadata["mandatory_room_patch_fallback_count"] = state.validation.mandatory_room_patch_fallback_count
 	plan.metadata["fallback_anchor_required_cluster_count"] = state.validation.fallback_anchor_required_cluster_count
 	plan.metadata["blocked_turf_conflict_count"] = state.validation.blocked_turf_conflict_count
@@ -818,6 +823,9 @@
 	plan.metadata["template_chunk_cell_count"] = state.fixtures.template_chunk_cell_count
 	plan.metadata["module_instance_count"] = state.fixtures.module_instance_count
 	plan.metadata["module_counts"] = state.fixtures.module_counts.Copy()
+	plan.metadata["unique_provider_path_count"] = state.validation.unique_provider_path_count
+	plan.metadata["unique_functional_provider_path_count"] = state.validation.unique_functional_provider_path_count
+	plan.metadata["unique_decorative_provider_path_count"] = state.validation.unique_decorative_provider_path_count
 	plan.metadata["infrastructure_count"] = state.fixtures.infrastructure_count
 	plan.metadata["degraded_region_fallback_count"] = state.validation.degraded_region_fallback_count
 	plan.metadata["degraded_region_reports"] = detailed_reports ? state.validation.degraded_region_reports.Copy() : list()

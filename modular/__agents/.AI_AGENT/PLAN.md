@@ -1,6 +1,6 @@
 # PLAN - Variant A Building Layout Furnishing
 
-Status: IMPLEMENTED AND VERIFIED
+Status: IMPLEMENTED - LIVING/STORAGE/WORKSHOP ACCEPTANCE PASS
 Date: 2026-06-30
 
 ## Goal
@@ -48,6 +48,25 @@ Implement Variant A for `building_layout` furnishing in the production DM genera
 - C2. `tools/build/build.bat --ci dm -DCIBUILDING -DANSICOLORS -Werror`
 - C3. `tools/build/build.bat --ci dm -DUNIT_TESTS -DCIBUILDING -DANSICOLORS -Werror`
 - C4. `py -3 tools/world_edit_visual/scripts/render_workflow.py --case building_living_target_rooms_6 --timeout-seconds 240 --no-ascii`
+- C5. Smoke-check storage/workshop target-room cases and record residual failures separately from living furnishing acceptance.
+
+## Continuation Open Items
+- O1. DONE: Extend the cluster-derived placement catalog with an explicit curated authored module layer; auto-derived modules remain as compatibility fallback only.
+- O2. DONE: Fix the current Visual Workbench acceptance timeout where normal DMB ignored `world_edit_acceptance`.
+- O3. DONE: Re-run `building_living_target_rooms_6` and update evidence from a current successful report.
+- O4. DONE: Keep `tools/world_edit_visual` reporting-only; acceptance runtime fix is minimal production startup glue.
+- O5. DONE: Fix residual storage/workshop support hard gates exposed after Variant A living acceptance.
+- O6. DONE: Storage target-room case satisfies `rack_aisles` and `loading_staging` without forbidden fallback, route access repair, or required-room module gaps.
+- O7. DONE: Workshop target-room case satisfies `workbench_machine_wall` and `parts_rack_aisles` through modules, including compact semantic slots.
+
+## Review Follow-Up MUST
+- RF1. Wall-required placement modules must still define clearance cells, and the solver must allow the adjacent wall context while preserving front/side clearance blocking.
+- RF2. Enforce `max_per_room`, `max_per_building`, and `repeat_group` caps during module candidate search and validate violations as hard counters.
+- RF3. Add explicit chair pairing semantics so chair rows/seating groups do not count as unpaired chairs unless a module requires table pairing.
+- RF4. Add an explicit hard-counter fail gate after validation so nonzero hard counters cannot become a selected production candidate.
+- RF5. Store provider alternatives per `style|slot` and export unique provider path metrics, including `unique_functional_provider_path_count`.
+- RF6. Add missing review counters: `bed_without_access_count`, `required_room_without_required_module_count`, `module_max_per_room_violation_count`, `module_max_per_building_violation_count`, and `repeat_group_violation_count`.
+- RF7. Extend `building_living_target_rooms_6` expectations for new hard counters and rerun acceptance evidence.
 
 ## Old Path Audit
 - `place_building_cluster_spec()` must route semantic furniture clusters through modules before legacy patterns.

@@ -144,7 +144,11 @@
 	var/datum/world_edit_building_object_provider_registry/registry = generator.get_building_object_provider_registry()
 	TEST_ASSERT_EQUAL(length(registry.audit()), 0, "Building object provider registry reported audit errors.")
 	TEST_ASSERT(length(registry.providers_by_id) >= 50, "Building object provider registry did not expose at least 50 verified providers.")
+	TEST_ASSERT(registry.unique_provider_path_count >= 40, "Building object provider registry did not expose enough unique provider paths.")
+	TEST_ASSERT(registry.unique_functional_provider_path_count >= 35, "Building object provider registry did not expose enough unique functional provider paths.")
+	TEST_ASSERT(registry.unique_decorative_provider_path_count >= 1, "Building object provider registry did not track decorative-only providers.")
 	TEST_ASSERT_EQUAL(registry.provider_path_not_in_build_count, 0, "Building object provider registry has unresolved provider paths.")
+	TEST_ASSERT(length(registry.get_all_for_style_slot("colony", "bed")) >= 1, "Building object provider registry did not expose style-slot provider alternatives.")
 	var/list/colony_config = generator.normalize_building_params(list(
 		"archetype_id" = "living",
 		"faction_preset" = "colony",
@@ -171,6 +175,13 @@
 	var/datum/world_edit_generator/building_layout/generator = new
 	var/datum/world_edit_building_placement_module_catalog/catalog = generator.get_building_placement_module_catalog()
 	TEST_ASSERT(length(catalog.modules_by_id) >= 100, "Building placement module catalog did not expose at least 100 modules.")
+	TEST_ASSERT(catalog.curated_module_count >= 100, "Building placement module catalog did not expose at least 100 curated authored modules.")
+	var/list/archetypes = generator.get_building_archetype_catalog()
+	var/datum/world_edit_building_archetype/living_archetype = archetypes["living"]
+	var/datum/world_edit_building_cluster_spec/dining_cluster = generator.find_building_cluster_spec_by_id(living_archetype, "dining_pair")
+	var/list/dining_modules = catalog.get_for_cluster(dining_cluster)
+	var/datum/world_edit_building_placement_module/first_dining_module = length(dining_modules) ? dining_modules[1] : null
+	TEST_ASSERT(istype(first_dining_module) && first_dining_module.curated, "Curated placement modules must be preferred before generated cluster fallback modules.")
 	for(var/module_id as anything in catalog.modules_by_id)
 		var/datum/world_edit_building_placement_module/module = catalog.modules_by_id[module_id]
 		TEST_ASSERT(istype(module), "Placement module [module_id] is not a module datum.")
@@ -181,6 +192,7 @@
 		TEST_ASSERT(length(module.repeat_group), "Placement module [module_id] has no repeat group.")
 		TEST_ASSERT(module.max_per_room > 0, "Placement module [module_id] has invalid max_per_room.")
 		TEST_ASSERT(module.max_per_building > 0, "Placement module [module_id] has invalid max_per_building.")
+		TEST_ASSERT(module.max_repeat_group_per_room > 0, "Placement module [module_id] has invalid max_repeat_group_per_room.")
 
 /datum/unit_test/world_edit_building_layout/capability_matrix_payload_contract/Run()
 	var/datum/world_edit_generator/building_layout/generator = new

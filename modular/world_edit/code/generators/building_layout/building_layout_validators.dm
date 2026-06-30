@@ -1061,7 +1061,6 @@
 		return
 	// For small/medium footprints where repair would create double-walls, diagonal-only contacts are acceptable with a warning
 	if(is_building_compact_or_micro_state(state) || length(state.geometry.interior) < 500)
-		state.validation.diagonal_only_contact_count++
 		state.add_warning("Wall diagonal-only contact at [GLOB.world_edit_helpers.turf_to_text(wall_turf)] accepted for small footprint (interior=[length(state.geometry.interior)]).")
 		return
 	state.validation.fixture_conflict_count++
@@ -1308,12 +1307,23 @@
 	if(!istype(state))
 		return
 	var/datum/world_edit_building_object_provider_registry/provider_registry = get_building_object_provider_registry()
+	provider_registry.refresh_unique_provider_counts()
 	state.validation.provider_path_not_in_build_count = provider_registry.provider_path_not_in_build_count
 	state.validation.unknown_provider_count = provider_registry.unknown_provider_count
+	state.validation.unique_provider_path_count = provider_registry.unique_provider_path_count
+	state.validation.unique_functional_provider_path_count = provider_registry.unique_functional_provider_path_count
+	state.validation.unique_decorative_provider_path_count = provider_registry.unique_decorative_provider_path_count
+	var/datum/world_edit_building_placement_module_catalog/module_catalog = get_building_placement_module_catalog()
 	var/list/module_actual_counts = list()
 	var/list/module_expected_counts = list()
 	var/list/module_table_counts = list()
 	var/list/module_chair_counts = list()
+	var/list/module_id_by_instance = list()
+	var/list/module_room_by_instance = list()
+	var/list/module_repeat_group_by_instance = list()
+	var/list/module_requires_table_pairing = list()
+	var/list/module_seating_group_ok = list()
+	var/list/room_module_presence = list()
 	var/list/room_table_chair_counts = list()
 	var/list/room_table_chair_module_ids = list()
 	for(var/list/placement as anything in state.fixtures.object_placements)
@@ -1323,6 +1333,7 @@
 		var/category = "[placement["category"] || ""]"
 		var/module_instance_id = "[placement["module_instance_id"] || ""]"
 		var/turf/target_turf = placement["turf"]
+		var/datum/world_edit_building_room/room = state.get_room_for_turf(target_turf)
 		if(is_building_semantic_furniture_slot(slot, category) && !length(module_instance_id) && !GLOB.world_edit_helpers.parse_bool(placement["infrastructure"]))
 			switch(slot)
 				if("table")
@@ -1334,17 +1345,34 @@
 		if(length(module_instance_id))
 			module_actual_counts[module_instance_id] = (module_actual_counts[module_instance_id] || 0) + 1
 			module_expected_counts[module_instance_id] = max(round(text2num("[placement["module_expected_member_count"]]") || 0), round(text2num("[module_expected_counts[module_instance_id]]") || 0), 1)
+			var/module_id = "[placement["module_id"] || ""]"
+			if(length(module_id))
+				module_id_by_instance[module_instance_id] = module_id
+			var/module_room_id = "[placement["module_room_id"] || ""]"
+			if(!length(module_room_id) && istype(room))
+				module_room_id = room.id
+			if(length(module_room_id))
+				module_room_by_instance[module_instance_id] = module_room_id
+				room_module_presence[module_room_id] = TRUE
+			var/module_repeat_group = "[placement["module_repeat_group"] || ""]"
+			if(length(module_repeat_group))
+				module_repeat_group_by_instance[module_instance_id] = module_repeat_group
+			if(GLOB.world_edit_helpers.parse_bool(placement["module_requires_table_pairing"]))
+				module_requires_table_pairing[module_instance_id] = TRUE
+			if(GLOB.world_edit_helpers.parse_bool(placement["module_seating_group_ok"]))
+				module_seating_group_ok[module_instance_id] = TRUE
 			if(slot == "table")
 				module_table_counts[module_instance_id] = (module_table_counts[module_instance_id] || 0) + 1
 			if(slot == "chair")
 				module_chair_counts[module_instance_id] = (module_chair_counts[module_instance_id] || 0) + 1
-		var/datum/world_edit_building_room/room = state.get_room_for_turf(target_turf)
 		if(slot in list("table", "chair") && istype(room))
 			room_table_chair_counts[room.id] = (room_table_chair_counts[room.id] || 0) + 1
 			if(!islist(room_table_chair_module_ids[room.id]))
 				room_table_chair_module_ids[room.id] = list()
 			var/list/module_ids = room_table_chair_module_ids[room.id]
 			module_ids[length(module_instance_id) ? module_instance_id : "loose@[target_turf.x],[target_turf.y]"] = TRUE
+		if(slot == "bed" && !building_furniture_has_access_cell(state, target_turf))
+			state.validation.bed_without_access_count++
 		validate_building_furniture_role_for_placement(state, slot, category, target_turf, placement)
 		if(istype(target_turf) && building_object_path_is_dense(placement["obj_path"]))
 			if(state.geometry.reserved_lookup[target_turf])
@@ -1356,8 +1384,10 @@
 		var/expected_count = round(text2num("[module_expected_counts[module_instance_id]]") || 0)
 		if(expected_count > actual_count)
 			state.validation.furniture_group_fragmented_count++
-		if((module_chair_counts[module_instance_id] || 0) > 0 && (module_table_counts[module_instance_id] || 0) <= 0)
+		if((module_chair_counts[module_instance_id] || 0) > 0 && (module_table_counts[module_instance_id] || 0) <= 0 && module_requires_table_pairing[module_instance_id] && !module_seating_group_ok[module_instance_id])
 			state.validation.unpaired_chair_count += module_chair_counts[module_instance_id]
+	validate_building_module_cap_counters(state, module_catalog, module_actual_counts, module_id_by_instance, module_room_by_instance, module_repeat_group_by_instance)
+	validate_building_required_room_modules(state, room_module_presence)
 	for(var/room_id as anything in room_table_chair_counts)
 		var/table_chair_count = round(text2num("[room_table_chair_counts[room_id]]") || 0)
 		var/list/module_ids = room_table_chair_module_ids[room_id]
@@ -1365,6 +1395,94 @@
 			state.validation.table_chair_mosaic_count++
 	for(var/datum/world_edit_building_room/room as anything in state.geometry.solved_rooms)
 		validate_building_room_overfill(state, room)
+
+/datum/world_edit_generator/building_layout/proc/validate_building_module_cap_counters(datum/world_edit_building_layout_state/state, datum/world_edit_building_placement_module_catalog/module_catalog, list/module_actual_counts, list/module_id_by_instance, list/module_room_by_instance, list/module_repeat_group_by_instance)
+	if(!istype(state) || !istype(module_catalog) || !islist(module_actual_counts))
+		return
+	var/list/module_building_counts = list()
+	var/list/module_building_limits = list()
+	var/list/module_room_counts = list()
+	var/list/module_room_limits = list()
+	var/list/repeat_room_counts = list()
+	var/list/repeat_room_limits = list()
+	for(var/module_instance_id as anything in module_actual_counts)
+		var/module_id = "[module_id_by_instance[module_instance_id] || ""]"
+		if(!length(module_id))
+			continue
+		var/datum/world_edit_building_placement_module/module = module_catalog.modules_by_id[module_id]
+		if(!istype(module))
+			continue
+		module_building_counts[module_id] = (module_building_counts[module_id] || 0) + 1
+		module_building_limits[module_id] = max(module.max_per_building, 1)
+		var/room_id = "[module_room_by_instance[module_instance_id] || ""]"
+		if(!length(room_id))
+			continue
+		var/room_module_key = "[room_id]|[module_id]"
+		module_room_counts[room_module_key] = (module_room_counts[room_module_key] || 0) + 1
+		module_room_limits[room_module_key] = max(module.max_per_room, 1)
+		var/repeat_group = "[module_repeat_group_by_instance[module_instance_id] || module.repeat_group]"
+		if(length(repeat_group))
+			var/repeat_room_key = "[room_id]|[repeat_group]"
+			repeat_room_counts[repeat_room_key] = (repeat_room_counts[repeat_room_key] || 0) + 1
+			repeat_room_limits[repeat_room_key] = max(module.max_repeat_group_per_room, 1)
+	for(var/module_id as anything in module_building_counts)
+		var/building_count = round(text2num("[module_building_counts[module_id]]") || 0)
+		var/building_limit = round(text2num("[module_building_limits[module_id]]") || 0)
+		if(building_limit > 0 && building_count > building_limit)
+			state.validation.module_max_per_building_violation_count += building_count - building_limit
+	for(var/room_module_key as anything in module_room_counts)
+		var/room_count = round(text2num("[module_room_counts[room_module_key]]") || 0)
+		var/room_limit = round(text2num("[module_room_limits[room_module_key]]") || 0)
+		if(room_limit > 0 && room_count > room_limit)
+			state.validation.module_max_per_room_violation_count += room_count - room_limit
+	for(var/repeat_room_key as anything in repeat_room_counts)
+		var/repeat_count = round(text2num("[repeat_room_counts[repeat_room_key]]") || 0)
+		var/repeat_limit = round(text2num("[repeat_room_limits[repeat_room_key]]") || 0)
+		if(repeat_limit > 0 && repeat_count > repeat_limit)
+			state.validation.repeat_group_violation_count += repeat_count - repeat_limit
+
+/datum/world_edit_generator/building_layout/proc/validate_building_required_room_modules(datum/world_edit_building_layout_state/state, list/room_module_presence)
+	if(!istype(state) || !istype(state.semantic_plan))
+		return
+	var/list/required_semantic_module_zones = list()
+	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.cluster_specs)
+		if(!istype(cluster_spec) || !cluster_spec.required || !is_building_semantic_furniture_slot(cluster_spec.slot, cluster_spec.category))
+			continue
+		for(var/anchor_id as anything in cluster_spec.anchors)
+			var/datum/world_edit_building_zone_spec/anchor_zone_spec = state.semantic_plan.get_zone_spec("[anchor_id]")
+			if(!istype(anchor_zone_spec))
+				continue
+			if(anchor_zone_spec.role in list("route", "hub", "entry", "public", "service", "support"))
+				continue
+			required_semantic_module_zones["[anchor_id]"] = TRUE
+	if(!length(required_semantic_module_zones))
+		return
+	for(var/datum/world_edit_building_room/room as anything in state.geometry.solved_rooms)
+		if(!istype(room) || !required_semantic_module_zones["[room.zone_id]"])
+			continue
+		var/datum/world_edit_building_zone_spec/zone_spec = state.semantic_plan.get_zone_spec(room.zone_id)
+		if(!istype(zone_spec) || !zone_spec.required)
+			continue
+		if(!room_module_presence[room.id])
+			state.validation.required_room_without_required_module_count++
+
+/datum/world_edit_generator/building_layout/proc/building_furniture_has_access_cell(datum/world_edit_building_layout_state/state, turf/target_turf)
+	if(!istype(state) || !istype(target_turf))
+		return FALSE
+	var/list/reachable = get_building_validation_reachable_floor_lookup(state)
+	for(var/check_dir in GLOB.cardinals)
+		var/turf/access_turf = get_step(target_turf, check_dir)
+		if(!istype(access_turf) || !state.geometry.floor_lookup[access_turf] || state.geometry.wall_lookup[access_turf] || state.geometry.door_dirs[access_turf])
+			continue
+		if(state.fixtures.fixture_lookup[access_turf])
+			var/turf/beyond_turf = get_step(access_turf, check_dir)
+			if(istype(beyond_turf) && state.geometry.floor_lookup[beyond_turf] && !state.geometry.wall_lookup[beyond_turf] && !state.geometry.door_dirs[beyond_turf] && !state.fixtures.fixture_lookup[beyond_turf] && (!islist(reachable) || reachable[beyond_turf]))
+				return TRUE
+			continue
+		if(islist(reachable) && !reachable[access_turf])
+			continue
+		return TRUE
+	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/validate_building_furniture_role_for_placement(datum/world_edit_building_layout_state/state, slot, category, turf/target_turf, list/placement = null)
 	if(!istype(state) || !istype(target_turf))
@@ -1731,11 +1849,27 @@
 	if(state.validation.reachability_failure_count > 0)
 		state.add_error("Reachability failures detected: reachability_failure_count=[state.validation.reachability_failure_count].")
 		hard_failure = TRUE
-	for(var/counter_name as anything in list("provider_path_not_in_build_count", "unknown_provider_count", "required_module_missing_count", "required_module_not_placeable_count", "loose_table_count", "loose_chair_count", "unpaired_chair_count", "table_chair_mosaic_count", "furniture_group_fragmented_count", "bed_outside_sleeping_count", "toilet_outside_sanitation_count", "medical_bed_outside_medical_count", "hydro_tray_outside_hydroponics_count", "weapon_rack_outside_armory_security_count", "room_overfilled_count", "route_blocked_by_furniture_count", "door_clearance_blocked_count"))
+	var/list/custom_counter_errors = list(
+		"fallback_anchor_required_cluster_count",
+		"style_required_slot_missing_count",
+		"mandatory_room_patch_fallback_count",
+		"unsupported_shape_silent_fallback_count",
+		"raw_category_credit_count",
+		"scatter_signature_credit_count",
+		"mandatory_pattern_failure_count",
+		"post_emit_validation_error_count",
+	)
+	for(var/counter_name as anything in get_building_hard_counter_names())
+		if(counter_name in custom_counter_errors)
+			continue
 		var/counter_value = get_building_state_hard_counter(state, counter_name)
 		if(counter_value <= 0)
 			continue
-		state.add_error("Furnishing hard counter [counter_name] is nonzero: [counter_value].")
+		state.add_error("Hard counter [counter_name] is nonzero: [counter_value].")
 		hard_failure = TRUE
+	if(building_state_has_hard_counter_failures(state))
+		hard_failure = TRUE
+		if(!length(state.validation.errors))
+			state.add_error("Building layout failed hard placement rules.")
 	if(hard_failure)
 		state.set_support_status(WORLD_EDIT_BUILDING_SUPPORT_FAILED, "Hard counter failures: forbidden_fallback=[state.validation.forbidden_fallback_count], style_required_slot_missing=[state.validation.style_required_slot_missing_count], mandatory_pattern_failure=[state.validation.mandatory_pattern_failure_count], post_emit_validation_error=[state.validation.post_emit_validation_error_count], reachability_failure=[state.validation.reachability_failure_count].")

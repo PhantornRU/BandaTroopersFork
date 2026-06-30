@@ -1647,16 +1647,21 @@
 		"unknown_provider_count",
 		"required_module_missing_count",
 		"required_module_not_placeable_count",
+		"required_room_without_required_module_count",
 		"loose_table_count",
 		"loose_chair_count",
 		"unpaired_chair_count",
 		"table_chair_mosaic_count",
 		"furniture_group_fragmented_count",
+		"bed_without_access_count",
 		"bed_outside_sleeping_count",
 		"toilet_outside_sanitation_count",
 		"medical_bed_outside_medical_count",
 		"hydro_tray_outside_hydroponics_count",
 		"weapon_rack_outside_armory_security_count",
+		"module_max_per_room_violation_count",
+		"module_max_per_building_violation_count",
+		"repeat_group_violation_count",
 		"room_overfilled_count",
 		"route_blocked_by_furniture_count",
 		"door_clearance_blocked_count",
@@ -1706,16 +1711,21 @@
 		if("unknown_provider_count") return state.validation.unknown_provider_count
 		if("required_module_missing_count") return state.validation.required_module_missing_count
 		if("required_module_not_placeable_count") return state.validation.required_module_not_placeable_count
+		if("required_room_without_required_module_count") return state.validation.required_room_without_required_module_count
 		if("loose_table_count") return state.validation.loose_table_count
 		if("loose_chair_count") return state.validation.loose_chair_count
 		if("unpaired_chair_count") return state.validation.unpaired_chair_count
 		if("table_chair_mosaic_count") return state.validation.table_chair_mosaic_count
 		if("furniture_group_fragmented_count") return state.validation.furniture_group_fragmented_count
+		if("bed_without_access_count") return state.validation.bed_without_access_count
 		if("bed_outside_sleeping_count") return state.validation.bed_outside_sleeping_count
 		if("toilet_outside_sanitation_count") return state.validation.toilet_outside_sanitation_count
 		if("medical_bed_outside_medical_count") return state.validation.medical_bed_outside_medical_count
 		if("hydro_tray_outside_hydroponics_count") return state.validation.hydro_tray_outside_hydroponics_count
 		if("weapon_rack_outside_armory_security_count") return state.validation.weapon_rack_outside_armory_security_count
+		if("module_max_per_room_violation_count") return state.validation.module_max_per_room_violation_count
+		if("module_max_per_building_violation_count") return state.validation.module_max_per_building_violation_count
+		if("repeat_group_violation_count") return state.validation.repeat_group_violation_count
 		if("room_overfilled_count") return state.validation.room_overfilled_count
 		if("route_blocked_by_furniture_count") return state.validation.route_blocked_by_furniture_count
 		if("door_clearance_blocked_count") return state.validation.door_clearance_blocked_count
@@ -1757,6 +1767,14 @@
 		if("post_emit_validation_error_count") return state.validation.post_emit_validation_error_count
 	return 0
 
+/datum/world_edit_generator/building_layout/proc/building_state_has_hard_counter_failures(datum/world_edit_building_layout_state/state)
+	if(!istype(state))
+		return TRUE
+	for(var/counter_name as anything in get_building_hard_counter_names())
+		if(get_building_state_hard_counter(state, counter_name) > 0)
+			return TRUE
+	return FALSE
+
 /datum/world_edit_generator/building_layout/proc/build_building_state_hard_counter_report(datum/world_edit_building_layout_state/state)
 	var/list/report = list()
 	for(var/counter_name as anything in get_building_hard_counter_names())
@@ -1792,6 +1810,9 @@
 	verdict.set_metric("target_room_count", state.config["target_room_count"] || state.validation.requested_room_count)
 	verdict.set_metric("room_count_satisfied", !round(text2num("[state.config["target_room_count"]]") || 0) || length(state.geometry.solved_rooms) >= round(text2num("[state.config["target_room_count"]]") || 0))
 	verdict.set_metric("support_status", "[state.validation.current_request_support_status || ""]")
+	verdict.set_metric("unique_provider_path_count", state.validation.unique_provider_path_count)
+	verdict.set_metric("unique_functional_provider_path_count", state.validation.unique_functional_provider_path_count)
+	verdict.set_metric("unique_decorative_provider_path_count", state.validation.unique_decorative_provider_path_count)
 	for(var/error_message as anything in state.validation.errors)
 		verdict.add_hard_error(WORLD_EDIT_BUILDING_ERROR_HARD_VALIDATION_FAILED, "[error_message]")
 	for(var/counter_name as anything in hard_counters)

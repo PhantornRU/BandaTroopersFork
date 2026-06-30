@@ -5,6 +5,9 @@
 	var/list/audit_errors = list()
 	var/provider_path_not_in_build_count = 0
 	var/unknown_provider_count = 0
+	var/unique_provider_path_count = 0
+	var/unique_functional_provider_path_count = 0
+	var/unique_decorative_provider_path_count = 0
 
 /datum/world_edit_building_object_provider_registry/proc/register_obj(datum/world_edit_generator/building_layout/generator, id, slot, path_text, list/styles, list/capabilities, list/categories = null, decorative_only = FALSE, dense_expected = TRUE, wall_mountable = FALSE)
 	if(!istype(generator) || !length("[id]") || !length("[slot]") || !length("[path_text]"))
@@ -56,20 +59,58 @@
 	providers_by_id[provider.id] = provider
 	for(var/style_id as anything in provider.styles)
 		var/key = "[style_id]|[provider.slot]"
-		if(!providers_by_style_slot[key])
-			providers_by_style_slot[key] = provider
+		var/list/style_slot_providers = providers_by_style_slot[key]
+		if(!islist(style_slot_providers))
+			style_slot_providers = list()
+			providers_by_style_slot[key] = style_slot_providers
+		style_slot_providers += provider
 	for(var/capability_id as anything in provider.provides_capabilities)
 		var/list/capability_providers = providers_by_capability["[capability_id]"]
 		if(!islist(capability_providers))
 			capability_providers = list()
 			providers_by_capability["[capability_id]"] = capability_providers
 		capability_providers += provider
+	refresh_unique_provider_counts()
 	return provider
 
 /datum/world_edit_building_object_provider_registry/proc/get_for_style_slot(style_id, slot)
-	return providers_by_style_slot["[style_id]|[slot]"]
+	var/list/style_slot_providers = providers_by_style_slot["[style_id]|[slot]"]
+	if(!islist(style_slot_providers))
+		return null
+	for(var/datum/world_edit_building_fixture_provider/provider as anything in style_slot_providers)
+		if(istype(provider) && provider.functional && !provider.decorative_only)
+			return provider
+	for(var/datum/world_edit_building_fixture_provider/fallback_provider as anything in style_slot_providers)
+		if(istype(fallback_provider))
+			return fallback_provider
+	return null
+
+/datum/world_edit_building_object_provider_registry/proc/get_all_for_style_slot(style_id, slot)
+	var/list/style_slot_providers = providers_by_style_slot["[style_id]|[slot]"]
+	return islist(style_slot_providers) ? style_slot_providers.Copy() : list()
+
+/datum/world_edit_building_object_provider_registry/proc/refresh_unique_provider_counts()
+	var/list/unique_paths = list()
+	var/list/unique_functional_paths = list()
+	var/list/unique_decorative_paths = list()
+	for(var/provider_id as anything in providers_by_id)
+		var/datum/world_edit_building_fixture_provider/provider = providers_by_id[provider_id]
+		if(!istype(provider))
+			continue
+		var/path_key = length(provider.path_text) ? provider.path_text : "[provider.obj_path]"
+		if(!length(path_key))
+			continue
+		unique_paths[path_key] = TRUE
+		if(provider.functional && !provider.decorative_only)
+			unique_functional_paths[path_key] = TRUE
+		else
+			unique_decorative_paths[path_key] = TRUE
+	unique_provider_path_count = length(unique_paths)
+	unique_functional_provider_path_count = length(unique_functional_paths)
+	unique_decorative_provider_path_count = length(unique_decorative_paths)
 
 /datum/world_edit_building_object_provider_registry/proc/audit()
+	refresh_unique_provider_counts()
 	return audit_errors.Copy()
 
 /datum/world_edit_generator/building_layout/proc/get_building_object_provider_registry()
@@ -98,4 +139,3 @@
 			registry.register_obj(src, "[style_id]_[slot_key]", slot_key, path_text, list("[style_id]"), capabilities, list(slot_key), decorative_only, TRUE, wall_mountable)
 	GLOB.world_edit_building_object_provider_registry = registry
 	return registry
-

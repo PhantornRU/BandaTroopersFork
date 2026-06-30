@@ -24,5 +24,29 @@
 - Decision: Skip optional chair-only semantic clusters in module placement.
 - Why: A chair-only optional object module creates `unpaired_chair_count`; table/chair seating should come from table-cluster modules instead.
 
+## D-007: Review follow-up keeps generated modules but fixes missing enforcement
+- Decision: Treat the attached PR #99 review as a required follow-up over the existing Variant A scaffold. The pass will close enforceable solver/provider/counter gaps without replacing the generated cluster-derived catalog with a full hand-authored library in this slice.
+- Why: The review identifies hard correctness blockers in the active code. A curated authored catalog remains a larger quality expansion, but max/repeat enforcement, hard-counter gating, unique provider metrics, wall clearance, and chair semantics are immediate acceptance blockers.
+
+## D-008: Unique provider path metrics are reporting metrics, not zero-hard counters
+- Decision: Export `unique_provider_path_count`, `unique_functional_provider_path_count`, and `unique_decorative_provider_path_count` as positive metrics, while hard failures stay on invalid paths/unknown providers and shortage-style checks.
+- Why: Hard counter reports interpret nonzero values as failures; positive diversity metrics must not fail because they are greater than zero.
+
+## D-009: Storage/workshop smoke failures are residual hard-gate exposure
+- Decision: Do not relax the new hard-counter gate to make storage/workshop smoke cases pass in this Variant A furnishing slice.
+- Why: The failures are locked by existing `forbidden_fallback` / `mandatory_pattern_failure` counters, not by the living furnishing counters requested for this review follow-up.
+
+## D-010: Visual acceptance parameter must work in normal DMB
+- Decision: `world_edit_acceptance=1` is now honored outside `UNIT_TESTS`, while `run_tests` remains the explicit gate for unit-test flow.
+- Why: `render_workflow.py` launches normal `colonialmarines.dmb` after `BUILD.cmd`; gating acceptance behind `#ifdef UNIT_TESTS` made normal visual acceptance silently enter lobby flow and time out with `semantic_output_missing`.
+
+## D-011: Curated modules are preferred, generated modules remain fallback
+- Decision: Add an explicit curated module family layer and return curated modules before cluster-derived generated fallback modules.
+- Why: The review requires authored semantic recipes, but current cluster-derived mappings are still useful compatibility coverage for unmapped or future cluster specs.
+
+## D-012: Residual smoke hard gates are now active closure scope
+- Decision: Fix `building_storage_target_rooms_5` and `building_workshop_target_rooms_6` residual hard gates in production placement logic.
+- Why: The user asked to finish the remaining items after living acceptance passed, and current reports prove the remaining blockers are required module/pattern placement failures.
+
 ## Pending Decisions
 - None.

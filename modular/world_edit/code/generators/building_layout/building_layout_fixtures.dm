@@ -907,9 +907,12 @@
 	if(!istype(state) || !istype(cluster_spec) || !cluster_spec.required)
 		return
 	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
-	var/required_count = max(round(text2num("[cluster_spec.min_count]") || 0), 1)
 	var/list/declared_anchor_ids = islist(cluster_spec.anchors) ? cluster_spec.anchors.Copy() : list()
 	var/declared_capacity = count_building_cluster_slot_capacity_for_anchors(state, cluster_spec, declared_anchor_ids)
+	var/declared_minimum = max(round(text2num("[cluster_spec.min_count]") || 0), 1)
+	var/required_count = declared_minimum
+	if(is_building_semantic_furniture_slot(cluster_spec.slot, cluster_spec.category) && declared_capacity > 0 && declared_capacity < required_count && !can_building_cluster_use_broad_fallback_anchors(state, cluster_spec))
+		required_count = declared_capacity
 	var/list/selected_anchor_ids = declared_anchor_ids
 	var/selected_mode = "declared"
 	var/fallback_capacity = 0
@@ -1049,6 +1052,10 @@
 		return 0
 	if(!istype(state))
 		return minimum
+	var/requirement_id = get_building_cluster_requirement_id(cluster_spec)
+	var/preflight_minimum = max(round(text2num("[state.fixtures.semantic_requirement_minimums[requirement_id]]") || 0), 0)
+	if(preflight_minimum > 0)
+		return preflight_minimum
 	var/anchor_area = get_cluster_anchor_area(state, cluster_spec)
 	if(anchor_area <= 0)
 		return minimum
@@ -1454,7 +1461,7 @@
 		return 0
 	return (projected_percent - soft_percent) * max(penalty, 1)
 
-/datum/world_edit_generator/building_layout/proc/place_fixture_at(datum/world_edit_building_layout_state/state, turf/target_turf, slot, dir_to_use, category, major = FALSE, wall_mounted = FALSE, datum/world_edit_building_place_rule/place_rule = null, wall_dir = null, datum/world_edit_building_cluster_spec/cluster_spec = null, template_chunk_id = null, template_chunk_instance_id = null, dir_source = null, allow_reserved = FALSE, module_id = null, module_instance_id = null, module_expected_member_count = 0)
+/datum/world_edit_generator/building_layout/proc/place_fixture_at(datum/world_edit_building_layout_state/state, turf/target_turf, slot, dir_to_use, category, major = FALSE, wall_mounted = FALSE, datum/world_edit_building_place_rule/place_rule = null, wall_dir = null, datum/world_edit_building_cluster_spec/cluster_spec = null, template_chunk_id = null, template_chunk_instance_id = null, dir_source = null, allow_reserved = FALSE, module_id = null, module_instance_id = null, module_expected_member_count = 0, module_repeat_group = null, module_room_id = null, module_requires_table_pairing = FALSE, module_seating_group_ok = FALSE)
 	if(!state.can_place_fixture(target_turf, allow_reserved))
 		return FALSE
 	var/reservation_owner = state.get_semantic_slot_owner(target_turf)
@@ -1526,6 +1533,12 @@
 	if(length("[module_instance_id]"))
 		object_placement["module_instance_id"] = "[module_instance_id]"
 		object_placement["module_expected_member_count"] = max(round(text2num("[module_expected_member_count]") || 0), 1)
+		if(length("[module_repeat_group]"))
+			object_placement["module_repeat_group"] = "[module_repeat_group]"
+		if(length("[module_room_id]"))
+			object_placement["module_room_id"] = "[module_room_id]"
+		object_placement["module_requires_table_pairing"] = module_requires_table_pairing ? TRUE : FALSE
+		object_placement["module_seating_group_ok"] = module_seating_group_ok ? TRUE : FALSE
 	if("[category]" in list("light", "apc", "air_alarm", "fire_alarm", "light_switch"))
 		object_placement["infrastructure"] = TRUE
 	if(istype(cluster_spec))

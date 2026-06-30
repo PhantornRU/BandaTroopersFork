@@ -54,12 +54,9 @@ GLOBAL_LIST_INIT(reboot_sfx, file2list("config/reboot_sfx.txt"))
 
 	init_global_referenced_datums()
 
-	// SS220 EDIT - START: UNIT_TESTS should only enter automated test flow when run_tests is passed explicitly
+	// SS220 EDIT - START: explicit automation params control headless test/acceptance flow
 	var/testing_locally = (world.params && world.params["local_test"])
-	var/running_world_edit_acceptance = FALSE
-	#ifdef UNIT_TESTS
-	running_world_edit_acceptance = (world.params && world.params["world_edit_acceptance"])
-	#endif
+	var/running_world_edit_acceptance = (world.params && world.params["world_edit_acceptance"])
 	var/running_tests = (world.params && world.params["run_tests"])
 	var/running_headless_automation = running_tests || running_world_edit_acceptance
 	#ifdef AUTOWIKI
@@ -93,12 +90,10 @@ GLOBAL_LIST_INIT(reboot_sfx, file2list("config/reboot_sfx.txt"))
 	// SS220 EDIT - END
 
 	// SS220 EDIT - START: explicit one-shot World Edit acceptance runner
-	#ifdef UNIT_TESTS
 	if(running_world_edit_acceptance)
 		run_world_edit_visual_acceptance_from_params()
 		shutdown()
 		return
-	#endif
 	// SS220 EDIT - END
 
 	#ifdef AUTOWIKI

@@ -308,6 +308,10 @@
 	fixtures.semantic_requirement_counts.Cut()
 	fixtures.module_counts.Cut()
 	fixtures.module_expected_member_counts.Cut()
+	fixtures.module_instance_rooms.Cut()
+	fixtures.module_instance_repeat_groups.Cut()
+	fixtures.module_counts_by_room.Cut()
+	fixtures.module_repeat_group_counts_by_room.Cut()
 	fixtures.major_fixture_turfs.Cut()
 	fixtures.wall_fixture_turfs.Cut()
 	fixtures.fixture_count = 0
@@ -350,19 +354,59 @@
 			module_instance_lookup[module_instance_id] = TRUE
 			fixtures.module_instance_count++
 			var/module_id = "[object_placement["module_id"] || ""]"
+			var/module_room_id = "[object_placement["module_room_id"] || ""]"
+			if(!length(module_room_id))
+				var/datum/world_edit_building_room/module_room = get_room_for_turf(target_turf)
+				if(istype(module_room))
+					module_room_id = module_room.id
+			var/module_repeat_group = "[object_placement["module_repeat_group"] || ""]"
 			if(length(module_id))
 				fixtures.module_counts[module_id] = (fixtures.module_counts[module_id] || 0) + 1
+			if(length(module_room_id))
+				fixtures.module_instance_rooms[module_instance_id] = module_room_id
+				if(length(module_id))
+					var/room_module_key = "[module_room_id]|[module_id]"
+					fixtures.module_counts_by_room[room_module_key] = (fixtures.module_counts_by_room[room_module_key] || 0) + 1
+				if(length(module_repeat_group))
+					var/room_repeat_key = "[module_room_id]|[module_repeat_group]"
+					fixtures.module_repeat_group_counts_by_room[room_repeat_key] = (fixtures.module_repeat_group_counts_by_room[room_repeat_key] || 0) + 1
+			if(length(module_repeat_group))
+				fixtures.module_instance_repeat_groups[module_instance_id] = module_repeat_group
 			fixtures.module_expected_member_counts[module_instance_id] = max(round(text2num("[object_placement["module_expected_member_count"]]") || 0), 1)
 		if(GLOB.world_edit_helpers.parse_bool(object_placement["infrastructure"]))
 			fixtures.infrastructure_count++
 
-/datum/world_edit_building_layout_state/proc/register_module_instance(module_id, module_instance_id, expected_member_count)
+/datum/world_edit_building_layout_state/proc/register_module_instance(module_id, module_instance_id, expected_member_count, room_id = null, repeat_group = null)
 	if(!length("[module_id]") || !length("[module_instance_id]"))
 		return
 	if(!fixtures.module_expected_member_counts["[module_instance_id]"])
 		fixtures.module_instance_count++
 	fixtures.module_counts["[module_id]"] = (fixtures.module_counts["[module_id]"] || 0) + 1
 	fixtures.module_expected_member_counts["[module_instance_id]"] = max(round(text2num("[expected_member_count]") || 0), 1)
+	if(length("[room_id]"))
+		fixtures.module_instance_rooms["[module_instance_id]"] = "[room_id]"
+		var/room_module_key = "[room_id]|[module_id]"
+		fixtures.module_counts_by_room[room_module_key] = (fixtures.module_counts_by_room[room_module_key] || 0) + 1
+	if(length("[repeat_group]"))
+		fixtures.module_instance_repeat_groups["[module_instance_id]"] = "[repeat_group]"
+		if(length("[room_id]"))
+			var/room_repeat_key = "[room_id]|[repeat_group]"
+			fixtures.module_repeat_group_counts_by_room[room_repeat_key] = (fixtures.module_repeat_group_counts_by_room[room_repeat_key] || 0) + 1
+
+/datum/world_edit_building_layout_state/proc/get_building_module_count(module_id)
+	if(!length("[module_id]"))
+		return 0
+	return round(text2num("[fixtures.module_counts["[module_id]"]]") || 0)
+
+/datum/world_edit_building_layout_state/proc/get_room_module_count(room_id, module_id)
+	if(!length("[room_id]") || !length("[module_id]"))
+		return 0
+	return round(text2num("[fixtures.module_counts_by_room["[room_id]|[module_id]"]]") || 0)
+
+/datum/world_edit_building_layout_state/proc/get_room_repeat_group_count(room_id, repeat_group)
+	if(!length("[room_id]") || !length("[repeat_group]"))
+		return 0
+	return round(text2num("[fixtures.module_repeat_group_counts_by_room["[room_id]|[repeat_group]"]]") || 0)
 
 /datum/world_edit_building_layout_state/proc/remove_module_instance(module_instance_id)
 	if(!length("[module_instance_id]"))
@@ -407,19 +451,27 @@
 	validation.divider_capacity_warning_count = 0
 	validation.provider_path_not_in_build_count = 0
 	validation.unknown_provider_count = 0
+	validation.unique_provider_path_count = 0
+	validation.unique_functional_provider_path_count = 0
+	validation.unique_decorative_provider_path_count = 0
 	validation.required_module_missing_count = 0
 	validation.optional_module_missing_count = 0
 	validation.required_module_not_placeable_count = 0
+	validation.required_room_without_required_module_count = 0
 	validation.loose_table_count = 0
 	validation.loose_chair_count = 0
 	validation.unpaired_chair_count = 0
 	validation.table_chair_mosaic_count = 0
 	validation.furniture_group_fragmented_count = 0
+	validation.bed_without_access_count = 0
 	validation.bed_outside_sleeping_count = 0
 	validation.toilet_outside_sanitation_count = 0
 	validation.medical_bed_outside_medical_count = 0
 	validation.hydro_tray_outside_hydroponics_count = 0
 	validation.weapon_rack_outside_armory_security_count = 0
+	validation.module_max_per_room_violation_count = 0
+	validation.module_max_per_building_violation_count = 0
+	validation.repeat_group_violation_count = 0
 	validation.room_overfilled_count = 0
 	validation.route_blocked_by_furniture_count = 0
 	validation.door_clearance_blocked_count = 0

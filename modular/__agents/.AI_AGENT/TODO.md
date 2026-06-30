@@ -17,6 +17,31 @@
 | T11 | CHECK | Add focused unit tests for provider audit, module catalog, Covenant decorative-only, no loose furniture, and mosaic rejection. | [x] |
 | T12 | CHECK | Run focused verification commands and record results. | [x] |
 
+## Review Follow-Up Tasks
+
+| ID | Type | Requirement | Status |
+| --- | --- | --- | --- |
+| RF1 | MUST | Give wall-required modules clearance cells and keep wall-context candidate handling valid. | [x] |
+| RF2 | MUST | Enforce module `max_per_room`, `max_per_building`, and room repeat-group caps in candidate search. | [x] |
+| RF3 | MUST | Add chair pairing metadata and prevent valid seating rows from producing `unpaired_chair_count`. | [x] |
+| RF4 | MUST | Add hard-counter fail gate after validation before candidate success. | [x] |
+| RF5 | MUST | Convert provider `style|slot` lookup to provider lists and add unique path metrics. | [x] |
+| RF6 | MUST | Add missing review counters and hard-counter exports. | [x] |
+| RF7 | CHECK | Update living expectations and run compile plus visual acceptance evidence. | [x] |
+
+## Continuation Tasks
+
+| ID | Type | Requirement | Status |
+| --- | --- | --- | --- |
+| C13 | MUST | Add an explicit curated placement module layer and prefer it over generated cluster-derived modules. | [x] |
+| C14 | MUST | Diagnose and fix current `building_living_target_rooms_6` `semantic_output_missing` workflow failure without moving generation into `tools/world_edit_visual`. | [x] |
+| C15 | CHECK | Re-run `building_living_target_rooms_6` after fixes and record current report metrics. | [x] |
+| C16 | CHECK | Re-run build/unit compile and `git diff --check`. | [x] |
+| C17 | MUST | Treat storage/workshop residual hard gates as active scope instead of out-of-scope smoke failures. | [x] |
+| C18 | MUST | Fix semantic module placement so required multi-slot rack/staging/workbench clusters use reserved/compact semantic slot turfs atomically. | [x] |
+| C19 | MUST | Remove storage forbidden fallback / route repair / required-room-without-module failures through production placement fixes, not validator hiding. | [x] |
+| C20 | CHECK | Re-run storage, workshop, and living target-room visual workflows after the residual fix. | [x] |
+
 ## Forbidden Substitutions
 
 | ID | Forbidden substitution |
