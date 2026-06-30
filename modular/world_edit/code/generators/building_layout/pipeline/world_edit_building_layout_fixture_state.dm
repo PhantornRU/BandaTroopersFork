@@ -13,6 +13,8 @@
 	var/list/category_budgets = list()
 	var/list/layout_macros = list()
 	var/list/layout_macro_counts = list()
+	var/list/module_counts = list()
+	var/list/module_expected_member_counts = list()
 	var/list/semantic_slot_anchor_sets = list()
 	var/list/semantic_slot_selected_modes = list()
 	var/list/semantic_slot_turf_sets = list()
@@ -27,4 +29,5 @@
 	var/template_chunk_count = 0
 	var/template_chunk_cell_count = 0
 	var/infrastructure_count = 0
+	var/module_instance_count = 0
 	var/pattern_credit_hash = 0

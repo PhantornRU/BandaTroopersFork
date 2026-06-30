@@ -795,6 +795,8 @@
 			result["feasibility_dry_solve_reason"] = dry_solve["reason"]
 			if(islist(dry_solve["selected_candidate_report"]))
 				result["feasibility_dry_solve_selected_candidate"] = dry_solve["selected_candidate_report"]
+			if(islist(dry_solve["failed_candidate_report"]))
+				result["feasibility_dry_solve_failed_candidate"] = dry_solve["failed_candidate_report"]
 			if("[dry_solve["status"]]" == "no_solution" || "[dry_solve["status"]]" == "failed")
 				result["status"] = WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
 				result["reason"] = length("[dry_solve["reason"]]") ? "[dry_solve["reason"]]" : "Cannot build [archetype.id]: no valid topology/route candidate found."
@@ -1641,6 +1643,23 @@
 
 /datum/world_edit_generator/building_layout/proc/get_building_hard_counter_names()
 	return list(
+		"provider_path_not_in_build_count",
+		"unknown_provider_count",
+		"required_module_missing_count",
+		"required_module_not_placeable_count",
+		"loose_table_count",
+		"loose_chair_count",
+		"unpaired_chair_count",
+		"table_chair_mosaic_count",
+		"furniture_group_fragmented_count",
+		"bed_outside_sleeping_count",
+		"toilet_outside_sanitation_count",
+		"medical_bed_outside_medical_count",
+		"hydro_tray_outside_hydroponics_count",
+		"weapon_rack_outside_armory_security_count",
+		"room_overfilled_count",
+		"route_blocked_by_furniture_count",
+		"door_clearance_blocked_count",
 		"mandatory_room_missing_count",
 		"mandatory_room_no_bounds_count",
 		"mandatory_room_no_access_count",
@@ -1683,6 +1702,23 @@
 	if(!istype(state))
 		return 0
 	switch("[counter_name]")
+		if("provider_path_not_in_build_count") return state.validation.provider_path_not_in_build_count
+		if("unknown_provider_count") return state.validation.unknown_provider_count
+		if("required_module_missing_count") return state.validation.required_module_missing_count
+		if("required_module_not_placeable_count") return state.validation.required_module_not_placeable_count
+		if("loose_table_count") return state.validation.loose_table_count
+		if("loose_chair_count") return state.validation.loose_chair_count
+		if("unpaired_chair_count") return state.validation.unpaired_chair_count
+		if("table_chair_mosaic_count") return state.validation.table_chair_mosaic_count
+		if("furniture_group_fragmented_count") return state.validation.furniture_group_fragmented_count
+		if("bed_outside_sleeping_count") return state.validation.bed_outside_sleeping_count
+		if("toilet_outside_sanitation_count") return state.validation.toilet_outside_sanitation_count
+		if("medical_bed_outside_medical_count") return state.validation.medical_bed_outside_medical_count
+		if("hydro_tray_outside_hydroponics_count") return state.validation.hydro_tray_outside_hydroponics_count
+		if("weapon_rack_outside_armory_security_count") return state.validation.weapon_rack_outside_armory_security_count
+		if("room_overfilled_count") return state.validation.room_overfilled_count
+		if("route_blocked_by_furniture_count") return state.validation.route_blocked_by_furniture_count
+		if("door_clearance_blocked_count") return state.validation.door_clearance_blocked_count
 		if("mandatory_room_missing_count") return state.validation.mandatory_room_missing_count
 		if("mandatory_room_no_bounds_count") return state.validation.mandatory_room_no_bounds_count
 		if("mandatory_room_no_access_count") return state.validation.mandatory_room_no_access_count
@@ -2051,6 +2087,10 @@
 	var/list/size_candidates = resolved_shape_id == WORLD_EDIT_SHAPE_POINT ? get_building_point_size_candidate_specs(request.config) : list(list("index" = 1, "half_width" = request.config["half_width"], "half_depth" = request.config["half_depth"]))
 	var/attempt_index = 0
 	var/first_candidate_error = null
+	var/datum/world_edit_building_layout_state/best_failed_state = null
+	var/best_failed_score = -999999999
+	var/best_failed_family = null
+	var/best_failed_attempt = 0
 	for(var/list/size_candidate as anything in size_candidates)
 		for(var/footprint_family as anything in candidate_families)
 			if(attempt_index >= WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
@@ -2074,6 +2114,12 @@
 				continue
 			if(candidate_state.has_errors())
 				result["error_candidate_count"] = result["error_candidate_count"] + 1
+				var/candidate_score = candidate_state.validation.layout_candidate_score
+				if(!istype(best_failed_state) || candidate_score > best_failed_score)
+					best_failed_state = candidate_state
+					best_failed_score = candidate_score
+					best_failed_family = footprint_family
+					best_failed_attempt = attempt_index
 				if(isnull(first_candidate_error))
 					if(candidate_state.validation.current_request_support_status != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED && length(candidate_state.validation.user_facing_failure_reason))
 						first_candidate_error = candidate_state.validation.user_facing_failure_reason
@@ -2090,6 +2136,8 @@
 
 	result["status"] = "no_solution"
 	result["reason"] = first_candidate_error || "No valid topology/route candidate found during feasibility dry solve."
+	if(istype(best_failed_state))
+		result["failed_candidate_report"] = build_building_layout_candidate_report(best_failed_state, best_failed_family, best_failed_attempt, best_failed_score, result["reason"], TRUE)
 	return result
 
 /datum/world_edit_generator/building_layout/build_plan_from_shape_contract(mob/user, datum/world_edit_shape_contract/shape_contract, list/params, list/placement_context)

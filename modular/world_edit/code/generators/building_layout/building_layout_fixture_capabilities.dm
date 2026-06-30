@@ -2,13 +2,18 @@
 	var/id = ""
 	var/slot = ""
 	var/capability = ""
+	var/path_text = ""
 	var/obj_path = null
 	var/source = ""
+	var/list/styles = list()
 	var/list/provides_slots = list()
 	var/list/provides_categories = list()
 	var/list/provides_capabilities = list()
+	var/list/audit_errors = list()
 	var/functional = TRUE
 	var/decorative_only = FALSE
+	var/dense_expected = TRUE
+	var/wall_mountable = FALSE
 	var/reason_if_not_functional = ""
 
 /datum/world_edit_building_fixture_provider/proc/provides_required_slot(required_slot)
@@ -26,13 +31,18 @@
 		"id" = id,
 		"slot" = slot,
 		"capability" = capability,
+		"path_text" = path_text,
 		"obj_path" = "[obj_path]",
 		"source" = source,
+		"styles" = islist(styles) ? styles.Copy() : list(),
 		"provides_slots" = islist(provides_slots) ? provides_slots.Copy() : list(),
 		"provides_categories" = islist(provides_categories) ? provides_categories.Copy() : list(),
 		"provides_capabilities" = islist(provides_capabilities) ? provides_capabilities.Copy() : list(),
+		"audit_errors" = islist(audit_errors) ? audit_errors.Copy() : list(),
 		"functional" = functional ? TRUE : FALSE,
 		"decorative_only" = decorative_only ? TRUE : FALSE,
+		"dense_expected" = dense_expected ? TRUE : FALSE,
+		"wall_mountable" = wall_mountable ? TRUE : FALSE,
 		"reason_if_not_functional" = reason_if_not_functional,
 	)
 
@@ -220,6 +230,7 @@
 	provider.slot = slot_key
 	provider.capability = get_building_fixture_required_capability(slot_key)
 	provider.obj_path = obj_path
+	provider.path_text = "[obj_path]"
 	provider.source = "[source]"
 	provider.provides_slots = list(slot_key)
 	provider.provides_capabilities = list()
@@ -260,7 +271,13 @@
 	var/list/interior_paths = islist(config) ? config["interior_paths"] : null
 	if(!islist(interior_paths))
 		return providers
+	var/style_id = "[config["faction_preset"] || ""]"
+	var/datum/world_edit_building_object_provider_registry/verified_registry = get_building_object_provider_registry()
 	for(var/slot as anything in interior_paths)
+		var/datum/world_edit_building_fixture_provider/verified_provider = verified_registry?.get_for_style_slot(style_id, slot)
+		if(istype(verified_provider))
+			providers["[slot]"] = verified_provider
+			continue
 		var/list/path_report = build_building_fixture_path_report(config, slot)
 		var/datum/world_edit_building_fixture_provider/provider = build_legacy_fixture_provider(slot, path_report["path"], path_report["source"])
 		if(istype(provider))
@@ -271,6 +288,11 @@
 	var/list/providers = islist(config) ? config["fixture_providers_by_slot"] : null
 	if(islist(providers) && istype(providers["[slot]"], /datum/world_edit_building_fixture_provider))
 		return providers["[slot]"]
+	var/style_id = "[islist(config) ? config["faction_preset"] : ""]"
+	var/datum/world_edit_building_object_provider_registry/verified_registry = get_building_object_provider_registry()
+	var/datum/world_edit_building_fixture_provider/verified_provider = verified_registry?.get_for_style_slot(style_id, slot)
+	if(istype(verified_provider))
+		return verified_provider
 	var/list/path_report = build_building_fixture_path_report(config, slot)
 	return build_legacy_fixture_provider(slot, path_report["path"], path_report["source"])
 

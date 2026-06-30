@@ -218,6 +218,12 @@
 		cluster_spec.macro_id = get_building_macro_id_for_cluster(cluster_spec, state)
 	var/requested_macro_id = "[cluster_spec.macro_id]"
 	cluster_report["macro_id"] = requested_macro_id
+	if(is_building_semantic_furniture_slot(cluster_spec.slot, cluster_spec.category))
+		var/module_placed = place_building_modules_for_cluster(state, cluster_spec, major)
+		cluster_report["status"] = module_placed > 0 ? "module_satisfied" : "module_failed"
+		cluster_report["placed"] = module_placed
+		state.add_template_cluster_report(cluster_report)
+		return module_placed > 0
 	var/has_template_path = building_cluster_has_template_chunk(cluster_spec, state)
 	if(length(cluster_spec.macro_id) && cluster_spec.macro_id != requested_macro_id)
 		cluster_report["resolved_macro_id"] = cluster_spec.macro_id
@@ -520,6 +526,8 @@
 		state.fixtures.category_budgets["[category]"] = min(WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS, max(base_budget, base_budget + area_bonus))
 
 /datum/world_edit_generator/building_layout/proc/get_cluster_effective_needs_wall(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_place_rule/place_rule)
+	if(istype(cluster_spec) && cluster_spec.slot == "toilet" && cluster_spec.category == "sanitation")
+		return FALSE
 	var/needs_wall = cluster_spec.wall_required || place_rule.needs_wall
 	if(!needs_wall)
 		return FALSE
@@ -1446,7 +1454,7 @@
 		return 0
 	return (projected_percent - soft_percent) * max(penalty, 1)
 
-/datum/world_edit_generator/building_layout/proc/place_fixture_at(datum/world_edit_building_layout_state/state, turf/target_turf, slot, dir_to_use, category, major = FALSE, wall_mounted = FALSE, datum/world_edit_building_place_rule/place_rule = null, wall_dir = null, datum/world_edit_building_cluster_spec/cluster_spec = null, template_chunk_id = null, template_chunk_instance_id = null, dir_source = null, allow_reserved = FALSE)
+/datum/world_edit_generator/building_layout/proc/place_fixture_at(datum/world_edit_building_layout_state/state, turf/target_turf, slot, dir_to_use, category, major = FALSE, wall_mounted = FALSE, datum/world_edit_building_place_rule/place_rule = null, wall_dir = null, datum/world_edit_building_cluster_spec/cluster_spec = null, template_chunk_id = null, template_chunk_instance_id = null, dir_source = null, allow_reserved = FALSE, module_id = null, module_instance_id = null, module_expected_member_count = 0)
 	if(!state.can_place_fixture(target_turf, allow_reserved))
 		return FALSE
 	var/reservation_owner = state.get_semantic_slot_owner(target_turf)
@@ -1513,6 +1521,11 @@
 	if(length("[template_chunk_id]"))
 		object_placement["template_chunk_id"] = "[template_chunk_id]"
 		object_placement["template_chunk_instance_id"] = length("[template_chunk_instance_id]") ? "[template_chunk_instance_id]" : "[template_chunk_id]@[target_turf.x],[target_turf.y],[target_turf.z]"
+	if(length("[module_id]"))
+		object_placement["module_id"] = "[module_id]"
+	if(length("[module_instance_id]"))
+		object_placement["module_instance_id"] = "[module_instance_id]"
+		object_placement["module_expected_member_count"] = max(round(text2num("[module_expected_member_count]") || 0), 1)
 	if("[category]" in list("light", "apc", "air_alarm", "fire_alarm", "light_switch"))
 		object_placement["infrastructure"] = TRUE
 	if(istype(cluster_spec))

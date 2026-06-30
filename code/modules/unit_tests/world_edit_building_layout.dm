@@ -109,7 +109,7 @@
 /datum/unit_test/world_edit_building_layout/proc/assert_living_template_plan_contract(datum/world_edit_plan/plan)
 	TEST_ASSERT_NOTNULL(plan, "Living template contract did not return a plan.")
 	TEST_ASSERT(!plan.metadata["error"], "Living template contract failed: [plan.metadata["error"]]")
-	TEST_ASSERT(round(text2num("[plan.metadata["template_chunk_count"]]") || 0) > 0, "Living layout did not place any template chunks.")
+	TEST_ASSERT(round(text2num("[plan.metadata["module_instance_count"]]") || 0) > 0, "Living layout did not place any semantic furnishing modules.")
 	var/list/reject_counts = plan.metadata["template_reject_reason_counts"]
 	var/template_not_found = islist(reject_counts) ? (reject_counts["template_chunk_not_found"] || 0) : 0
 	TEST_ASSERT_EQUAL(template_not_found, 0, "Living layout reported missing template chunks.")
@@ -141,6 +141,10 @@
 
 /datum/unit_test/world_edit_building_layout/capability_provider_contract/Run()
 	var/datum/world_edit_generator/building_layout/generator = new
+	var/datum/world_edit_building_object_provider_registry/registry = generator.get_building_object_provider_registry()
+	TEST_ASSERT_EQUAL(length(registry.audit()), 0, "Building object provider registry reported audit errors.")
+	TEST_ASSERT(length(registry.providers_by_id) >= 50, "Building object provider registry did not expose at least 50 verified providers.")
+	TEST_ASSERT_EQUAL(registry.provider_path_not_in_build_count, 0, "Building object provider registry has unresolved provider paths.")
 	var/list/colony_config = generator.normalize_building_params(list(
 		"archetype_id" = "living",
 		"faction_preset" = "colony",
@@ -160,7 +164,23 @@
 	var/list/covenant_providers = covenant_config["fixture_providers_by_slot"]
 	var/datum/world_edit_building_fixture_provider/covenant_bed_provider = islist(covenant_providers) ? covenant_providers["bed"] : null
 	TEST_ASSERT(istype(covenant_bed_provider), "Covenant living style did not expose the rejected bed provider for diagnostics.")
+	TEST_ASSERT(covenant_bed_provider.decorative_only, "Covenant barricade/recharger providers must remain decorative_only without proven functional capability.")
 	TEST_ASSERT(!generator.building_fixture_provider_satisfies_slot(covenant_bed_provider, "bed"), "Covenant decorative bed provider should not satisfy sleep_surface capability.")
+
+/datum/unit_test/world_edit_building_layout/placement_module_catalog_contract/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/datum/world_edit_building_placement_module_catalog/catalog = generator.get_building_placement_module_catalog()
+	TEST_ASSERT(length(catalog.modules_by_id) >= 100, "Building placement module catalog did not expose at least 100 modules.")
+	for(var/module_id as anything in catalog.modules_by_id)
+		var/datum/world_edit_building_placement_module/module = catalog.modules_by_id[module_id]
+		TEST_ASSERT(istype(module), "Placement module [module_id] is not a module datum.")
+		TEST_ASSERT(length(module.allowed_programs), "Placement module [module_id] has no allowed programs.")
+		TEST_ASSERT(length(module.allowed_zone_ids) || length(module.allowed_room_roles), "Placement module [module_id] has no zone or role constraints.")
+		TEST_ASSERT(length(module.occupied_offsets), "Placement module [module_id] has no occupied cells.")
+		TEST_ASSERT(length(module.clearance_offsets), "Placement module [module_id] has no clearance cells.")
+		TEST_ASSERT(length(module.repeat_group), "Placement module [module_id] has no repeat group.")
+		TEST_ASSERT(module.max_per_room > 0, "Placement module [module_id] has invalid max_per_room.")
+		TEST_ASSERT(module.max_per_building > 0, "Placement module [module_id] has invalid max_per_building.")
 
 /datum/unit_test/world_edit_building_layout/capability_matrix_payload_contract/Run()
 	var/datum/world_edit_generator/building_layout/generator = new
@@ -316,6 +336,7 @@
 	TEST_ASSERT(wall_fixture_count > 0, "No wall fixtures were emitted for the direction contract test.")
 
 /datum/unit_test/world_edit_building_layout/living_semantic_object_contract/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
 	var/datum/world_edit_plan/plan = null
 	for(var/seed_value in 13 to 24)
 		var/datum/world_edit_plan/candidate_plan = build_living_point_plan(list(
@@ -375,6 +396,17 @@
 	TEST_ASSERT(bed_seen, "Living layout did not emit a bed.")
 	TEST_ASSERT(table_seen, "Living layout did not emit a common table.")
 	TEST_ASSERT(toilet_seen, "Living layout did not emit a sanitation fixture.")
+	TEST_ASSERT_EQUAL(plan.metadata["loose_table_count"] || 0, 0, "Living layout emitted loose tables outside semantic modules.")
+	TEST_ASSERT_EQUAL(plan.metadata["loose_chair_count"] || 0, 0, "Living layout emitted loose chairs outside semantic modules.")
+	TEST_ASSERT_EQUAL(plan.metadata["table_chair_mosaic_count"] || 0, 0, "Living layout emitted table/chair mosaic furniture.")
+	TEST_ASSERT(round(text2num("[plan.metadata["module_instance_count"]]") || 0) > 0, "Living layout did not emit semantic module instances.")
+	for(var/list/placement as anything in plan.placements)
+		if(!islist(placement) || "[placement["kind"]]" != "interior")
+			continue
+		var/placement_slot = "[placement["requested_slot"] || placement["slot"]]"
+		var/placement_category = "[placement["category"]]"
+		if(generator.is_building_semantic_furniture_slot(placement_slot, placement_category))
+			TEST_ASSERT(length("[placement["module_instance_id"] || ""]"), "Semantic furniture [placement_slot] was emitted without a module instance.")
 
 /datum/unit_test/world_edit_building_layout/full_layout_no_required_fallback_credit/Run()
 	var/datum/world_edit_plan/plan = build_living_point_plan(list(

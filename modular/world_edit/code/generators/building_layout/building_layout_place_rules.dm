@@ -69,7 +69,7 @@
 	add_building_place_rule(place_rule_catalog, new /datum/world_edit_building_place_rule("processor", "kitchen_machine", 0, 0, TRUE, WORLD_EDIT_BUILDING_DIRMODE_FRONT_FACE, default_forbidden_anchors, 15))
 	add_building_place_rule(place_rule_catalog, new /datum/world_edit_building_place_rule("processor", "work_machine", 0, 0, TRUE, WORLD_EDIT_BUILDING_DIRMODE_FRONT_FACE, default_forbidden_anchors, 20))
 	add_building_place_rule(place_rule_catalog, new /datum/world_edit_building_place_rule("sink", "kitchen_machine", 0, 0, TRUE, WORLD_EDIT_BUILDING_DIRMODE_FRONT_FACE, default_forbidden_anchors, 10))
-	add_building_place_rule(place_rule_catalog, new /datum/world_edit_building_place_rule("toilet", "sanitation", 0, 0, TRUE, WORLD_EDIT_BUILDING_DIRMODE_FRONT_FACE, default_forbidden_anchors, 10))
+	add_building_place_rule(place_rule_catalog, new /datum/world_edit_building_place_rule("toilet", "sanitation", 0, 0, FALSE, WORLD_EDIT_BUILDING_DIRMODE_FRONT_FACE, default_forbidden_anchors, 10))
 	add_building_place_rule(place_rule_catalog, new /datum/world_edit_building_place_rule("water_tank", "water_or_chem", 0, 0, TRUE, WORLD_EDIT_BUILDING_DIRMODE_FRONT_FACE, default_forbidden_anchors, 10))
 	add_building_place_rule(place_rule_catalog, new /datum/world_edit_building_place_rule("seed_storage", "seed_storage", 0, 0, TRUE, WORLD_EDIT_BUILDING_DIRMODE_FRONT_FACE, default_forbidden_anchors, 10))
 	add_building_place_rule(place_rule_catalog, new /datum/world_edit_building_place_rule("security_camera", "security_camera", 0, 0, TRUE, WORLD_EDIT_BUILDING_DIRMODE_ATTACHED_WALL, default_forbidden_anchors, 15))

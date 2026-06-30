@@ -816,6 +816,8 @@
 	plan.metadata["microvariation_count"] = state.validation.microvariation_count
 	plan.metadata["template_chunk_count"] = state.fixtures.template_chunk_count
 	plan.metadata["template_chunk_cell_count"] = state.fixtures.template_chunk_cell_count
+	plan.metadata["module_instance_count"] = state.fixtures.module_instance_count
+	plan.metadata["module_counts"] = state.fixtures.module_counts.Copy()
 	plan.metadata["infrastructure_count"] = state.fixtures.infrastructure_count
 	plan.metadata["degraded_region_fallback_count"] = state.validation.degraded_region_fallback_count
 	plan.metadata["degraded_region_reports"] = detailed_reports ? state.validation.degraded_region_reports.Copy() : list()
@@ -843,6 +845,8 @@
 	plan.metadata["emit_state_mismatch_count"] = state.validation.emit_state_mismatch_count
 	plan.metadata["semantic_credit_without_emitted_slots_count"] = state.validation.semantic_credit_without_emitted_slots_count
 	plan.metadata["hard_counters"] = build_building_state_hard_counter_report(state)
+	for(var/counter_name as anything in plan.metadata["hard_counters"])
+		plan.metadata["[counter_name]"] = plan.metadata["hard_counters"][counter_name]
 	var/datum/world_edit_validation_verdict/generation_verdict = build_building_generation_validation_verdict(state)
 	plan.metadata["generation_validation_verdict"] = generation_verdict.as_payload()
 	plan.metadata["validation_verdict"] = plan.metadata["generation_validation_verdict"]

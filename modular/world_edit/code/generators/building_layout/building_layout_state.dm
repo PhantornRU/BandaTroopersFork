@@ -306,6 +306,8 @@
 	fixtures.signature_counts.Cut()
 	fixtures.placed_requirement_counts.Cut()
 	fixtures.semantic_requirement_counts.Cut()
+	fixtures.module_counts.Cut()
+	fixtures.module_expected_member_counts.Cut()
 	fixtures.major_fixture_turfs.Cut()
 	fixtures.wall_fixture_turfs.Cut()
 	fixtures.fixture_count = 0
@@ -313,7 +315,9 @@
 	fixtures.template_chunk_count = 0
 	fixtures.template_chunk_cell_count = 0
 	fixtures.infrastructure_count = 0
+	fixtures.module_instance_count = 0
 	var/list/template_chunk_instance_lookup = list()
+	var/list/module_instance_lookup = list()
 	for(var/list/object_placement as anything in fixtures.object_placements)
 		if(!islist(object_placement) || "[object_placement["kind"]]" != "interior")
 			continue
@@ -341,8 +345,38 @@
 			if(!template_chunk_instance_lookup[template_chunk_instance_id])
 				template_chunk_instance_lookup[template_chunk_instance_id] = TRUE
 				fixtures.template_chunk_count++
+		var/module_instance_id = "[object_placement["module_instance_id"] || ""]"
+		if(length(module_instance_id) && !module_instance_lookup[module_instance_id])
+			module_instance_lookup[module_instance_id] = TRUE
+			fixtures.module_instance_count++
+			var/module_id = "[object_placement["module_id"] || ""]"
+			if(length(module_id))
+				fixtures.module_counts[module_id] = (fixtures.module_counts[module_id] || 0) + 1
+			fixtures.module_expected_member_counts[module_instance_id] = max(round(text2num("[object_placement["module_expected_member_count"]]") || 0), 1)
 		if(GLOB.world_edit_helpers.parse_bool(object_placement["infrastructure"]))
 			fixtures.infrastructure_count++
+
+/datum/world_edit_building_layout_state/proc/register_module_instance(module_id, module_instance_id, expected_member_count)
+	if(!length("[module_id]") || !length("[module_instance_id]"))
+		return
+	if(!fixtures.module_expected_member_counts["[module_instance_id]"])
+		fixtures.module_instance_count++
+	fixtures.module_counts["[module_id]"] = (fixtures.module_counts["[module_id]"] || 0) + 1
+	fixtures.module_expected_member_counts["[module_instance_id]"] = max(round(text2num("[expected_member_count]") || 0), 1)
+
+/datum/world_edit_building_layout_state/proc/remove_module_instance(module_instance_id)
+	if(!length("[module_instance_id]"))
+		return FALSE
+	var/removed = FALSE
+	for(var/index = length(fixtures.object_placements), index >= 1, index--)
+		var/list/object_placement = fixtures.object_placements[index]
+		if(!islist(object_placement) || "[object_placement["module_instance_id"]]" != "[module_instance_id]")
+			continue
+		fixtures.object_placements.Cut(index, index + 1)
+		removed = TRUE
+	if(removed)
+		rebuild_fixture_indexes()
+	return removed
 /datum/world_edit_building_layout_state/proc/remove_fixture_at(turf/target_turf)
 	if(!istype(target_turf))
 		return FALSE
@@ -371,6 +405,24 @@
 	validation.route_conflict_count = 0
 	validation.signature_failure_count = 0
 	validation.divider_capacity_warning_count = 0
+	validation.provider_path_not_in_build_count = 0
+	validation.unknown_provider_count = 0
+	validation.required_module_missing_count = 0
+	validation.optional_module_missing_count = 0
+	validation.required_module_not_placeable_count = 0
+	validation.loose_table_count = 0
+	validation.loose_chair_count = 0
+	validation.unpaired_chair_count = 0
+	validation.table_chair_mosaic_count = 0
+	validation.furniture_group_fragmented_count = 0
+	validation.bed_outside_sleeping_count = 0
+	validation.toilet_outside_sanitation_count = 0
+	validation.medical_bed_outside_medical_count = 0
+	validation.hydro_tray_outside_hydroponics_count = 0
+	validation.weapon_rack_outside_armory_security_count = 0
+	validation.room_overfilled_count = 0
+	validation.route_blocked_by_furniture_count = 0
+	validation.door_clearance_blocked_count = 0
 	validation.mandatory_room_missing_count = 0
 	validation.mandatory_room_no_bounds_count = 0
 	validation.mandatory_room_no_access_count = 0

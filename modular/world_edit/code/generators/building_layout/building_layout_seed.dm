@@ -40,6 +40,8 @@
 GLOBAL_LIST_EMPTY(world_edit_building_preset_capability_cache)
 GLOBAL_LIST_EMPTY(world_edit_building_faction_catalog)
 GLOBAL_LIST_EMPTY(world_edit_building_archetype_catalog)
+GLOBAL_VAR(world_edit_building_object_provider_registry)
+GLOBAL_VAR(world_edit_building_placement_module_catalog)
 
 /datum/world_edit_building_prng
 	var/state = 1

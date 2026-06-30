@@ -88,6 +88,8 @@
 #include "code/generators/building_layout/world_edit_slot_marker.dm"
 #include "code/generators/building_layout/building_layout_template_parser.dm"
 #include "code/generators/building_layout/building_layout_fixture_capabilities.dm"
+#include "code/generators/building_layout/furnishing/building_object_provider_catalog.dm"
+#include "code/generators/building_layout/furnishing/building_placement_module_catalog.dm"
 #include "code/generators/building_layout/building_layout_templates.dm"
 #include "code/generators/building_layout/building_layout_signatures.dm"
 #include "code/generators/building_layout/building_layout_fixtures.dm"

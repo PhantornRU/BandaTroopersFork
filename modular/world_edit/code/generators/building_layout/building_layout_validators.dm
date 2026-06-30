@@ -337,6 +337,7 @@
 	validate_building_forbidden_rules(state)
 	validate_building_semantic_slot_preflight(state)
 	validate_building_major_clusters(state)
+	validate_building_furnishing_quality(state)
 	validate_building_infrastructure_rules(state)
 	validate_building_direction_contract(state)
 	validate_building_counter_facing(state)
@@ -1303,6 +1304,105 @@
 /datum/world_edit_generator/building_layout/proc/validate_building_density_rules(datum/world_edit_building_layout_state/state)
 	return
 
+/datum/world_edit_generator/building_layout/proc/validate_building_furnishing_quality(datum/world_edit_building_layout_state/state)
+	if(!istype(state))
+		return
+	var/datum/world_edit_building_object_provider_registry/provider_registry = get_building_object_provider_registry()
+	state.validation.provider_path_not_in_build_count = provider_registry.provider_path_not_in_build_count
+	state.validation.unknown_provider_count = provider_registry.unknown_provider_count
+	var/list/module_actual_counts = list()
+	var/list/module_expected_counts = list()
+	var/list/module_table_counts = list()
+	var/list/module_chair_counts = list()
+	var/list/room_table_chair_counts = list()
+	var/list/room_table_chair_module_ids = list()
+	for(var/list/placement as anything in state.fixtures.object_placements)
+		if(!islist(placement) || "[placement["kind"]]" != "interior")
+			continue
+		var/slot = "[placement["requested_slot"] || placement["slot"]]"
+		var/category = "[placement["category"] || ""]"
+		var/module_instance_id = "[placement["module_instance_id"] || ""]"
+		var/turf/target_turf = placement["turf"]
+		if(is_building_semantic_furniture_slot(slot, category) && !length(module_instance_id) && !GLOB.world_edit_helpers.parse_bool(placement["infrastructure"]))
+			switch(slot)
+				if("table")
+					state.validation.loose_table_count++
+				if("chair")
+					state.validation.loose_chair_count++
+				else
+					state.validation.furniture_group_fragmented_count++
+		if(length(module_instance_id))
+			module_actual_counts[module_instance_id] = (module_actual_counts[module_instance_id] || 0) + 1
+			module_expected_counts[module_instance_id] = max(round(text2num("[placement["module_expected_member_count"]]") || 0), round(text2num("[module_expected_counts[module_instance_id]]") || 0), 1)
+			if(slot == "table")
+				module_table_counts[module_instance_id] = (module_table_counts[module_instance_id] || 0) + 1
+			if(slot == "chair")
+				module_chair_counts[module_instance_id] = (module_chair_counts[module_instance_id] || 0) + 1
+		var/datum/world_edit_building_room/room = state.get_room_for_turf(target_turf)
+		if(slot in list("table", "chair") && istype(room))
+			room_table_chair_counts[room.id] = (room_table_chair_counts[room.id] || 0) + 1
+			if(!islist(room_table_chair_module_ids[room.id]))
+				room_table_chair_module_ids[room.id] = list()
+			var/list/module_ids = room_table_chair_module_ids[room.id]
+			module_ids[length(module_instance_id) ? module_instance_id : "loose@[target_turf.x],[target_turf.y]"] = TRUE
+		validate_building_furniture_role_for_placement(state, slot, category, target_turf, placement)
+		if(istype(target_turf) && building_object_path_is_dense(placement["obj_path"]))
+			if(state.geometry.reserved_lookup[target_turf])
+				state.validation.route_blocked_by_furniture_count++
+			if(state.has_anchor("door_cone", target_turf))
+				state.validation.door_clearance_blocked_count++
+	for(var/module_instance_id as anything in module_actual_counts)
+		var/actual_count = round(text2num("[module_actual_counts[module_instance_id]]") || 0)
+		var/expected_count = round(text2num("[module_expected_counts[module_instance_id]]") || 0)
+		if(expected_count > actual_count)
+			state.validation.furniture_group_fragmented_count++
+		if((module_chair_counts[module_instance_id] || 0) > 0 && (module_table_counts[module_instance_id] || 0) <= 0)
+			state.validation.unpaired_chair_count += module_chair_counts[module_instance_id]
+	for(var/room_id as anything in room_table_chair_counts)
+		var/table_chair_count = round(text2num("[room_table_chair_counts[room_id]]") || 0)
+		var/list/module_ids = room_table_chair_module_ids[room_id]
+		if(table_chair_count >= 4 && length(module_ids) > max(2, round(table_chair_count / 2)))
+			state.validation.table_chair_mosaic_count++
+	for(var/datum/world_edit_building_room/room as anything in state.geometry.solved_rooms)
+		validate_building_room_overfill(state, room)
+
+/datum/world_edit_generator/building_layout/proc/validate_building_furniture_role_for_placement(datum/world_edit_building_layout_state/state, slot, category, turf/target_turf, list/placement = null)
+	if(!istype(state) || !istype(target_turf))
+		return
+	var/zone_id = state.get_zone(target_turf)
+	switch("[slot]")
+		if("bed")
+			if(islist(placement) && (findtext("[placement["semantic_requirement_id"] || placement["requirement_id"] || placement["cluster_id"] || placement["module_id"]]", "sleep")))
+				return
+			if(!(zone_id in list("sleep_privacy", "sleep_bay", "living_wing", "holding_nook")))
+				state.validation.bed_outside_sleeping_count++
+		if("toilet")
+			if(zone_id != "sanitation")
+				state.validation.toilet_outside_sanitation_count++
+		if("medical_bed", "sleeper")
+			if(!(state.archetype?.id in list("medbay", "compound")))
+				state.validation.medical_bed_outside_medical_count++
+		if("hydro_tray")
+			if(state.archetype?.id != "hydroponics")
+				state.validation.hydro_tray_outside_hydroponics_count++
+		if("weapon_rack")
+			if(!(state.archetype?.id in list("security", "checkpoint")))
+				state.validation.weapon_rack_outside_armory_security_count++
+
+/datum/world_edit_generator/building_layout/proc/validate_building_room_overfill(datum/world_edit_building_layout_state/state, datum/world_edit_building_room/room)
+	if(!istype(state) || !istype(room) || !length(room.turfs))
+		return
+	var/relevant_floor = 0
+	var/occupied = 0
+	for(var/turf/room_turf as anything in room.turfs)
+		if(!istype(room_turf) || state.geometry.wall_lookup[room_turf] || state.geometry.door_dirs[room_turf])
+			continue
+		relevant_floor++
+		if(state.fixtures.fixture_lookup[room_turf])
+			occupied++
+	if(relevant_floor >= 4 && occupied * 100 / max(relevant_floor, 1) > 70)
+		state.validation.room_overfilled_count++
+
 /datum/world_edit_generator/building_layout/proc/get_building_semantic_requirement_count(datum/world_edit_building_layout_state/state, requirement_id, cluster_id = null, signature_id = null)
 	if(!istype(state))
 		return 0
@@ -1630,6 +1730,12 @@
 		hard_failure = TRUE
 	if(state.validation.reachability_failure_count > 0)
 		state.add_error("Reachability failures detected: reachability_failure_count=[state.validation.reachability_failure_count].")
+		hard_failure = TRUE
+	for(var/counter_name as anything in list("provider_path_not_in_build_count", "unknown_provider_count", "required_module_missing_count", "required_module_not_placeable_count", "loose_table_count", "loose_chair_count", "unpaired_chair_count", "table_chair_mosaic_count", "furniture_group_fragmented_count", "bed_outside_sleeping_count", "toilet_outside_sanitation_count", "medical_bed_outside_medical_count", "hydro_tray_outside_hydroponics_count", "weapon_rack_outside_armory_security_count", "room_overfilled_count", "route_blocked_by_furniture_count", "door_clearance_blocked_count"))
+		var/counter_value = get_building_state_hard_counter(state, counter_name)
+		if(counter_value <= 0)
+			continue
+		state.add_error("Furnishing hard counter [counter_name] is nonzero: [counter_value].")
 		hard_failure = TRUE
 	if(hard_failure)
 		state.set_support_status(WORLD_EDIT_BUILDING_SUPPORT_FAILED, "Hard counter failures: forbidden_fallback=[state.validation.forbidden_fallback_count], style_required_slot_missing=[state.validation.style_required_slot_missing_count], mandatory_pattern_failure=[state.validation.mandatory_pattern_failure_count], post_emit_validation_error=[state.validation.post_emit_validation_error_count], reachability_failure=[state.validation.reachability_failure_count].")
