@@ -28,6 +28,11 @@
 	var/list/semantic_slot_reservation_by_turf = list()
 	var/list/semantic_slot_reserved_turfs = list()
 	var/list/semantic_slot_clearance_by_turf = list()
+	var/list/scene_plans = list()
+	var/list/scene_counts_by_room = list()
+	var/list/scene_primary_counts_by_room = list()
+	var/list/scene_kind_by_room = list()
+	var/list/scene_slot_counts_by_room = list()
 	var/usable_fixture_area = 0
 	var/fixture_count = 0
 	var/major_fixture_count = 0

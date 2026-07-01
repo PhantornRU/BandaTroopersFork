@@ -278,6 +278,8 @@
 /datum/world_edit_generator/building_layout/proc/repair_building_missing_major_clusters(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !istype(state.semantic_plan))
 		return FALSE
+	if(building_layout_v2_enabled(state))
+		return FALSE
 	var/repaired = FALSE
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
 		if(!istype(cluster_spec) || !cluster_spec.required)
@@ -338,6 +340,7 @@
 	validate_building_semantic_slot_preflight(state)
 	validate_building_major_clusters(state)
 	validate_building_furnishing_quality(state)
+	validate_building_layout_v2_scenes(state)
 	validate_building_infrastructure_rules(state)
 	validate_building_direction_contract(state)
 	validate_building_counter_facing(state)
@@ -1035,7 +1038,7 @@
 	// Attempt repair: add a wall on one of the orthogonal neighbors to break diagonal-only contact
 	// Only repair if it won't create a double-wall (check that the repair turf doesn't have a wall neighbor on the same axis)
 	var/turf/repair_turf = null
-	if(istype(ortho_turf_a) && state.geometry.footprint_lookup[ortho_turf_a] && !state.geometry.door_dirs[ortho_turf_a] && !state.geometry.reserved_lookup[ortho_turf_a] && !state.geometry.corridor_lookup[ortho_turf_a])
+	if(istype(ortho_turf_a) && state.geometry.footprint_lookup[ortho_turf_a] && !state.geometry.floor_lookup[ortho_turf_a] && !state.fixtures.fixture_lookup[ortho_turf_a] && !state.geometry.door_dirs[ortho_turf_a] && !state.geometry.reserved_lookup[ortho_turf_a] && !state.geometry.corridor_lookup[ortho_turf_a])
 		// Check that adding a wall here won't create a double-wall
 		var/would_double = FALSE
 		for(var/check_dir in list(ortho_a, turn(ortho_a, 180)))
@@ -1045,7 +1048,7 @@
 				break
 		if(!would_double)
 			repair_turf = ortho_turf_a
-	if(!istype(repair_turf) && istype(ortho_turf_b) && state.geometry.footprint_lookup[ortho_turf_b] && !state.geometry.door_dirs[ortho_turf_b] && !state.geometry.reserved_lookup[ortho_turf_b] && !state.geometry.corridor_lookup[ortho_turf_b])
+	if(!istype(repair_turf) && istype(ortho_turf_b) && state.geometry.footprint_lookup[ortho_turf_b] && !state.geometry.floor_lookup[ortho_turf_b] && !state.fixtures.fixture_lookup[ortho_turf_b] && !state.geometry.door_dirs[ortho_turf_b] && !state.geometry.reserved_lookup[ortho_turf_b] && !state.geometry.corridor_lookup[ortho_turf_b])
 		var/would_double = FALSE
 		for(var/check_dir in list(ortho_b, turn(ortho_b, 180)))
 			var/turf/check_turf = get_step(ortho_turf_b, check_dir)
@@ -1225,6 +1228,8 @@
 /datum/world_edit_generator/building_layout/proc/validate_building_semantic_slot_preflight(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !islist(state.validation.semantic_slot_reports))
 		return
+	if(building_layout_v2_enabled(state))
+		return
 	for(var/list/report as anything in state.validation.semantic_slot_reports)
 		if(!islist(report))
 			continue
@@ -1236,6 +1241,8 @@
 		state.add_warning("Program [state.archetype.id] in [shape_label] footprint cannot reserve required pattern '[report["id"]]': found [round(text2num("[report["best_capacity"]]") || 0)] slots, needs [round(text2num("[report["required"]]") || 0)].")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_major_clusters(datum/world_edit_building_layout_state/state)
+	if(building_layout_v2_enabled(state))
+		return
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
 		if(!cluster_spec.required)
 			continue
@@ -1738,6 +1745,19 @@
 /datum/world_edit_generator/building_layout/proc/validate_building_signature_rules(datum/world_edit_building_layout_state/state)
 	var/raw_score = 0
 	var/max_score = 0
+	if(building_layout_v2_enabled(state))
+		state.validation.signature_max_score = 0
+		state.validation.signature_score = 100
+		var/v2_open_floor = 0
+		var/v2_relevant_floor = 0
+		for(var/turf/v2_floor_turf as anything in state.geometry.floor_turfs)
+			if(!istype(v2_floor_turf) || state.geometry.wall_lookup[v2_floor_turf] || state.geometry.door_dirs[v2_floor_turf])
+				continue
+			v2_relevant_floor++
+			if(!state.fixtures.fixture_lookup[v2_floor_turf] && !state.geometry.reserved_lookup[v2_floor_turf])
+				v2_open_floor++
+		state.validation.empty_floor_ratio = v2_relevant_floor > 0 ? round(v2_open_floor * 100 / v2_relevant_floor) : 0
+		return
 	if(islist(state.semantic_plan.signature_minimums))
 		for(var/signature_id as anything in state.semantic_plan.signature_minimums)
 			var/minimum = max(round(text2num("[state.semantic_plan.signature_minimums[signature_id]]") || 0), 0)
@@ -1783,6 +1803,8 @@
 	return clamp(threshold, 35, 78)
 
 /datum/world_edit_generator/building_layout/proc/validate_building_nested_room_rules(datum/world_edit_building_layout_state/state)
+	if(building_layout_v2_enabled(state))
+		return
 	var/list/nested_specs = islist(state.semantic_plan?.nested_room_specs) ? state.semantic_plan.nested_room_specs.Copy() : list()
 	if(!length(nested_specs) && length("[state.semantic_plan?.nested_inner_zone]"))
 		nested_specs += new /datum/world_edit_building_nested_room_spec(state.semantic_plan.nested_outer_zone, state.semantic_plan.nested_inner_zone, state.semantic_plan.nested_min_width, state.semantic_plan.nested_min_height, 1)

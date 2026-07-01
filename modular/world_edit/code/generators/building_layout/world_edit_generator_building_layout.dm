@@ -450,6 +450,8 @@
 	if(!istype(archetype))
 		config["error"] = "Unable to resolve building program '[config["archetype_id"]]'."
 		return config
+	var/raw_use_layout_v2 = islist(params) ? params["use_layout_v2"] : null
+	var/use_layout_v2 = isnull(raw_use_layout_v2) ? (archetype.id == "living") : (GLOB.world_edit_helpers.parse_bool(raw_use_layout_v2) ? TRUE : FALSE)
 
 	var/auto_size = isnull(islist(params) ? params["auto_size"] : null) ? TRUE : GLOB.world_edit_helpers.parse_bool(params["auto_size"])
 	config["half_width"] = num_param(params, "half_width", 4, 1, 8)
@@ -463,6 +465,9 @@
 		apply_building_size_profile(config, config["size_profile"])
 	if(config["auto_size"])
 		apply_building_minimum_point_size(config, archetype)
+	if(use_layout_v2 && archetype.id == "living" && !has_building_param(params, "half_width") && !has_building_param(params, "half_depth"))
+		config["half_width"] = max(round(text2num("[config["half_width"]]") || 0), 6)
+		config["half_depth"] = max(round(text2num("[config["half_depth"]]") || 0), 6)
 	config["final_half_width"] = config["half_width"]
 	config["final_half_depth"] = config["half_depth"]
 	config["target_room_count"] = num_param(params, "target_room_count", 0, 0, 24)
@@ -475,6 +480,7 @@
 	config["confirm_large_replacement"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["confirm_large_replacement"] : null) ? TRUE : FALSE
 	config["debug_reports"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["debug_reports"] : null) ? TRUE : FALSE
 	config["skip_feasibility_dry_solve"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["skip_feasibility_dry_solve"] : null) ? TRUE : FALSE
+	config["use_layout_v2"] = use_layout_v2
 
 	var/default_shell_preset = length("[archetype.suggested_shell_preset]") ? archetype.suggested_shell_preset : "colony"
 	config["faction_preset"] = resolve_building_option(islist(params) ? params["faction_preset"] : null, get_building_faction_options(), default_shell_preset)
@@ -1522,6 +1528,9 @@
 	var/datum/world_edit_building_layout_state/state = build_building_layout_state(request, shape_contract, placement_context, validated)
 	if(!istype(state) || state.has_errors())
 		return state
+	if(use_building_layout_v2(request))
+		build_building_layout_v2_state(state)
+		return state
 
 	var/datum/world_edit_generation_context/context = new(request, state, src)
 	var/list/pipeline = list(
@@ -1665,6 +1674,23 @@
 		"room_overfilled_count",
 		"route_blocked_by_furniture_count",
 		"door_clearance_blocked_count",
+		"scene_required_missing_count",
+		"room_primary_scene_missing_count",
+		"room_identity_missing_count",
+		"room_scene_duplicate_count",
+		"scene_slot_overflow_count",
+		"common_scene_fragmentation_count",
+		"excessive_small_social_groups_count",
+		"private_room_without_bed_scene_count",
+		"sanitation_without_sanitation_scene_count",
+		"storage_without_storage_scene_count",
+		"scene_blocks_route_count",
+		"large_empty_unassigned_floor_count",
+		"oversized_role_room_count",
+		"unclaimed_interior_wall_count",
+		"thin_room_strip_count",
+		"large_sparse_room_count",
+		"corridor_ribbon_count",
 		"mandatory_room_missing_count",
 		"mandatory_room_no_bounds_count",
 		"mandatory_room_no_access_count",
@@ -1728,6 +1754,23 @@
 		if("room_overfilled_count") return state.validation.room_overfilled_count
 		if("route_blocked_by_furniture_count") return state.validation.route_blocked_by_furniture_count
 		if("door_clearance_blocked_count") return state.validation.door_clearance_blocked_count
+		if("scene_required_missing_count") return state.validation.scene_required_missing_count
+		if("room_primary_scene_missing_count") return state.validation.room_primary_scene_missing_count
+		if("room_identity_missing_count") return state.validation.room_identity_missing_count
+		if("room_scene_duplicate_count") return state.validation.room_scene_duplicate_count
+		if("scene_slot_overflow_count") return state.validation.scene_slot_overflow_count
+		if("common_scene_fragmentation_count") return state.validation.common_scene_fragmentation_count
+		if("excessive_small_social_groups_count") return state.validation.excessive_small_social_groups_count
+		if("private_room_without_bed_scene_count") return state.validation.private_room_without_bed_scene_count
+		if("sanitation_without_sanitation_scene_count") return state.validation.sanitation_without_sanitation_scene_count
+		if("storage_without_storage_scene_count") return state.validation.storage_without_storage_scene_count
+		if("scene_blocks_route_count") return state.validation.scene_blocks_route_count
+		if("large_empty_unassigned_floor_count") return state.validation.large_empty_unassigned_floor_count
+		if("oversized_role_room_count") return state.validation.oversized_role_room_count
+		if("unclaimed_interior_wall_count") return state.validation.unclaimed_interior_wall_count
+		if("thin_room_strip_count") return state.validation.thin_room_strip_count
+		if("large_sparse_room_count") return state.validation.large_sparse_room_count
+		if("corridor_ribbon_count") return state.validation.corridor_ribbon_count
 		if("mandatory_room_missing_count") return state.validation.mandatory_room_missing_count
 		if("mandatory_room_no_bounds_count") return state.validation.mandatory_room_no_bounds_count
 		if("mandatory_room_no_access_count") return state.validation.mandatory_room_no_access_count
@@ -1804,6 +1847,11 @@
 	verdict.set_metric("shape_id", "[state.config["placement_shape_id"] || ""]")
 	verdict.set_metric("layout_candidate_score", state.config["layout_candidate_score"] || state.validation.layout_candidate_score)
 	verdict.set_metric("layout_candidate_index", state.config["layout_candidate_index"] || 1)
+	verdict.set_metric("layout_v2_enabled", state.config["layout_v2_enabled"] ? TRUE : FALSE)
+	verdict.set_metric("layout_v2_pattern_id", "[state.config["layout_v2_pattern_id"] || ""]")
+	verdict.set_metric("layout_v2_candidate_id", "[state.config["layout_v2_candidate_id"] || ""]")
+	verdict.set_metric("layout_v2_candidate_count", state.config["layout_v2_candidate_count"] || 0)
+	verdict.set_metric("layout_v2_scene_count", state.config["layout_v2_scene_count"] || 0)
 	verdict.set_metric("footprint_family", "[state.config["footprint_family"] || ""]")
 	verdict.set_metric("room_count", length(state.geometry.solved_rooms))
 	verdict.set_metric("target_room_count", state.config["target_room_count"] || state.validation.requested_room_count)
@@ -2103,7 +2151,7 @@
 		return result
 
 	var/resolved_shape_id = "[shape_contract?.shape_id || shape_id || WORLD_EDIT_SHAPE_POINT]"
-	var/list/candidate_families = (resolved_shape_id == WORLD_EDIT_SHAPE_POINT) ? get_ordered_building_footprint_candidate_families(request.config) : list(uppertext("[resolved_shape_id]"))
+	var/list/candidate_families = (resolved_shape_id == WORLD_EDIT_SHAPE_POINT) ? (use_building_layout_v2(request) ? list("RECT") : get_ordered_building_footprint_candidate_families(request.config)) : list(uppertext("[resolved_shape_id]"))
 	var/list/size_candidates = resolved_shape_id == WORLD_EDIT_SHAPE_POINT ? get_building_point_size_candidate_specs(request.config) : list(list("index" = 1, "half_width" = request.config["half_width"], "half_depth" = request.config["half_depth"]))
 	var/attempt_index = 0
 	var/first_candidate_error = null
@@ -2186,7 +2234,7 @@
 		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 		return plan
 
-	var/list/candidate_families = (shape_id == WORLD_EDIT_SHAPE_POINT) ? get_ordered_building_footprint_candidate_families(request.config) : list(uppertext("[shape_id]"))
+	var/list/candidate_families = (shape_id == WORLD_EDIT_SHAPE_POINT) ? (use_building_layout_v2(request) ? list("RECT") : get_ordered_building_footprint_candidate_families(request.config)) : list(uppertext("[shape_id]"))
 	var/list/size_candidates = shape_id == WORLD_EDIT_SHAPE_POINT ? get_building_point_size_candidate_specs(request.config) : list(list("index" = 1, "half_width" = request.config["half_width"], "half_depth" = request.config["half_depth"]))
 	var/list/candidate_reports = list()
 	var/datum/world_edit_building_layout_state/best_state = null

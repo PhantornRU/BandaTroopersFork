@@ -75,7 +75,7 @@
 	for(var/key as anything in expected)
 		var/actual_value = get_expectation_actual_value(key, report_data)
 		actual[key] = actual_value
-		if(!visual_expectation_values_equal(expected[key], actual_value))
+		if(!visual_expectation_satisfied(key, expected[key], actual_value))
 			diff += list(list(
 				"key" = "[key]",
 				"expected" = expected[key],
@@ -148,6 +148,9 @@
 			return undo?["restored"] ? TRUE : FALSE
 		if("hard_error_count")
 			return report_data?["hard_error_count"] || 0
+		if("layout_v2_min_candidate_count")
+			var/list/v2_metrics = report_data?["metrics"]
+			return v2_metrics?["layout_v2_candidate_count"] || 0
 	var/list/metrics = report_data?["metrics"]
 	if(islist(metrics) && !isnull(metrics[key]))
 		return metrics[key]
@@ -168,6 +171,11 @@
 	if(isnum(expected) || isnum(actual))
 		return round(text2num("[expected]") * 1000) == round(text2num("[actual]") * 1000)
 	return "[expected]" == "[actual]"
+
+/datum/world_edit_visual_case/proc/visual_expectation_satisfied(key, expected, actual)
+	if("[key]" == "layout_v2_min_candidate_count")
+		return round(text2num("[actual]") || 0) >= round(text2num("[expected]") || 0)
+	return visual_expectation_values_equal(expected, actual)
 
 /datum/world_edit_visual_case/proc/mark_semantic_artifacts(list/report_data)
 	if(!istype(canvas))
@@ -389,6 +397,12 @@
 			"room_count_divider_count",
 			"room_count_satisfied",
 			"room_count_gap",
+			"use_layout_v2",
+			"layout_v2_enabled",
+			"layout_v2_pattern_id",
+			"layout_v2_candidate_id",
+			"layout_v2_candidate_count",
+			"layout_v2_scene_count",
 			"mandatory_room_missing_count",
 			"mandatory_room_no_bounds_count",
 			"mandatory_room_no_access_count",
@@ -430,6 +444,23 @@
 			"room_overfilled_count",
 			"route_blocked_by_furniture_count",
 			"door_clearance_blocked_count",
+			"scene_required_missing_count",
+			"room_primary_scene_missing_count",
+			"room_identity_missing_count",
+			"room_scene_duplicate_count",
+			"scene_slot_overflow_count",
+			"common_scene_fragmentation_count",
+			"excessive_small_social_groups_count",
+			"private_room_without_bed_scene_count",
+			"sanitation_without_sanitation_scene_count",
+			"storage_without_storage_scene_count",
+			"scene_blocks_route_count",
+			"large_empty_unassigned_floor_count",
+			"oversized_role_room_count",
+			"unclaimed_interior_wall_count",
+			"thin_room_strip_count",
+			"large_sparse_room_count",
+			"corridor_ribbon_count",
 			"module_instance_count",
 		)
 		for(var/key as anything in keys)

@@ -22,11 +22,17 @@
   },
   "expect": {
     "status": "supported",
+    "layout_v2_enabled": true,
     "direction_honored": true,
+    "hard_error_count": 0,
     "post_emit_validation_error_count": 0,
     "counter_wrong_facing_count": 0,
     "semantic_credit_without_emitted_slots_count": 0,
-    "reserved_walk_blocked_count": 0
+    "reserved_walk_blocked_count": 0,
+    "unclaimed_interior_wall_count": 0,
+    "thin_room_strip_count": 0,
+    "large_sparse_room_count": 0,
+    "corridor_ribbon_count": 0
   },
   "render": {
     "semantic_png": true,

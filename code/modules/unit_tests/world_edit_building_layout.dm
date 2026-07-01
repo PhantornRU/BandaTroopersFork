@@ -289,6 +289,8 @@
 	TEST_ASSERT_EQUAL(plan.metadata["door_corner_count"] || 0, 0, "Default living preview should not place an avoidable corner door.")
 	TEST_ASSERT_EQUAL(plan.metadata["mandatory_room_missing_count"] || 0, 0, "Default living preview should not miss mandatory rooms.")
 	TEST_ASSERT_EQUAL(plan.metadata["mandatory_room_no_access_count"] || 0, 0, "Default living preview should keep mandatory rooms reachable.")
+	TEST_ASSERT(GLOB.world_edit_helpers.parse_bool(plan.metadata["layout_v2_enabled"]), "Default living preview should use layout v2.")
+	TEST_ASSERT(round(text2num("[plan.metadata["layout_v2_candidate_count"]]") || 0) >= 2, "Default living preview should prove at least two v2 layout candidates.")
 	var/datum/world_edit_plan/replay_plan = build_living_point_plan(list())
 	TEST_ASSERT_NOTNULL(replay_plan, "Default living replay preview did not return a plan.")
 	TEST_ASSERT(!replay_plan.metadata["error"], "[replay_plan.metadata["error"]]")
@@ -443,6 +445,7 @@
 	var/datum/world_edit_plan/plan = build_living_point_plan(list(
 		"archetype_id" = "living",
 		"faction_preset" = "colony",
+		"use_layout_v2" = FALSE,
 		"auto_size" = FALSE,
 		"half_width" = 8,
 		"half_depth" = 8,
@@ -465,6 +468,7 @@
 		"half_depth" = 8,
 		"building_seed" = 91,
 		"detail_budget" = 75,
+		"use_layout_v2" = FALSE,
 		"replace_blocked_turfs" = TRUE,
 		"respect_blockers" = FALSE,
 	)

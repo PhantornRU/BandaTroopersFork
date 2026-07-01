@@ -595,6 +595,12 @@
 	plan.metadata["layout_candidate_reports"] = islist(state.config["layout_candidate_reports"]) ? state.config["layout_candidate_reports"].Copy() : list()
 	plan.metadata["selected_candidate_report"] = islist(state.config["selected_candidate_report"]) ? state.config["selected_candidate_report"].Copy() : list()
 	plan.metadata["layout_candidate_index"] = state.config["layout_candidate_index"] || 1
+	plan.metadata["use_layout_v2"] = state.config["use_layout_v2"] ? TRUE : FALSE
+	plan.metadata["layout_v2_enabled"] = state.config["layout_v2_enabled"] ? TRUE : FALSE
+	plan.metadata["layout_v2_pattern_id"] = state.config["layout_v2_pattern_id"] || ""
+	plan.metadata["layout_v2_candidate_id"] = state.config["layout_v2_candidate_id"] || ""
+	plan.metadata["layout_v2_candidate_count"] = state.config["layout_v2_candidate_count"] || 0
+	plan.metadata["layout_v2_scene_count"] = state.config["layout_v2_scene_count"] || 0
 	plan.metadata["semantic_region_claim_count"] = state.validation.region_claim_count
 	plan.metadata["semantic_region_claim_reports"] = detailed_reports ? state.validation.region_claim_reports.Copy() : list()
 	plan.metadata["rectangular_region_candidate_count"] = state.validation.rectangular_region_candidate_count

@@ -7,6 +7,7 @@
 	var/datum/world_edit_building_layout_geometry_state/geometry
 	var/datum/world_edit_building_layout_fixture_state/fixtures
 	var/datum/world_edit_building_layout_validation_state/validation
+	var/layout_v2_context
 
 	var/root_seed = 0
 	var/stage_seed_footprint = 0
@@ -229,6 +230,8 @@
 	geometry.solved_regions.Cut()
 	geometry.divider_plans.Cut()
 	geometry.internal_wall_turfs.Cut()
+	geometry.layout_v2_room_plans.Cut()
+	geometry.layout_v2_route_opening_plans.Cut()
 	geometry.primary_route_turfs.Cut()
 	geometry.separator_lane_turfs.Cut()
 	geometry.separator_lane_lookup.Cut()
@@ -477,6 +480,23 @@
 	validation.room_overfilled_count = 0
 	validation.route_blocked_by_furniture_count = 0
 	validation.door_clearance_blocked_count = 0
+	validation.scene_required_missing_count = 0
+	validation.room_primary_scene_missing_count = 0
+	validation.room_identity_missing_count = 0
+	validation.room_scene_duplicate_count = 0
+	validation.scene_slot_overflow_count = 0
+	validation.common_scene_fragmentation_count = 0
+	validation.excessive_small_social_groups_count = 0
+	validation.private_room_without_bed_scene_count = 0
+	validation.sanitation_without_sanitation_scene_count = 0
+	validation.storage_without_storage_scene_count = 0
+	validation.scene_blocks_route_count = 0
+	validation.large_empty_unassigned_floor_count = 0
+	validation.oversized_role_room_count = 0
+	validation.unclaimed_interior_wall_count = 0
+	validation.thin_room_strip_count = 0
+	validation.large_sparse_room_count = 0
+	validation.corridor_ribbon_count = 0
 	validation.mandatory_room_missing_count = 0
 	validation.mandatory_room_no_bounds_count = 0
 	validation.mandatory_room_no_access_count = 0
