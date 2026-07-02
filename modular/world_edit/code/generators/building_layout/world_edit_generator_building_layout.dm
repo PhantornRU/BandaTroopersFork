@@ -1691,6 +1691,11 @@
 		"thin_room_strip_count",
 		"large_sparse_room_count",
 		"corridor_ribbon_count",
+		"layout_v2_underfurnished_room_count",
+		"layout_v2_required_connection_missing_count",
+		"layout_v2_door_not_shared_wall_count",
+		"layout_v2_room_without_door_count",
+		"layout_v2_forbidden_room_window_count",
 		"mandatory_room_missing_count",
 		"mandatory_room_no_bounds_count",
 		"mandatory_room_no_access_count",
@@ -1771,6 +1776,11 @@
 		if("thin_room_strip_count") return state.validation.thin_room_strip_count
 		if("large_sparse_room_count") return state.validation.large_sparse_room_count
 		if("corridor_ribbon_count") return state.validation.corridor_ribbon_count
+		if("layout_v2_underfurnished_room_count") return state.validation.layout_v2_underfurnished_room_count
+		if("layout_v2_required_connection_missing_count") return state.validation.layout_v2_required_connection_missing_count
+		if("layout_v2_door_not_shared_wall_count") return state.validation.layout_v2_door_not_shared_wall_count
+		if("layout_v2_room_without_door_count") return state.validation.layout_v2_room_without_door_count
+		if("layout_v2_forbidden_room_window_count") return state.validation.layout_v2_forbidden_room_window_count
 		if("mandatory_room_missing_count") return state.validation.mandatory_room_missing_count
 		if("mandatory_room_no_bounds_count") return state.validation.mandatory_room_no_bounds_count
 		if("mandatory_room_no_access_count") return state.validation.mandatory_room_no_access_count
@@ -1851,6 +1861,7 @@
 	verdict.set_metric("layout_v2_pattern_id", "[state.config["layout_v2_pattern_id"] || ""]")
 	verdict.set_metric("layout_v2_candidate_id", "[state.config["layout_v2_candidate_id"] || ""]")
 	verdict.set_metric("layout_v2_candidate_count", state.config["layout_v2_candidate_count"] || 0)
+	verdict.set_metric("layout_v2_hard_valid_candidate_count", state.config["layout_v2_hard_valid_candidate_count"] || 0)
 	verdict.set_metric("layout_v2_scene_count", state.config["layout_v2_scene_count"] || 0)
 	verdict.set_metric("footprint_family", "[state.config["footprint_family"] || ""]")
 	verdict.set_metric("room_count", length(state.geometry.solved_rooms))

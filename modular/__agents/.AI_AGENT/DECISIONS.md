@@ -1,33 +1,61 @@
-# DECISIONS - Living V2 Visual Quality Hardening
+# DECISIONS - Living V2 Universal Pattern/Scene Solver
 
-## D-001: Passing counters are not enough
-- Decision: Treat the current generated living PNGs as failing review quality despite passing semantic acceptance.
-- Why: The user explicitly rejected the visual result and requested skeptical review.
+## D-001: This is a replacement of the v2 scaffold, not another recipe pass
+- Decision: Treat the current v2 as an incomplete scaffold and replace the hardcoded pattern/door/window/scene placement flow with solver stages.
+- Why: The user explicitly rejected adding recipes and asked for a universal pattern/scene solver.
 
-## D-002: Use subagents
-- Decision: Split work across visual critique, pattern/corridor expansion, and scene placement rules.
-- Why: The user explicitly requested subagents for this pass.
+## D-002: Keep production changes in modular World Edit code
+- Decision: Generator behavior changes go under `modular/world_edit/code/generators/building_layout/**`.
+- Why: `tools/world_edit_visual/**` is review/acceptance only and PNG/sprite output is not source of truth.
 
-## D-003: Keep visualizer read-only
-- Decision: All layout/furniture fixes belong in production DM generator code; `tools/world_edit_visual` remains report/acceptance only.
-- Why: This is a stable PR99 boundary and is repeated in the current hardening contract.
+## D-003: Use subagents, but keep a single task-state contract
+- Decision: Run read-only subagents for opening, room/scene, and validation audits, while the main agent owns integration and final fidelity.
+- Why: The user explicitly requested subagents in this review sequence, and current scope is broad.
 
-## D-004: Semantic expectations must follow visual critique
-- Decision: Any discovered visual defect should become a hard counter, report metric, or expectation when feasible.
-- Why: PNGs are review artifacts; semantic reports remain source of truth.
+## D-004: First production cut targets living only
+- Decision: Harden the universal solver through living first; storage/workshop data packs remain legacy in this pass.
+- Why: The user explicitly said storage/workshop reuse comes only after living visual pass.
 
-## D-005: Agent C placement scope
-- Decision: Replace hard-coded v2 scene member offsets with solver-side candidate selection in `building_layout_v2_solver.dm`.
-- Why: Existing v2 contracts/metrics are already wired; the current gap is that scene members are still selected by fixed positions instead of usable room cells with route, door, window, wall, and fixture clearance.
+## D-005: Opening/window solvers are mandatory before visual acceptance
+- Decision: Living v2 patterns may still define relation geometry, but production doors/windows must be selected by solver stages from candidate geometry and policies.
+- Why: Hardcoded door/window coordinates are the clearest current source of metadata-only topology and repeated algorithmic-looking layouts.
 
-## D-006: Reject the old side-spine ribbon pattern
-- Decision: Do not restore the previous `side_spine_room_row` as a candidate source in this pass.
-- Why: The visual critique identified it as a branchy/ribbon corridor grammar. Candidate breadth is kept through the two readable living v2 candidates plus shape/direction variants, not by reintroducing a known-bad pattern.
+## D-006: Hard validation must fail the current bad screenshot class
+- Decision: Add counters/expectations for door/shared-wall correctness, window policy, scene fragmentation, and excessive empty/identity-missing rooms.
+- Why: Existing counters can be zero while the visual result is still not map-quality.
 
-## D-007: Count orphan interior walls, not all partition walls
-- Decision: `unclaimed_interior_wall_count` measures internal wall cells with no adjacent floor/door above a small allowance.
-- Why: Raw internal wall count falsely treats valid room partitions as visual waste; orphan wall cells better represent the actual leftover-wall defect seen in the rejected PNG.
+## D-007: Room allocation is solver-driven for living, not yet a storage/workshop rollout
+- Decision: Living patterns now provide relation-zone allocation slots; `solve_building_v2_room_allocation()` materializes room rectangles from contracts and required scene-fit before openings/topology.
+- Why: This satisfies the living replacement without prematurely claiming that storage/workshop data packs are production-ready on the same engine.
 
-## Superseded Decisions
+## D-008: Optional windows stay policy-gated until facade-aware selection exists
+- Decision: The window solver emits required/desired windows and hard-validates window policy; optional windows are withheld rather than sprayed onto shell boundaries.
+- Why: The previous output showed invalid/unreadable windows caused by coordinate assumptions. Optional visual enrichment must follow policy-aware selection, not precede it.
 
-The previous production-hardening decisions remain true where not contradicted: living v2 stays default; non-living stays legacy. The current pass supersedes any implication that `building_living_target_rooms_6` is production-quality merely because it passed.
+## D-009: Wide side-spine remains candidate breadth until scoring proves visual quality
+- Decision: Add `side_spine_room_row` to the bounded candidate set, but keep current scoring low enough that it does not beat the front/common pattern while its wall/route shaping is still worse.
+- Why: The hard-review contract wants candidate breadth, not a worse winner. Candidate presence is useful for continued solver work; production selection still follows hard validation and scoring.
+
+## D-010: Do not let pre-emission scoring override hard-valid output
+- Decision: V2 selection now runs score-ordered candidates through isolated post-emission hard validation before final emission; the first hard-valid candidate wins and `layout_v2_hard_valid_candidate_count` records full hard-valid breadth.
+- Why: Opening/topology/scenes are necessary but not sufficient because wall derivation, scene placement, infrastructure, and hard counters run after emission. A candidate that fails post-emission hard counters must not block a lower-scoring hard-valid candidate.
+
+## D-011: Side-spine breadth is retained, but not accepted as a winner yet
+- Decision: Keep `side_spine_room_row` in the bounded candidate set, but do not count it as hard-valid for rectangle while it trips route-complexity validation.
+- Why: Candidate breadth is useful as generated search space, but a corridor-maze candidate should be rejected by semantic counters instead of protected by a brittle exact hard-valid count.
+
+## D-012: Manual visual review overrides green counters
+- Decision: Treat the submitted `building_living_rectangle_colony` screenshot as a failing living-v2 regression even though the report currently has zero hard counters.
+- Why: The output has sparse oversized rooms, repeated door-band openings, and weak scene identity. A production path cannot be accepted by counter-only success.
+
+## D-013: Route and door count are costs after requirements are satisfied
+- Decision: Candidate scoring must stop adding quality for longer routes and more doors. Required connectivity is a hard constraint; extra route/door exposure should be neutral or penalized.
+- Why: The current score path rewards the exact artifact visible in the rectangle screenshot: a long central spine with many doors.
+
+## D-014: Storage/workshop screenshots are next-phase evidence, not current fixes
+- Decision: Keep storage/workshop on legacy safety smoke in this living-hardening slice and record their screenshots as evidence for a later data-pack rollout.
+- Why: The approved sequence was living visual pass first, then reuse the same solver for storage/workshop. Fixing legacy storage/workshop output with special cases would violate that order.
+
+## D-015: Scene density is a role/area rule, not random furnishing
+- Decision: Large living-v2 rooms require minimum scene-member density by role, and scene builders may add bounded detail members inside the selected scene identity.
+- Why: The rectangle screenshot had rooms with valid identities but too few actual objects to read as rooms. This must be validated semantically without adding random module expansion.

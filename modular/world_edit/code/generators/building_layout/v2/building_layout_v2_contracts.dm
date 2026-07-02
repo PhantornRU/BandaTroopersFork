@@ -2,6 +2,7 @@
 	var/datum/world_edit_generator/building_layout/generator
 	var/datum/world_edit_building_layout_state/state
 	var/datum/world_edit_building_v2_program_contract/program_contract
+	var/datum/world_edit_building_v2_layout_candidate/selected_candidate = null
 	var/list/errors = list()
 	var/list/warnings = list()
 
@@ -83,6 +84,8 @@
 	var/list/scene_contracts = list()
 	var/list/scene_contracts_by_id = list()
 	var/list/allowed_layout_patterns = list()
+	var/list/global_scene_kind_limits = list()
+	var/list/global_scene_slot_limits = list()
 	var/min_total_area = 0
 	var/preferred_total_area = 0
 
@@ -182,6 +185,7 @@
 /datum/world_edit_building_v2_layout_candidate
 	var/id = ""
 	var/pattern_id = ""
+	var/list/room_allocation_requests = list()
 	var/list/room_plans = list()
 	var/list/room_plans_by_id = list()
 	var/list/route_turfs = list()
@@ -191,6 +195,10 @@
 	var/list/errors = list()
 	var/list/warnings = list()
 	var/score = 0
+
+/datum/world_edit_building_v2_layout_candidate/proc/add_room_allocation_request(datum/world_edit_building_v2_room_allocation_request/allocation_request)
+	if(istype(allocation_request))
+		room_allocation_requests += allocation_request
 
 /datum/world_edit_building_v2_layout_candidate/proc/add_room_plan(datum/world_edit_building_v2_room_plan/room_plan)
 	if(!istype(room_plan) || !length(room_plan.id))
@@ -213,6 +221,33 @@
 /datum/world_edit_building_v2_layout_candidate/proc/add_window_plan(datum/world_edit_building_v2_route_opening_plan/opening_plan)
 	if(istype(opening_plan))
 		window_plans += opening_plan
+
+/datum/world_edit_building_v2_room_allocation_request
+	var/id = ""
+	var/contract_id = ""
+	var/role = ""
+	var/zone_id = ""
+	var/relation_zone = ""
+	var/x1 = 1
+	var/y1 = 1
+	var/x2 = 1
+	var/y2 = 1
+	var/align_x = "center"
+	var/align_y = "center"
+
+/datum/world_edit_building_v2_room_allocation_request/New(_id = "", _contract_id = "", _role = "", _zone_id = "", _relation_zone = "", _x1 = 1, _y1 = 1, _x2 = 1, _y2 = 1, _align_x = "center", _align_y = "center")
+	. = ..()
+	id = "[_id]"
+	contract_id = length("[_contract_id]") ? "[_contract_id]" : id
+	role = "[_role]"
+	zone_id = length("[_zone_id]") ? "[_zone_id]" : role
+	relation_zone = "[_relation_zone]"
+	x1 = round(text2num("[_x1]") || 1)
+	y1 = round(text2num("[_y1]") || 1)
+	x2 = round(text2num("[_x2]") || x1)
+	y2 = round(text2num("[_y2]") || y1)
+	align_x = length("[_align_x]") ? "[_align_x]" : "center"
+	align_y = length("[_align_y]") ? "[_align_y]" : "center"
 
 /datum/world_edit_building_v2_room_plan
 	var/id = ""
@@ -290,6 +325,7 @@
 	var/list/allowed_room_ids = list()
 	var/required = FALSE
 	var/primary = TRUE
+	var/scene_layer = "primary"
 	var/min_room_area = 1
 	var/min_room_width = 1
 	var/min_room_height = 1

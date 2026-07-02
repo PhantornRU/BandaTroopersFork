@@ -19,11 +19,13 @@
     "faction_preset": "colony",
     "direction": "east",
     "respect_blockers": false,
-    "replace_blocked_turfs": true
+    "replace_blocked_turfs": true,
+    "debug_reports": true
   },
   "expect": {
     "status": "supported",
     "layout_v2_enabled": true,
+    "layout_v2_min_candidate_count": 2,
     "direction_honored": true,
     "hard_error_count": 0,
     "post_emit_validation_error_count": 0,
@@ -33,7 +35,12 @@
     "unclaimed_interior_wall_count": 0,
     "thin_room_strip_count": 0,
     "large_sparse_room_count": 0,
-    "corridor_ribbon_count": 0
+    "corridor_ribbon_count": 0,
+    "layout_v2_underfurnished_room_count": 0,
+    "layout_v2_required_connection_missing_count": 0,
+    "layout_v2_door_not_shared_wall_count": 0,
+    "layout_v2_room_without_door_count": 0,
+    "layout_v2_forbidden_room_window_count": 0
   },
   "render": {
     "semantic_png": true,

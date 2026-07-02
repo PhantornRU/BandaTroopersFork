@@ -600,6 +600,7 @@
 	plan.metadata["layout_v2_pattern_id"] = state.config["layout_v2_pattern_id"] || ""
 	plan.metadata["layout_v2_candidate_id"] = state.config["layout_v2_candidate_id"] || ""
 	plan.metadata["layout_v2_candidate_count"] = state.config["layout_v2_candidate_count"] || 0
+	plan.metadata["layout_v2_hard_valid_candidate_count"] = state.config["layout_v2_hard_valid_candidate_count"] || 0
 	plan.metadata["layout_v2_scene_count"] = state.config["layout_v2_scene_count"] || 0
 	plan.metadata["semantic_region_claim_count"] = state.validation.region_claim_count
 	plan.metadata["semantic_region_claim_reports"] = detailed_reports ? state.validation.region_claim_reports.Copy() : list()

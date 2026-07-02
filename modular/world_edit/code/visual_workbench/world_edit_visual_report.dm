@@ -150,7 +150,7 @@
 			return report_data?["hard_error_count"] || 0
 		if("layout_v2_min_candidate_count")
 			var/list/v2_metrics = report_data?["metrics"]
-			return v2_metrics?["layout_v2_candidate_count"] || 0
+			return v2_metrics?["layout_v2_hard_valid_candidate_count"] || v2_metrics?["layout_v2_candidate_count"] || 0
 	var/list/metrics = report_data?["metrics"]
 	if(islist(metrics) && !isnull(metrics[key]))
 		return metrics[key]
@@ -370,6 +370,8 @@
 		"template_reject_report_count" = meta["template_reject_report_count"] || 0,
 		"template_cluster_reports" = islist(meta["template_cluster_reports"]) ? meta["template_cluster_reports"] : list(),
 		"template_cluster_report_count" = meta["template_cluster_report_count"] || 0,
+		"stage_reports" = islist(meta["stage_reports"]) ? meta["stage_reports"] : list(),
+		"stage_report_count" = meta["stage_report_count"] || 0,
 		"route_blocking_samples" = islist(meta["route_blocking_samples"]) ? meta["route_blocking_samples"] : list(),
 		"door_cone_blocking_samples" = islist(meta["door_cone_blocking_samples"]) ? meta["door_cone_blocking_samples"] : list(),
 		"placed_requirement_counts" = islist(meta["placed_requirement_counts"]) ? meta["placed_requirement_counts"] : list(),
@@ -402,6 +404,7 @@
 			"layout_v2_pattern_id",
 			"layout_v2_candidate_id",
 			"layout_v2_candidate_count",
+			"layout_v2_hard_valid_candidate_count",
 			"layout_v2_scene_count",
 			"mandatory_room_missing_count",
 			"mandatory_room_no_bounds_count",
@@ -461,6 +464,11 @@
 			"thin_room_strip_count",
 			"large_sparse_room_count",
 			"corridor_ribbon_count",
+			"layout_v2_underfurnished_room_count",
+			"layout_v2_required_connection_missing_count",
+			"layout_v2_door_not_shared_wall_count",
+			"layout_v2_room_without_door_count",
+			"layout_v2_forbidden_room_window_count",
 			"module_instance_count",
 		)
 		for(var/key as anything in keys)

@@ -497,6 +497,11 @@
 	validation.thin_room_strip_count = 0
 	validation.large_sparse_room_count = 0
 	validation.corridor_ribbon_count = 0
+	validation.layout_v2_underfurnished_room_count = 0
+	validation.layout_v2_required_connection_missing_count = 0
+	validation.layout_v2_door_not_shared_wall_count = 0
+	validation.layout_v2_room_without_door_count = 0
+	validation.layout_v2_forbidden_room_window_count = 0
 	validation.mandatory_room_missing_count = 0
 	validation.mandatory_room_no_bounds_count = 0
 	validation.mandatory_room_no_access_count = 0

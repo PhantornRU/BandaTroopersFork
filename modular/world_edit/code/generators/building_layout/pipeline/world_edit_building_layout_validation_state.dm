@@ -78,6 +78,11 @@
 	var/thin_room_strip_count = 0
 	var/large_sparse_room_count = 0
 	var/corridor_ribbon_count = 0
+	var/layout_v2_underfurnished_room_count = 0
+	var/layout_v2_required_connection_missing_count = 0
+	var/layout_v2_door_not_shared_wall_count = 0
+	var/layout_v2_room_without_door_count = 0
+	var/layout_v2_forbidden_room_window_count = 0
 	var/microvariation_count = 0
 	var/degraded_region_fallback_count = 0
 	var/semantic_slot_capacity_count = 0
