@@ -151,6 +151,15 @@
 		if("layout_v2_min_candidate_count")
 			var/list/v2_metrics = report_data?["metrics"]
 			return v2_metrics?["layout_v2_hard_valid_candidate_count"] || v2_metrics?["layout_v2_candidate_count"] || 0
+		if("semantic_distribution_noise_score_max")
+			var/list/semantic_noise_metrics = report_data?["metrics"]
+			return semantic_noise_metrics?["semantic_distribution_noise_score"] || 0
+		if("semantic_functional_coverage_percent_min")
+			var/list/semantic_coverage_metrics = report_data?["metrics"]
+			return semantic_coverage_metrics?["semantic_functional_coverage_percent"] || 0
+		if("semantic_route_clearance_percent_min")
+			var/list/semantic_clearance_metrics = report_data?["metrics"]
+			return semantic_clearance_metrics?["semantic_route_clearance_percent"] || 0
 	var/list/metrics = report_data?["metrics"]
 	if(islist(metrics) && !isnull(metrics[key]))
 		return metrics[key]
@@ -175,6 +184,11 @@
 /datum/world_edit_visual_case/proc/visual_expectation_satisfied(key, expected, actual)
 	if("[key]" == "layout_v2_min_candidate_count")
 		return round(text2num("[actual]") || 0) >= round(text2num("[expected]") || 0)
+	var/key_text = "[key]"
+	if(length(key_text) > 4 && copytext(key_text, length(key_text) - 3) == "_min")
+		return round(text2num("[actual]") || 0) >= round(text2num("[expected]") || 0)
+	if(length(key_text) > 4 && copytext(key_text, length(key_text) - 3) == "_max")
+		return round(text2num("[actual]") || 0) <= round(text2num("[expected]") || 0)
 	return visual_expectation_values_equal(expected, actual)
 
 /datum/world_edit_visual_case/proc/mark_semantic_artifacts(list/report_data)
@@ -469,6 +483,17 @@
 			"layout_v2_door_not_shared_wall_count",
 			"layout_v2_room_without_door_count",
 			"layout_v2_forbidden_room_window_count",
+			"semantic_scene_route_block_count",
+			"semantic_scene_door_clearance_block_count",
+			"semantic_scene_required_missing_count",
+			"semantic_room_primary_scene_missing_count",
+			"semantic_major_object_without_scene_count",
+			"semantic_pairing_error_count",
+			"semantic_distribution_noise_score",
+			"semantic_functional_coverage_percent",
+			"semantic_route_clearance_percent",
+			"semantic_interiors_scene_count",
+			"semantic_interiors_primary_scene_count",
 			"module_instance_count",
 		)
 		for(var/key as anything in keys)

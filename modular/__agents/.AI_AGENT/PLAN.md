@@ -1,76 +1,74 @@
-# PLAN - Living V2 Universal Pattern/Scene Solver
+# PLAN - PR99 Semantic Interiors Production Layer
 
-Status: VISUAL REVIEW HARDENING APPLIED - RESIDUAL POLISH RISK
-Date: 2026-07-02
+Status: COMPLETE
+Date: 2026-07-03
 
 ## Goal
-Replace the current living v2 scaffold with a deterministic graph-constrained solver path:
+Replace the placeholder `building_layout` interiors stage and scatter-style room filling with a deterministic semantic scene layer:
 
-typed request -> footprint -> feasibility dry solve -> program graph -> bounded candidate search -> constrained room allocation -> route/opening solver -> shell derivation -> semantic furnishing -> hard validation -> scoring -> immutable plan -> atomic apply.
+room fields -> semantic anchors -> scene candidates -> scene scoring -> scene selection -> scene member placement -> existing `place_fixture_at()` emitter -> semantic validation/reporting.
 
-The user-facing contract stays narrow: program, style, size-or-shape, direction, seed. Doors, rooms, routes, windows, furniture, infrastructure, validation, and scoring are generator responsibilities.
+The public generator contract remains narrow: program, style, size-or-shape, direction, and seed. Rooms, routes, doors, furniture, infrastructure, validation, reports, and scoring are generator responsibilities.
 
 ## Source Documents
-- Current user request: replace hardcoded layout/door/scene placement with a universal pattern/scene solver.
-- Attached review text `da8a944a.../pasted-text.txt`.
-- `modular/world_edit/docs/rework_docs/tech_rework/30.06.26_review_2.md`.
-- Current production code under `modular/world_edit/code/generators/building_layout/v2/**`.
+- Current user request: attached `e1414e02.../pasted-text.txt`.
+- Active review doc: `modular/world_edit/docs/rework_docs/tech_rework/03.07.26_review.md`.
+- Prior hard review context: `modular/world_edit/docs/rework_docs/tech_rework/30.06.26_review_2.md`.
+- Production code under `modular/world_edit/code/generators/building_layout/**`.
 
 ## Scope
-- Production v2 code: `modular/world_edit/code/generators/building_layout/v2/**`.
-- Shared validation/reporting fields only where needed for semantic expectations.
-- Living visual cases/expectations under `tools/world_edit_visual/cases/**`.
-- Unit/acceptance coverage for the production generator.
+- Production DM generator code in `modular/world_edit/code/generators/building_layout/**`.
+- New semantic interior layer under `modular/world_edit/code/generators/building_layout/semantic/**`.
+- Pipeline integration through `pipeline/stages/stage_interiors.dm` and minimal coordination with `stage_fixtures.dm`.
+- Hard validation/report metrics and visual expectation aliases.
+- Focused visual cases in `tools/world_edit_visual/cases/**` as acceptance/report contracts only.
 
 ## Non-Scope
-- No visualizer-side generation or PNG-driven source of truth.
-- No storage/workshop v2 data-pack rollout before living passes the new solver contract.
-- No random module/recipe expansion as a substitute for room/scene solving.
-- No legacy fallback for a living no-solution: living v2 must fail with structured feasibility/no-solution evidence.
+- No visualizer-side generation or PNG/sprite-driven acceptance.
+- No random module/recipe expansion as a substitute for scene solving.
+- No rewrite of `place_fixture_at()` or object provider catalog unless the emitter contract is proven insufficient.
+- No full SAT solver in this slice.
+- No storage/workshop v2 data-pack rollout before the semantic scene layer is stable; storage/workshop can be smoke/expectation coverage only.
+
+## MUST
+1. `stage_interiors` must no longer be a placeholder that selects prefab macro ids and then `continue`s.
+2. Primary major furniture must come from scene selection with room identity, primary/secondary/detail layers, route/door clearance checks, and global scene limits.
+3. `place_building_room_purpose_fill()` must remain detail/secondary fallback only; it must not be the primary semantic scene source.
+4. Scene emission must use the existing `place_fixture_at()` metadata contract.
+5. Semantic report/counters are the source of truth; PNG/sprite output remains review artifact only.
+6. Current noisy screenshots must fail counters or be replaced by solver output that satisfies semantic expectations.
 
 ## Expected New Path
-1. Living v2 patterns produce room/route relation candidates only.
-2. Room allocation validates room contracts, dimensions, graph role, privacy, and required scene feasibility before a candidate can be accepted.
-3. Opening solver derives main exits and internal doors from shared wall candidates, rejecting corner, short segment, clearance-blocked, and privacy-bad openings.
-4. Window solver derives exterior windows from room window policy instead of hardcoded pattern coordinates.
-5. Scene solver applies primary/secondary/detail layers, global scene limits, room identities, and slot budgets before emission.
-6. Validators expose hard counters for room identity, scene fragmentation, large empty rooms, door/shared-wall correctness, and window policy.
+1. Build room fields for every solved room: floor, wall band, corners, center, free turfs, door buffers, route edges, service wall candidates, focus turf.
+2. Build scene rules from program/room role and select required room identities first.
+3. Score scene candidates by fit, clearance, wall availability, route separation, and role identity.
+4. Emit selected scene members through `place_fixture_at()` with stable scene/module metadata.
+5. Run hard semantic validation for route blocks, door clearance, missing required scenes, missing primary room scenes, major objects without scenes, pairing errors, distribution noise, functional coverage, and route clearance.
+6. Expose hard counters and expectation aliases in workbench reports.
 
 ## Forbidden Old Paths
-- Pattern procs in `building_layout_v2_living.dm` must not call `add_building_v2_door()` or `add_building_v2_window()` as the production source of living openings.
-- `validate_building_v2_layout_topology()` must not trust door metadata alone for room connectivity; it must verify shared-wall/floor adjacency.
-- Living v2 must not pass because counters ignore unreadable rooms, fragmented scenes, invalid door placement, or forbidden windows.
-- `tools/world_edit_visual/**` must not generate or repair layouts.
+- `place_room_prefab_groups()` must not remain production primary interior placement.
+- `place_building_room_purpose_fill()` must not create primary room identity success.
+- `tools/world_edit_visual/**` must not generate, repair, or simulate layouts.
+- Metadata-only success is forbidden when scene identity, route clearance, pairing, or room function is not satisfied.
+- Do not broaden this into storage/workshop solver data packs until the semantic layer is green for living.
 
 ## Acceptance
-- `building_living_target_rooms_6` stays a mandatory regression case without `use_layout_v2` in config.
-- Current bad screenshot class fails semantic counters until the solver proves room identities, openings, route, windows, and scene composition.
-- At least two hard-valid living v2 candidates for the standard living target.
-- N/S/E/W point placement, compact/standard/spacious sizes, rectangle/filled rectangle, and undersized negative remain covered.
-- Storage/workshop existing cases remain legacy unless explicitly v2-gated.
+- `building_living_target_rooms_6` remains mandatory and passes without config `use_layout_v2`.
+- Reports expose and expectations can check:
+  - `semantic_scene_route_block_count`
+  - `semantic_scene_door_clearance_block_count`
+  - `semantic_scene_required_missing_count`
+  - `semantic_room_primary_scene_missing_count`
+  - `semantic_major_object_without_scene_count`
+  - `semantic_pairing_error_count`
+  - `semantic_distribution_noise_score`
+  - `semantic_functional_coverage_percent`
+  - `semantic_route_clearance_percent`
+- Expectation aliases support `*_max` and `*_min` threshold checks.
+- Current supported living cases retain zero hard counters.
+- Storage/workshop existing cases stay production safe; if their current visual noise is asserted, it must be via semantic report expectations, not PNG-only judgment.
 - Required checks when practical:
   - `git diff --check`
   - `tools\build\build.bat --ci dm -DUNIT_TESTS -DCIBUILDING -DANSICOLORS -Werror`
   - focused visual workflow for living target/matrix and non-living smoke.
-
-## Current Result
-
-- Living v2 now derives doors/windows through solver stages, not hardcoded living pattern calls.
-- Living v2 now materializes room rectangles through `solve_building_v2_room_allocation()` from allocation slots, room contracts, and required scene-fit checks.
-- Living v2 scene solving enforces a global public focal limit and required bedroom/sanitation/storage identities through hard counters.
-- Living v2 candidate selection now retries score-ordered candidates through isolated post-emission hard validation before final state emission.
-- `side_spine_room_row` is post-emission hard-valid on the rectangle regression and is locked by a 3 hard-valid candidate expectation.
-- `building_living_target_rooms_6` is green without `use_layout_v2` and proves at least two hard-valid candidates.
-- Living matrix is green across N/S/E/W, compact/standard/spacious, rectangle, and undersized negative feasibility cases.
-- Storage/workshop remain on legacy path.
-- Manual visual review rejected the previous green output: `building_living_rectangle_colony` is living-v2 and previously had huge sparse rooms, repeated door-band openings, and weak room identity despite zero hard counters.
-- The current slice adds hard semantic coverage for underfurnished rooms and route-maze complexity; rectangle now selects `front_common_back_private` with 2 hard-valid candidates while side-spine is rejected by `corridor_ribbon_count`.
-- `building_storage_target_rooms_5` and `building_workshop_target_rooms_6` screenshots are legacy safety smoke artifacts, not evidence that storage/workshop are solver-ready.
-- Remaining active scope: add/tighten semantic counters and solver scoring so the current rectangle screenshot class fails until the solver produces readable rooms/routes/scenes.
-
-## Active Visual-Fail Contract
-
-- `building_living_rectangle_colony` must not pass only because existing counters are zero; sparse public/private rooms and excessive door-band route quality must be represented by semantic counters.
-- Candidate scoring must stop rewarding longer routes and extra doors as quality by default; openings/routes are bounded requirements, not a positive visual goal.
-- Storage/workshop screenshots remain evidence for the next data-pack phase, but no storage/workshop-specific hotfixes are allowed before living visual acceptance.
-- The undersized blank PNG remains acceptable only as a structured locked/no-solution case with no canvas changes.

@@ -1321,18 +1321,36 @@
 	var/turf/table_turf = islist(table_anchor) ? table_anchor["turf"] : null
 	if(istype(table_turf))
 		occupied_lookup[table_turf] = TRUE
-	var/detail_target = room_plan.area() >= 48 ? 4 : (room_plan.area() >= 36 ? 3 : 1)
+	var/detail_target = room_plan.area() >= 48 ? 3 : (room_plan.area() >= 24 ? 2 : 1)
 	for(var/detail_index in 2 to detail_target)
-		var/detail_slot = (detail_index % 2) ? "cabinet" : "table"
-		var/detail_category = detail_slot == "cabinet" ? "cabinet" : "table"
-		var/list/detail_anchor = select_building_v2_scene_anchor(context, candidate, room_plan, detail_slot, detail_category, "living_common", occupied_lookup, TRUE, TRUE)
+		var/list/detail_anchor = select_building_v2_adjacent_scene_anchor(context, candidate, room_plan, table_turf, "chair", "chair", "living_common", occupied_lookup)
 		if(!islist(detail_anchor))
 			continue
-		if(add_building_v2_scene_member_from_anchor(scene_plan, detail_slot, detail_category, detail_anchor, "side_surface", TRUE, FALSE))
+		if(add_building_v2_scene_member_from_anchor(scene_plan, "chair", "chair", detail_anchor, "side_surface", FALSE, FALSE))
 			var/turf/detail_turf = detail_anchor["turf"]
 			if(istype(detail_turf))
 				occupied_lookup[detail_turf] = TRUE
 	return TRUE
+
+/datum/world_edit_generator/building_layout/proc/select_building_v2_adjacent_scene_anchor(datum/world_edit_building_v2_context/context, datum/world_edit_building_v2_layout_candidate/candidate, datum/world_edit_building_v2_room_plan/room_plan, turf/anchor_turf, slot, category, scene_kind, list/occupied_lookup = null)
+	if(!istype(context) || !istype(candidate) || !istype(room_plan) || !istype(anchor_turf))
+		return null
+	var/list/blocked_lookup = build_building_v2_scene_blocked_lookup(context, candidate, occupied_lookup)
+	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(slot, category)
+	var/list/best_anchor = null
+	var/best_score = -999999999
+	for(var/check_dir as anything in GLOB.cardinals)
+		var/turf/candidate_turf = get_step(anchor_turf, check_dir)
+		if(!building_v2_scene_turf_clear(context, candidate, room_plan, candidate_turf, blocked_lookup, occupied_lookup))
+			continue
+		var/dir_to_use = get_cardinal_dir_toward(candidate_turf, anchor_turf, context.state?.placement_dir || SOUTH)
+		if(!building_v2_scene_place_rule_clearance_ok(context, candidate, room_plan, candidate_turf, dir_to_use, null, place_rule, blocked_lookup, occupied_lookup))
+			continue
+		var/score = score_building_v2_scene_turf(context, candidate, room_plan, candidate_turf, scene_kind) - get_dist(candidate_turf, anchor_turf) * 20
+		if(!islist(best_anchor) || score > best_score)
+			best_anchor = list("turf" = candidate_turf, "dir" = dir_to_use, "wall_dir" = null, "score" = score)
+			best_score = score
+	return best_anchor
 
 /datum/world_edit_generator/building_layout/proc/add_building_v2_bedroom_scene_members(datum/world_edit_building_v2_context/context, datum/world_edit_building_v2_layout_candidate/candidate, datum/world_edit_building_v2_room_plan/room_plan, datum/world_edit_building_v2_scene_plan/scene_plan, include_cabinet)
 	var/list/bed_anchor = select_building_v2_scene_anchor(context, candidate, room_plan, "bed", "bed", "bedroom", null, TRUE, TRUE)
@@ -1918,9 +1936,11 @@
 	var/resolved_area = round(text2num("[room_area]") || 0)
 	if(resolved_room == "entry_common" || resolved_role == "entry_common")
 		if(resolved_area >= 48)
-			return 4
-		if(resolved_area >= 36)
 			return 3
+		if(resolved_area >= 30)
+			return 2
+		if(resolved_area >= 24)
+			return 2
 		return 1
 	if(resolved_room == "dining" || resolved_role == "dining")
 		if(resolved_area >= 36)
@@ -1929,6 +1949,16 @@
 	if(resolved_room == "sleeping" || resolved_role == "sleeping")
 		if(resolved_area >= 28)
 			return 3
+		if(resolved_area >= 20)
+			return 2
+		return 1
+	if(resolved_room == "sanitation" || resolved_role == "sanitation")
+		if(resolved_area >= 8)
+			return 2
+		return 1
+	if(resolved_room == "storage" || resolved_role == "storage")
+		if(resolved_area >= 24)
+			return 2
 		return 1
 	if(resolved_room == "utility" || resolved_role == "utility")
 		if(resolved_area >= 32)

@@ -280,6 +280,8 @@
 		return FALSE
 	if(building_layout_v2_enabled(state))
 		return FALSE
+	if(state.fixtures.semantic_interiors_emitted)
+		return FALSE
 	var/repaired = FALSE
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
 		if(!istype(cluster_spec) || !cluster_spec.required)
@@ -338,9 +340,12 @@
 	validate_building_privacy_rules(state)
 	validate_building_forbidden_rules(state)
 	validate_building_semantic_slot_preflight(state)
+	if(state.fixtures.semantic_interiors_emitted)
+		credit_building_semantic_scene_requirements(state)
 	validate_building_major_clusters(state)
 	validate_building_furnishing_quality(state)
 	validate_building_layout_v2_scenes(state)
+	validate_building_semantic_scene_contracts(state)
 	validate_building_infrastructure_rules(state)
 	validate_building_direction_contract(state)
 	validate_building_counter_facing(state)

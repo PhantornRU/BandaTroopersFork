@@ -1696,6 +1696,12 @@
 		"layout_v2_door_not_shared_wall_count",
 		"layout_v2_room_without_door_count",
 		"layout_v2_forbidden_room_window_count",
+		"semantic_scene_route_block_count",
+		"semantic_scene_door_clearance_block_count",
+		"semantic_scene_required_missing_count",
+		"semantic_room_primary_scene_missing_count",
+		"semantic_major_object_without_scene_count",
+		"semantic_pairing_error_count",
 		"mandatory_room_missing_count",
 		"mandatory_room_no_bounds_count",
 		"mandatory_room_no_access_count",
@@ -1781,6 +1787,12 @@
 		if("layout_v2_door_not_shared_wall_count") return state.validation.layout_v2_door_not_shared_wall_count
 		if("layout_v2_room_without_door_count") return state.validation.layout_v2_room_without_door_count
 		if("layout_v2_forbidden_room_window_count") return state.validation.layout_v2_forbidden_room_window_count
+		if("semantic_scene_route_block_count") return state.validation.semantic_scene_route_block_count
+		if("semantic_scene_door_clearance_block_count") return state.validation.semantic_scene_door_clearance_block_count
+		if("semantic_scene_required_missing_count") return state.validation.semantic_scene_required_missing_count
+		if("semantic_room_primary_scene_missing_count") return state.validation.semantic_room_primary_scene_missing_count
+		if("semantic_major_object_without_scene_count") return state.validation.semantic_major_object_without_scene_count
+		if("semantic_pairing_error_count") return state.validation.semantic_pairing_error_count
 		if("mandatory_room_missing_count") return state.validation.mandatory_room_missing_count
 		if("mandatory_room_no_bounds_count") return state.validation.mandatory_room_no_bounds_count
 		if("mandatory_room_no_access_count") return state.validation.mandatory_room_no_access_count
@@ -1863,6 +1875,11 @@
 	verdict.set_metric("layout_v2_candidate_count", state.config["layout_v2_candidate_count"] || 0)
 	verdict.set_metric("layout_v2_hard_valid_candidate_count", state.config["layout_v2_hard_valid_candidate_count"] || 0)
 	verdict.set_metric("layout_v2_scene_count", state.config["layout_v2_scene_count"] || 0)
+	verdict.set_metric("semantic_distribution_noise_score", state.validation.semantic_distribution_noise_score)
+	verdict.set_metric("semantic_functional_coverage_percent", state.validation.semantic_functional_coverage_percent)
+	verdict.set_metric("semantic_route_clearance_percent", state.validation.semantic_route_clearance_percent)
+	verdict.set_metric("semantic_interiors_scene_count", state.fixtures.semantic_interiors_scene_count)
+	verdict.set_metric("semantic_interiors_primary_scene_count", state.fixtures.semantic_interiors_primary_scene_count)
 	verdict.set_metric("footprint_family", "[state.config["footprint_family"] || ""]")
 	verdict.set_metric("room_count", length(state.geometry.solved_rooms))
 	verdict.set_metric("target_room_count", state.config["target_room_count"] || state.validation.requested_room_count)
@@ -2031,6 +2048,11 @@
 		report["hard_counters"] = hard_counters
 		for(var/counter_name as anything in hard_counters)
 			report[counter_name] = hard_counters[counter_name]
+		report["semantic_distribution_noise_score"] = state.validation.semantic_distribution_noise_score
+		report["semantic_functional_coverage_percent"] = state.validation.semantic_functional_coverage_percent
+		report["semantic_route_clearance_percent"] = state.validation.semantic_route_clearance_percent
+		report["semantic_interiors_scene_count"] = state.fixtures.semantic_interiors_scene_count
+		report["semantic_interiors_primary_scene_count"] = state.fixtures.semantic_interiors_primary_scene_count
 		var/datum/world_edit_validation_verdict/validation_verdict = build_building_generation_validation_verdict(state)
 		report["generation_validation_verdict"] = validation_verdict.as_payload()
 		report["validation_verdict"] = report["generation_validation_verdict"]

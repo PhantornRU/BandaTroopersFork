@@ -42,7 +42,16 @@
     "layout_v2_required_connection_missing_count": 0,
     "layout_v2_door_not_shared_wall_count": 0,
     "layout_v2_room_without_door_count": 0,
-    "layout_v2_forbidden_room_window_count": 0
+    "layout_v2_forbidden_room_window_count": 0,
+    "semantic_scene_route_block_count": 0,
+    "semantic_scene_door_clearance_block_count": 0,
+    "semantic_scene_required_missing_count": 0,
+    "semantic_room_primary_scene_missing_count": 0,
+    "semantic_major_object_without_scene_count": 0,
+    "semantic_pairing_error_count": 0,
+    "semantic_distribution_noise_score_max": 10,
+    "semantic_functional_coverage_percent_min": 85,
+    "semantic_route_clearance_percent_min": 100
   },
   "render": {
     "semantic_png": true,

@@ -1,25 +1,20 @@
-# TODO - Living V2 Universal Pattern/Scene Solver
+# TODO - PR99 Semantic Interiors Production Layer
 
 | ID | Type | Requirement | Status |
 | --- | --- | --- | --- |
-| M1 | MUST | Confirm read-only scope, entrypoints, include graph, and old v2 hardcoded paths. | [x] |
-| M2 | MUST | Replace previous visual-hardening task-state with this solver contract before product edits. | [x] |
-| M3 | MUST | Use subagents for independent opening, scene, and validation review. | [x] |
-| M4 | MUST | Remove production dependence on hardcoded pattern doors/windows for living v2. | [x] |
-| M5 | MUST | Add bounded opening solver from shared wall candidates with corner/short/clearance/privacy scoring. | [x] |
-| M6 | MUST | Add or wire room allocation checks so room contracts and required scene fit reject bad candidates before selection. | [x] |
-| M7 | MUST | Add scene solver rules for primary/secondary/detail layers, global limits, and required bedroom/sanitation/storage identities. | [x] |
-| M8 | MUST | Add v2 quality counters for room identity, scene fragmentation, large empty rooms, door/shared-wall correctness, and window policy. | [x] |
-| M9 | REJECT | Do not add storage/workshop v2 data packs until living visual pass is semantically green. | [x] |
-| M10 | CHECK | Run compile, diff check, living regression/matrix, negative undersized, and non-living smoke as feasible. | [x] |
-| M11 | MUST | Sync final plan fidelity, old-path audit, subagent outcomes, and verification evidence. | [x] |
-| M12 | MUST | Add per-candidate post-emission hard validation/retry so a high-scoring candidate cannot block a lower hard-valid candidate. | [x] |
-| M13 | CHECK | Make `side_spine_room_row` post-emission hard-valid before allowing it to win rectangle scoring. | [x] |
-| M14 | MUST | Treat manual visual review as failing current living-v2 acceptance; do not call the current green rectangle output solved. | [x] |
-| M15 | MUST | Map the submitted screenshots to cases/reports and separate living-v2 failures from legacy storage/workshop smoke artifacts. | [x] |
-| M16 | MUST | Add or tighten semantic counters so the current `building_living_rectangle_colony` visual failure class cannot pass with zero hard counters. | [x] |
-| M17 | MUST | Change v2 scoring/selection so long routes and extra doors are bounded costs/requirements rather than quality bonuses. | [x] |
-| M18 | CHECK | Re-run focused rectangle/living matrix and verify storage/workshop are only legacy safety smoke, not visual acceptance. | [x] |
+| M1 | MUST | Read attached 03.07 request, active review doc, stable guidance, task-state, include graph, and old interior/fill paths. | [x] |
+| M2 | MUST | Replace stale living-only task-state with this semantic-interiors contract before product edits. | [x] |
+| M3 | MUST | Record plan-mapping challenge and old-path audit before implementation. | [x] |
+| M4 | MUST | Add semantic interior model/rules/solver/emitter/validation files under production `building_layout/semantic/**`. | [x] |
+| M5 | MUST | Replace `stage_interiors` placeholder with `run_building_semantic_interiors(context.state)`. | [x] |
+| M6 | MUST | Emit scene members through existing `place_fixture_at()` and preserve scene/module traceability metadata. | [x] |
+| M7 | MUST | Prevent `stage_fixtures`/`place_building_room_purpose_fill()` from acting as primary semantic scene placement after semantic interiors run. | [x] |
+| M8 | MUST | Add hard semantic counters and expose them through generation verdict/report metrics. | [x] |
+| M9 | MUST | Add visual expectation threshold aliases for semantic max/min metrics. | [x] |
+| M10 | MUST | Add/update focused expectations so living target and visual-review blockers are semantic-report gated. | [x] |
+| M11 | REJECT | Do not implement visualizer-side generation, random module expansion, or PNG-only acceptance. | [x] |
+| M12 | CHECK | Run compile, diff check, focused living regression, and non-living smoke as feasible. | [x] |
+| M13 | MUST | Sync final plan fidelity, old-path audit, verification evidence, and subagent outcomes. | [x] |
 
 ## Forbidden Substitutions
 
@@ -27,27 +22,18 @@
 | --- | --- |
 | F1 | No one-seed or one-PNG coordinate fix. |
 | F2 | No visualizer-side generation, patching, or success simulation. |
-| F3 | No extra random recipes/modules as a substitute for pattern/opening/scene constraints. |
-| F4 | No metadata-only door connectivity; door/opening must be proven against shared wall/floor geometry. |
-| F5 | No counter-only success if rooms/routes/scenes remain visually unreadable. |
-| F6 | No living no-solution fallback to legacy. |
-| F7 | No storage/workshop v2 rollout before living is solved under the same engine. |
+| F3 | No extra random recipes/modules as a substitute for scene/room constraints. |
+| F4 | No counter-only success if rooms/routes/scenes remain semantically unreadable. |
+| F5 | No leaving `place_room_prefab_groups()` as production primary placement. |
+| F6 | No letting `place_building_room_purpose_fill()` satisfy required primary scenes. |
+| F7 | No storage/workshop solver rollout before living semantic pass is green. |
 
 ## Old Path Audit
 
 | Old path | Expected status | Evidence command |
 | --- | --- | --- |
-| `add_building_v2_door()` calls inside living pattern build procs | not production source for living openings | `rg -n "add_building_v2_door" modular/world_edit/code/generators/building_layout/v2/building_layout_v2_living.dm` |
-| `add_building_v2_window()` calls inside living pattern build procs | not production source for living windows | `rg -n "add_building_v2_window" modular/world_edit/code/generators/building_layout/v2/building_layout_v2_living.dm` |
-| `validate_building_v2_layout_topology()` metadata-only `connected_rooms` loop | replaced/tightened by shared-wall validation | `rg -n "connected_rooms|door\\.not_shared|door_shared" modular/world_edit/code/generators/building_layout/v2/building_layout_v2_solver.dm` |
-| Scene solve as independent room-only switch with no global limits | tightened with global living scene budgets and identity checks | `rg -n "global_scene|common_scene_fragmentation|scene_slot" modular/world_edit/code/generators/building_layout/v2` |
-| Living v2 fallback to legacy on no solution | forbidden | `rg -n "use_building_layout_v2|build_building_layout_v2_state" modular/world_edit/code/generators/building_layout` |
-
-## Residual Work
-
-- Living room allocation now has a solver layer: patterns provide route geometry plus room allocation slots/relation zones; `solve_building_v2_room_allocation()` materializes room rectangles from room contracts and required scene-fit checks before openings/topology.
-- Reuse for storage/workshop remains future work and must wait until living visual quality is considered stable.
-- `side_spine_room_row` exists as additional generated candidate breadth for wide footprints, but it is no longer counted hard-valid on `building_living_rectangle_colony` because tightened `corridor_ribbon_count` rejects its route maze.
-- New visual-review blocker: current rectangle output is semantically green but visually unreadable enough to reject. The next implementation slice must make this class fail counters or select a better candidate.
-- Current rectangle acceptance selects `front_common_back_private`, requires at least 2 hard-valid candidates, and records side-spine as a rejected candidate with nonzero corridor complexity.
-- Optional windows are validated by policy and emitted only when required/desired; broad facade-aware optional window selection remains future work after living quality counters are stable.
+| `pipeline/stages/stage_interiors.dm` placeholder `place_room_prefab_groups()` | replaced/not production primary | `rg -n "place_room_prefab_groups|run_building_semantic_interiors" modular/world_edit/code/generators/building_layout` |
+| `place_room_prefab_groups()` macro-id switch with no placement | removed or non-production helper only | `rg -n "rack_aisles|sleep_nook|office_desk_cluster|sanitation_combined_chunk" modular/world_edit/code/generators/building_layout/pipeline/stages/stage_interiors.dm` |
+| `place_building_room_purpose_fill()` as primary room function | detail/secondary fallback only | `rg -n "place_building_room_purpose_fill|semantic_interiors" modular/world_edit/code/generators/building_layout` |
+| Major furniture without scene/module metadata | hard counter failure | `rg -n "semantic_major_object_without_scene_count|module_instance_id" modular/world_edit/code/generators/building_layout` |
+| Exact-only visual expectations for semantic quality thresholds | max/min aliases added | `rg -n "semantic_.*_(max|min)|visual_expectation_satisfied" modular/world_edit/code/visual_workbench/world_edit_visual_report.dm` |

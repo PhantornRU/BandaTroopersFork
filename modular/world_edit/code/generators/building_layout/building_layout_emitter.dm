@@ -658,6 +658,11 @@
 	plan.metadata["hard_counters"] = build_building_state_hard_counter_report(state)
 	for(var/counter_name as anything in plan.metadata["hard_counters"])
 		plan.metadata["[counter_name]"] = plan.metadata["hard_counters"][counter_name]
+	plan.metadata["semantic_distribution_noise_score"] = state.validation.semantic_distribution_noise_score
+	plan.metadata["semantic_functional_coverage_percent"] = state.validation.semantic_functional_coverage_percent
+	plan.metadata["semantic_route_clearance_percent"] = state.validation.semantic_route_clearance_percent
+	plan.metadata["semantic_interiors_scene_count"] = state.fixtures.semantic_interiors_scene_count
+	plan.metadata["semantic_interiors_primary_scene_count"] = state.fixtures.semantic_interiors_primary_scene_count
 	plan.metadata["mandatory_room_patch_fallback_count"] = state.validation.mandatory_room_patch_fallback_count
 	plan.metadata["fallback_anchor_required_cluster_count"] = state.validation.fallback_anchor_required_cluster_count
 	plan.metadata["blocked_turf_conflict_count"] = state.validation.blocked_turf_conflict_count

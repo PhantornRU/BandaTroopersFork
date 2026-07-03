@@ -83,6 +83,15 @@
 	var/layout_v2_door_not_shared_wall_count = 0
 	var/layout_v2_room_without_door_count = 0
 	var/layout_v2_forbidden_room_window_count = 0
+	var/semantic_scene_route_block_count = 0
+	var/semantic_scene_door_clearance_block_count = 0
+	var/semantic_scene_required_missing_count = 0
+	var/semantic_room_primary_scene_missing_count = 0
+	var/semantic_major_object_without_scene_count = 0
+	var/semantic_pairing_error_count = 0
+	var/semantic_distribution_noise_score = 0
+	var/semantic_functional_coverage_percent = 100
+	var/semantic_route_clearance_percent = 100
 	var/microvariation_count = 0
 	var/degraded_region_fallback_count = 0
 	var/semantic_slot_capacity_count = 0

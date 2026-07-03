@@ -33,6 +33,9 @@
 	var/list/scene_primary_counts_by_room = list()
 	var/list/scene_kind_by_room = list()
 	var/list/scene_slot_counts_by_room = list()
+	var/semantic_interiors_emitted = FALSE
+	var/semantic_interiors_scene_count = 0
+	var/semantic_interiors_primary_scene_count = 0
 	var/usable_fixture_area = 0
 	var/fixture_count = 0
 	var/major_fixture_count = 0
