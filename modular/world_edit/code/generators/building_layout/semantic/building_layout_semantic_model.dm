@@ -16,17 +16,27 @@
 	var/category = ""
 	var/scene_slot = ""
 	var/placement_mode = "free_near_anchor"
+	var/dx = 0
+	var/dy = 0
+	var/list/allowed_relative_dirs = list()
+	var/list/clearance_offsets = list()
+	var/list/forbidden_anchor_tags = list()
 	var/major = FALSE
 	var/wall_required = FALSE
 	var/requires_table_pairing = FALSE
 	var/seating_group_ok = FALSE
 
-/datum/world_edit_building_semantic_scene_member_spec/New(_slot, _category, _scene_slot, _placement_mode = "free_near_anchor", _major = FALSE, _wall_required = FALSE, _requires_table_pairing = FALSE, _seating_group_ok = FALSE)
+/datum/world_edit_building_semantic_scene_member_spec/New(_slot, _category, _scene_slot, _placement_mode = "free_near_anchor", _major = FALSE, _wall_required = FALSE, _requires_table_pairing = FALSE, _seating_group_ok = FALSE, _dx = 0, _dy = 0, list/_allowed_relative_dirs = null, list/_clearance_offsets = null, list/_forbidden_anchor_tags = null)
 	. = ..()
 	slot = "[_slot]"
 	category = "[_category]"
 	scene_slot = "[_scene_slot]"
 	placement_mode = "[_placement_mode]"
+	dx = round(text2num("[_dx]") || 0)
+	dy = round(text2num("[_dy]") || 0)
+	allowed_relative_dirs = islist(_allowed_relative_dirs) ? _allowed_relative_dirs.Copy() : list()
+	clearance_offsets = islist(_clearance_offsets) ? _clearance_offsets.Copy() : list()
+	forbidden_anchor_tags = islist(_forbidden_anchor_tags) ? _forbidden_anchor_tags.Copy() : list()
 	major = _major ? TRUE : FALSE
 	wall_required = _wall_required ? TRUE : FALSE
 	requires_table_pairing = _requires_table_pairing ? TRUE : FALSE
@@ -56,6 +66,11 @@
 
 /datum/world_edit_building_semantic_scene_rule/proc/add_member(_slot, _category, _scene_slot, _placement_mode = "free_near_anchor", _major = FALSE, _wall_required = FALSE, _requires_table_pairing = FALSE, _seating_group_ok = FALSE)
 	var/datum/world_edit_building_semantic_scene_member_spec/member = new(_slot, _category, _scene_slot, _placement_mode, _major, _wall_required, _requires_table_pairing, _seating_group_ok)
+	member_specs += member
+	return member
+
+/datum/world_edit_building_semantic_scene_rule/proc/add_relative_member(_slot, _category, _scene_slot, _dx, _dy, _major = FALSE, _wall_required = FALSE, _requires_table_pairing = FALSE, _seating_group_ok = FALSE, list/_allowed_relative_dirs = null, list/_clearance_offsets = null, list/_forbidden_anchor_tags = null)
+	var/datum/world_edit_building_semantic_scene_member_spec/member = new(_slot, _category, _scene_slot, WORLD_EDIT_BUILDING_SEMANTIC_PLACE_RELATIVE, _major, _wall_required, _requires_table_pairing, _seating_group_ok, _dx, _dy, _allowed_relative_dirs, _clearance_offsets, _forbidden_anchor_tags)
 	member_specs += member
 	return member
 

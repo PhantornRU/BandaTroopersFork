@@ -75,6 +75,10 @@
 	var/large_empty_unassigned_floor_count = 0
 	var/oversized_role_room_count = 0
 	var/unclaimed_interior_wall_count = 0
+	var/wall_outside_footprint_count = 0
+	var/wall_orphan_island_count = 0
+	var/wall_unmapped_interior_count = 0
+	var/wall_single_sided_internal_count = 0
 	var/thin_room_strip_count = 0
 	var/large_sparse_room_count = 0
 	var/corridor_ribbon_count = 0
@@ -89,6 +93,7 @@
 	var/semantic_room_primary_scene_missing_count = 0
 	var/semantic_major_object_without_scene_count = 0
 	var/semantic_pairing_error_count = 0
+	var/legacy_fixture_after_scene_count = 0
 	var/semantic_distribution_noise_score = 0
 	var/semantic_functional_coverage_percent = 100
 	var/semantic_route_clearance_percent = 100

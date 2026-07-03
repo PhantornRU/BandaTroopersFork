@@ -161,6 +161,13 @@
 			var/list/semantic_clearance_metrics = report_data?["metrics"]
 			return semantic_clearance_metrics?["semantic_route_clearance_percent"] || 0
 	var/list/metrics = report_data?["metrics"]
+	var/key_text = "[key]"
+	if(length(key_text) > 4 && copytext(key_text, length(key_text) - 3) in list("_min", "_max"))
+		var/base_key = copytext(key_text, 1, length(key_text) - 3)
+		if(islist(metrics) && !isnull(metrics[base_key]))
+			return metrics[base_key]
+		if(!isnull(report_data?[base_key]))
+			return report_data[base_key]
 	if(islist(metrics) && !isnull(metrics[key]))
 		return metrics[key]
 	return report_data?[key]
@@ -271,7 +278,13 @@
 	out["reason_code"] = support["reason_code"] || support["lock_code"]
 	out["reason"] = support["reason"]
 	out["canvas_changed"] = FALSE
-	out["metrics"] = list("generated_turf_count" = 0, "generated_object_count" = 0, "post_emit_validation_error_count" = 0)
+	out["support"] = support.Copy()
+	var/list/support_source = list("metadata" = support)
+	out["metrics"] = merge_metrics(support_source, null, null)
+	out["metrics"]["generated_turf_count"] = 0
+	out["metrics"]["generated_object_count"] = 0
+	out["metrics"]["post_emit_validation_error_count"] = 0
+	attach_building_diagnostics(out, support_source)
 	attach_support_verdict(out, list("support_status_report" = support))
 	mark_semantic_artifacts(out)
 	export_semantic_json(out)
@@ -368,6 +381,12 @@
 	var/list/failed_diagnostics = meta["failed_candidate_diagnostics"]
 	if(islist(failed_diagnostics))
 		return failed_diagnostics
+	var/list/dry_solve_selected = meta["feasibility_dry_solve_selected_candidate"]
+	if(islist(dry_solve_selected))
+		return dry_solve_selected
+	var/list/dry_solve_failed = meta["feasibility_dry_solve_failed_candidate"]
+	if(islist(dry_solve_failed))
+		return dry_solve_failed
 	return select_visual_best_layout_candidate_report(meta["layout_candidate_reports"])
 
 /datum/world_edit_visual_case/proc/attach_building_diagnostics(list/report_data, list/source)
@@ -475,6 +494,10 @@
 			"large_empty_unassigned_floor_count",
 			"oversized_role_room_count",
 			"unclaimed_interior_wall_count",
+			"wall_outside_footprint_count",
+			"wall_orphan_island_count",
+			"wall_unmapped_interior_count",
+			"wall_single_sided_internal_count",
 			"thin_room_strip_count",
 			"large_sparse_room_count",
 			"corridor_ribbon_count",
@@ -489,9 +512,13 @@
 			"semantic_room_primary_scene_missing_count",
 			"semantic_major_object_without_scene_count",
 			"semantic_pairing_error_count",
+			"legacy_fixture_after_scene_count",
 			"semantic_distribution_noise_score",
 			"semantic_functional_coverage_percent",
 			"semantic_route_clearance_percent",
+			"structured_scene_owner",
+			"structured_scene_count",
+			"structured_primary_scene_count",
 			"semantic_interiors_scene_count",
 			"semantic_interiors_primary_scene_count",
 			"module_instance_count",

@@ -1688,6 +1688,10 @@
 		"large_empty_unassigned_floor_count",
 		"oversized_role_room_count",
 		"unclaimed_interior_wall_count",
+		"wall_outside_footprint_count",
+		"wall_orphan_island_count",
+		"wall_unmapped_interior_count",
+		"wall_single_sided_internal_count",
 		"thin_room_strip_count",
 		"large_sparse_room_count",
 		"corridor_ribbon_count",
@@ -1702,6 +1706,7 @@
 		"semantic_room_primary_scene_missing_count",
 		"semantic_major_object_without_scene_count",
 		"semantic_pairing_error_count",
+		"legacy_fixture_after_scene_count",
 		"mandatory_room_missing_count",
 		"mandatory_room_no_bounds_count",
 		"mandatory_room_no_access_count",
@@ -1779,6 +1784,10 @@
 		if("large_empty_unassigned_floor_count") return state.validation.large_empty_unassigned_floor_count
 		if("oversized_role_room_count") return state.validation.oversized_role_room_count
 		if("unclaimed_interior_wall_count") return state.validation.unclaimed_interior_wall_count
+		if("wall_outside_footprint_count") return state.validation.wall_outside_footprint_count
+		if("wall_orphan_island_count") return state.validation.wall_orphan_island_count
+		if("wall_unmapped_interior_count") return state.validation.wall_unmapped_interior_count
+		if("wall_single_sided_internal_count") return state.validation.wall_single_sided_internal_count
 		if("thin_room_strip_count") return state.validation.thin_room_strip_count
 		if("large_sparse_room_count") return state.validation.large_sparse_room_count
 		if("corridor_ribbon_count") return state.validation.corridor_ribbon_count
@@ -1793,6 +1802,7 @@
 		if("semantic_room_primary_scene_missing_count") return state.validation.semantic_room_primary_scene_missing_count
 		if("semantic_major_object_without_scene_count") return state.validation.semantic_major_object_without_scene_count
 		if("semantic_pairing_error_count") return state.validation.semantic_pairing_error_count
+		if("legacy_fixture_after_scene_count") return state.validation.legacy_fixture_after_scene_count
 		if("mandatory_room_missing_count") return state.validation.mandatory_room_missing_count
 		if("mandatory_room_no_bounds_count") return state.validation.mandatory_room_no_bounds_count
 		if("mandatory_room_no_access_count") return state.validation.mandatory_room_no_access_count
@@ -1878,6 +1888,9 @@
 	verdict.set_metric("semantic_distribution_noise_score", state.validation.semantic_distribution_noise_score)
 	verdict.set_metric("semantic_functional_coverage_percent", state.validation.semantic_functional_coverage_percent)
 	verdict.set_metric("semantic_route_clearance_percent", state.validation.semantic_route_clearance_percent)
+	verdict.set_metric("structured_scene_owner", "[state.fixtures.structured_scene_owner || ""]")
+	verdict.set_metric("structured_scene_count", state.fixtures.structured_scene_count)
+	verdict.set_metric("structured_primary_scene_count", state.fixtures.structured_primary_scene_count)
 	verdict.set_metric("semantic_interiors_scene_count", state.fixtures.semantic_interiors_scene_count)
 	verdict.set_metric("semantic_interiors_primary_scene_count", state.fixtures.semantic_interiors_primary_scene_count)
 	verdict.set_metric("footprint_family", "[state.config["footprint_family"] || ""]")
@@ -2051,6 +2064,9 @@
 		report["semantic_distribution_noise_score"] = state.validation.semantic_distribution_noise_score
 		report["semantic_functional_coverage_percent"] = state.validation.semantic_functional_coverage_percent
 		report["semantic_route_clearance_percent"] = state.validation.semantic_route_clearance_percent
+		report["structured_scene_owner"] = state.fixtures.structured_scene_owner
+		report["structured_scene_count"] = state.fixtures.structured_scene_count
+		report["structured_primary_scene_count"] = state.fixtures.structured_primary_scene_count
 		report["semantic_interiors_scene_count"] = state.fixtures.semantic_interiors_scene_count
 		report["semantic_interiors_primary_scene_count"] = state.fixtures.semantic_interiors_primary_scene_count
 		var/datum/world_edit_validation_verdict/validation_verdict = build_building_generation_validation_verdict(state)

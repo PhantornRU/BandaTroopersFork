@@ -661,6 +661,9 @@
 	plan.metadata["semantic_distribution_noise_score"] = state.validation.semantic_distribution_noise_score
 	plan.metadata["semantic_functional_coverage_percent"] = state.validation.semantic_functional_coverage_percent
 	plan.metadata["semantic_route_clearance_percent"] = state.validation.semantic_route_clearance_percent
+	plan.metadata["structured_scene_owner"] = state.fixtures.structured_scene_owner
+	plan.metadata["structured_scene_count"] = state.fixtures.structured_scene_count
+	plan.metadata["structured_primary_scene_count"] = state.fixtures.structured_primary_scene_count
 	plan.metadata["semantic_interiors_scene_count"] = state.fixtures.semantic_interiors_scene_count
 	plan.metadata["semantic_interiors_primary_scene_count"] = state.fixtures.semantic_interiors_primary_scene_count
 	plan.metadata["mandatory_room_patch_fallback_count"] = state.validation.mandatory_room_patch_fallback_count

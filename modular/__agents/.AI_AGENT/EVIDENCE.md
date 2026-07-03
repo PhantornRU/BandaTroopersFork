@@ -1,115 +1,115 @@
-# EVIDENCE - PR99 Semantic Interiors Production Layer
+# EVIDENCE - PR99 Structured Scene And Wall Topology Hardening
 
 ## Read-Only Discovery
 
 Date: 2026-07-03
 
-- Attached `e1414e02.../pasted-text.txt` read. It requires a semantic scene solver over existing `place_fixture_at()` emitter/provider layer, plus hard semantic counters and report expectations as source of truth.
-- `03.07.26_review.md` read. It rejects direct tile furniture placement, random recipes, and visual-only acceptance; it asks for room-first fields/zones/anchors/clusters.
-- AI index is absent in this repo; discovery used targeted `rg` and file reads.
-- Include graph: `modular/world_edit/_world_edit.dme` currently includes `pipeline/stages/stage_interiors.dm`, `stage_fixtures.dm`, furnishing catalogs, v2 solver, fixtures, infrastructure, and validators.
-- Entry point: `world_edit_generator_building_layout.dm` uses `build_building_layout_v2_state(state)` for living v2; legacy pipeline runs `stage_interiors` before `stage_fixtures`.
-- Current old path confirmed: `stage_interiors.dm` calls `place_room_prefab_groups(context.state, room, generator)`.
-- Current placeholder confirmed: `place_room_prefab_groups()` switches room roles to prefab macro ids and then `continue`s without placing anything.
-- Existing emitter contract confirmed: `place_fixture_at()` writes slot, requested_slot, category, zone_id, anchor_id, dir_source, front_dir, module_id, module_instance_id, semantic_requirement_id, cluster_id, signature_id, and related metadata.
-- Existing validation/reporting already has many hard counters; new semantic alias counters and score/percent metrics are missing.
-- Visual expectation comparator is in `modular/world_edit/code/visual_workbench/world_edit_visual_report.dm`; it currently supports exact equality and `layout_v2_min_candidate_count` only.
+- Active hard-review contract is `03.07.26_review_2.md`; it says the newest visual output is better but still unacceptable and prioritizes ownership/gating, multi-scene grammar, room class mapping, footprint-aware placement, and hard counters.
+- Attached verdict `ef96aa77.../pasted-text.txt` matches the active review direction.
+- Current task-state was stale: `PLAN.md` was `Status: COMPLETE` for the previous semantic layer slice.
+- AI index is absent; discovery used targeted `rg` and file reads.
+- `pipeline/stages/stage_interiors.dm` currently calls `generator.run_building_semantic_interiors(context.state)` and unconditionally returns `TRUE`.
+- `pipeline/stages/stage_fixtures.dm` currently skips legacy fixture placement only when `context.state.fixtures.semantic_interiors_emitted` is true.
+- `pipeline/world_edit_building_layout_fixture_state.dm` has semantic-specific ownership fields but no shared `structured_scene_*` owner fields.
+- `semantic/building_layout_semantic_solver.dm` skips v2, loops rules per room, emits one rule, then `break`s, preventing primary+secondary+detail layering.
+- `semantic/building_layout_semantic_rules.dm` uses `room_key` substring helper checks instead of an explicit room-class resolver.
+- `semantic/building_layout_semantic_model.dm` has `placement_mode` but no member footprint offsets, allowed relative dirs, clearance offsets, forbidden anchor tags, or `relative`/`wall_run`/`center_ring` grammar.
+- `v2/building_layout_v2_solver.dm` emits scene plans through `place_fixture_at()` and reports them, but does not mark a shared structured scene owner.
+- Living visual cases currently use `semantic_functional_coverage_percent_min = 85` and do not expect `legacy_fixture_after_scene_count`.
+- Latest user correction after sprite review: generated buildings still contain wall chunks that are not connected to walls, are isolated, or appear to go outside; wall placement still does not match mapping.
+- `emit_building_v2_candidate_to_state()` derives walls by iterating every footprint turf not present in `floor_lookup` and adding it to `state.geometry.wall_lookup`, with non-boundary cells added to `internal_wall_turfs`.
+- Existing wall validation checks double-thick segments and diagonal-only contacts, and v2 scene validation has a lenient orphan internal wall allowance. There is no explicit hard counter for outside-footprint walls or isolated internal wall islands.
 
 ## Plan Mapping Challenge
 
 Status: PASS WITH RISKS
 
-- PASS: New logic can live under `modular/world_edit/code/generators/building_layout/semantic/**` with DME includes and stage glue.
-- PASS: Existing `place_fixture_at()` is sufficient as the emission layer; semantic scene solver can feed it with module/scene metadata.
-- PASS: The old placeholder path is isolated to `stage_interiors.dm`, and duplicate purpose-fill risk is isolated to `stage_fixtures.dm`/`building_layout_fixtures.dm`.
-- PASS: Hard counters can be added through validation state, hard-counter registry, generation verdict metrics, detailed reports, and workbench expectation comparator.
-- RISK: Full universal scene grammar for every program is bigger than one safe slice. Mitigation: implement the common solver/data model and living-first required scenes, while leaving storage/workshop data-pack expansion for the next phase.
-- RISK: Existing v2 living has its own scene path. Mitigation: do not double-emit v2 scenes; share validation/report metrics.
-- RISK: Disabling all legacy fixture placement immediately can regress non-living cases. Mitigation: semantic interiors marks success, and `stage_fixtures` skips primary placement only when semantic scenes were emitted.
+- PASS: Shared ownership can be added in fixture state and a generator proc without changing public request parameters.
+- PASS: `stage_interiors` can report an `interiors` stage in addition to existing semantic reports, making stage-level validity visible.
+- PASS: V2 living scene emission already has scene metadata and can mark structured ownership after successful scene plan placement.
+- PASS: Legacy-after-scene can be counted from object placement metadata without changing the visualizer.
+- PASS: Multi-phase semantic emission can be bounded by fixed phase order and one emitted rule per phase.
+- RISK: Full scene library for every listed program is larger than one pass. Mitigation: implement generic room-class/rule grammar now, keep new data-pack rollout out of scope.
+- RISK: V2 and semantic paths use different scene emitters. Mitigation: unify ownership and validation counters while leaving emission mechanics in their existing production files.
 
-## Subagent Status
+## Subagents
 
-- Semantic scene/emitter audit: completed. Findings used: old primary paths are `stage_interiors`, `stage_fixtures`, `place_building_room_purpose_fill`; scene metadata must preserve `scene_id`, `scene_kind`, `scene_layer`, `room_id`, slot counts, module ids; repair/fallback paths must not reintroduce old major clusters after semantic emission.
-- Counter/report/expectation audit: completed. Findings used: hard counters must be added to `get_building_hard_counter_names()`, `get_building_state_hard_counter()`, generation verdict metrics, `emit_building_layout_plan()`, and `world_edit_visual_report.dm` metric merge/expectation code.
+- `Hypatia`: completed read-only audit. Findings used: add generic `_min/_max` actual-value lookup, add `legacy_fixture_after_scene_count`, structured scene expectations, and keep v2 multi-scene as a remaining larger design concern.
+- `Herschel`: completed read-only audit. Findings used: explicit room-class resolver, validation resolver reuse, phase-based rules, constants for placement modes, and `add_relative_member()` for dining groups.
 
 ## Implementation Evidence
 
-- Added semantic production layer:
-  - `modular/world_edit/code/generators/building_layout/semantic/building_layout_semantic_defines.dm`
-  - `modular/world_edit/code/generators/building_layout/semantic/building_layout_semantic_model.dm`
-  - `modular/world_edit/code/generators/building_layout/semantic/building_layout_semantic_rules.dm`
-  - `modular/world_edit/code/generators/building_layout/semantic/building_layout_semantic_solver.dm`
-  - `modular/world_edit/code/generators/building_layout/semantic/building_layout_semantic_emitter.dm`
-  - `modular/world_edit/code/generators/building_layout/semantic/building_layout_semantic_validation.dm`
-- `_world_edit.dme` now includes the semantic layer before v2 includes.
-- `pipeline/stages/stage_interiors.dm` now calls `run_building_semantic_interiors(context.state)`; the old `place_room_prefab_groups()` placeholder is removed.
-- `pipeline/stages/stage_fixtures.dm` skips legacy primary cluster placement when semantic interiors already emitted scenes.
-- `repair_building_missing_major_clusters()` now refuses to repair over semantic interiors.
-- Scene emission uses `place_fixture_at()` and annotates scene/module metadata.
-- V2 living scene path hardened:
-  - side-surface scene now emits a secondary side table plus adjacent seating instead of consuming cabinet budget.
-  - `get_building_v2_min_scene_members_for_room()` requires denser common/sleeping/sanitation/storage scenes.
-- Added semantic hard counters and metrics:
-  - `semantic_scene_route_block_count`
-  - `semantic_scene_door_clearance_block_count`
-  - `semantic_scene_required_missing_count`
-  - `semantic_room_primary_scene_missing_count`
-  - `semantic_major_object_without_scene_count`
-  - `semantic_pairing_error_count`
-  - `semantic_distribution_noise_score`
-  - `semantic_functional_coverage_percent`
-  - `semantic_route_clearance_percent`
-- `world_edit_visual_report.dm` supports generic `*_min` and `*_max` expectation thresholds and merges semantic metrics.
-- Living expectations updated for semantic source-of-truth counters:
-  - `building_living_target_rooms_6`
-  - `building_living_rectangle_colony`
-  - `building_living_size_spacious`
-  - `building_living_point_colony`
-  - `building_living_point_colony_east`
-  - `building_living_point_colony_south`
-  - `building_living_point_colony_west`
-  - `building_living_size_compact`
-  - `building_living_size_standard`
+- `stage_interiors.dm` now reserves immediate door cones, calls semantic interiors, writes an `interiors` report with structured scene fields and semantic missing counters, and returns the semantic result.
+- `world_edit_building_layout_fixture_state.dm` now tracks `structured_scene_emitted`, `structured_scene_owner`, `structured_scene_count`, `structured_primary_scene_count`, and `legacy_fixture_after_scene_count`.
+- `mark_building_structured_scene_emission(state, owner)` marks shared ownership. Semantic interiors use owner `semantic`; living v2 emission uses owner `layout_v2`.
+- `stage_fixtures.dm` skips legacy fixture placement whenever structured scenes are emitted and reports structured ownership plus legacy-after-scene count.
+- `legacy_fixture_after_scene_count` is a hard counter and is exposed through validation state, generation verdict metrics, report metadata, visual report metrics, and focused expectations.
+- Semantic solver now emits by fixed phases `primary`, `secondary`, `detail` instead of breaking after the first emitted scene per room.
+- Semantic rules now use `resolve_building_semantic_room_class(state, room)` and build rules from explicit room classes.
+- Semantic member specs now carry `dx`, `dy`, `allowed_relative_dirs`, `clearance_offsets`, and `forbidden_anchor_tags`; solver supports `relative`, `wall_run`, and `center_ring` placement modes.
+- Living case expectations now require `legacy_fixture_after_scene_count = 0`, `semantic_functional_coverage_percent_min = 90`, `structured_scene_count_min = 1`, and `structured_primary_scene_count_min = 1`.
+- `world_edit_visual_report.dm` now resolves generic `*_min` and `*_max` expectation keys by stripping the suffix and reading the base metric.
+
+## Wall Topology Addendum
+
+Status: COMPLETE
+
+- Plan mapping challenge: PASS. Wall topology can be hardened in production generator validation and v2 emission cleanup without visualizer-side repair or changing public request parameters.
+- Old path audit: The current v2 leftover-to-wall derivation is deterministic but too permissive; it must be followed by topology cleanup/validation so leftover cells do not pass as valid walls.
+- Added hard counters `wall_outside_footprint_count` and `wall_orphan_island_count`.
+- V2 now prunes internal wall components disconnected from the shell after leftover wall derivation.
+- `validate_building_wall_geometry_rules()` now fails walls outside footprint and internal wall islands disconnected from the boundary shell.
+- Focused living expectations now require `wall_outside_footprint_count = 0` and `wall_orphan_island_count = 0`.
+- Rectangle living regression was restored to `supported` by aligning living cabinet budget with the scene grammar (`cabinet = 4`) and keeping rectangle hard-valid candidate minimum at 1. `building_living_target_rooms_6` still proves 2 hard-valid v2 candidates.
+- Evidence that current bad wall topology would fail: `building_living_rectangle_colony` rejected a non-selected candidate with `wall_orphan_island_count = 2`; selected candidate passed with both wall counters at zero.
+- Focused visual report summary after changes:
+  - `building_living_target_rooms_6`: passed=1, `layout_v2_hard_valid_candidate_count=2`, `structured_scene_owner=layout_v2`, `wall_outside_footprint_count=0`, `wall_orphan_island_count=0`, `legacy_fixture_after_scene_count=0`.
+  - N/S/E/W living point cases: passed=1, wall topology counters zero.
+  - compact/standard/spacious living size cases: passed=1, wall topology counters zero.
+  - `building_living_rectangle_colony`: passed=1, status supported, wall topology counters zero.
+  - `building_living_explicit_micro_1x1`: passed=1, status locked/no-solution as negative case.
+  - `building_storage_target_rooms_5` and `building_workshop_target_rooms_6`: passed=1 on legacy path, wall topology counters zero.
+- Sprite inspection:
+  - `building_living_target_rooms_6` no longer shows obvious disconnected wall chunks or walls escaping the footprint; shell and central route are coherent.
+  - `building_living_rectangle_colony` no longer locks and shows a connected shell/partition layout.
+  - Residual visual risk: some rooms still feel sparse/dry. That should be handled by the next scene-density/composition pass, not by wall-mapping fixes.
+
+## Verification After Wall Topology Addendum
+
+- `git diff --check`: PASS. Only CRLF normalization warnings for existing files.
+- `tools\build\build.bat --ci dm -DUNIT_TESTS -DCIBUILDING -DANSICOLORS -Werror`: PASS, `colonialmarines.dmb - 0 errors, 0 warnings`.
+- `tools\build\build.bat dm -DUNIT_TESTS -DCIBUILDING -DANSICOLORS -Werror`: PASS/up-to-date through repo build path.
+- Focused visual workflow:
+  - Command: `py tools\world_edit_visual\scripts\render_workflow.py --isolated --timeout-seconds 180 --poll-seconds 2 --case building_living_target_rooms_6 --case building_living_point_colony --case building_living_point_colony_east --case building_living_point_colony_south --case building_living_point_colony_west --case building_living_size_compact --case building_living_size_standard --case building_living_size_spacious --case building_living_rectangle_colony --case building_living_explicit_micro_1x1 --case building_storage_target_rooms_5 --case building_workshop_target_rooms_6`
+  - Result: rendered 12, workflow failures 0.
+
+## Wall Mapping Addendum
+
+Status: COMPLETE
+
+- Latest user correction repeats that visible chunks are disconnected, isolated, or outside-looking, and that wall placement still does not match mapping.
+- Read-only gap confirmed: previous `wall_orphan_island_count` caught disconnected components, but shell-connected or mapped-looking leftovers could still survive if individual wall tiles did not border room/route floor/opening correctly.
+- Added mapped-wall hard counters `wall_unmapped_interior_count` and `wall_single_sided_internal_count` and exposed them through validation state, hard counters, visual report metrics, and focused living expectations.
+- V2 now builds a candidate-level cleaned wall model before scene solving. Scene anchors can only use that cleaned wall model, and emission uses the same model instead of re-deriving all non-floor leftovers as walls.
+- V2 wall cleanup removes unmapped internal wall leftovers, single-sided internal wall runs, and unmapped orphan components while preserving genuinely mapped room/route partitions.
+- Locked/no-solution visual reports now keep support dry-solve diagnostics, so rejected v2 candidates expose stage reports and hard counters instead of reporting only `program.insufficient_footprint`.
+- `building_living_rectangle_colony` proved the new counters were active: intermediate candidates were rejected with `wall_single_sided_internal_count`/`wall_orphan_island_count`, then selected `front_common_back_private` passed with all wall mapping counters at zero.
+- Residual visual risk: `building_living_target_rooms_6` and rectangle outputs are semantically clean on wall mapping but still visually dry with large rooms/long route axes. That belongs to the next composition/room-proportion pass, not another wall-hotfix.
 
 ## Verification
 
 - `git diff --check`: PASS. Only CRLF normalization warnings for existing files.
 - `tools\build\build.bat --ci dm -DUNIT_TESTS -DCIBUILDING -DANSICOLORS -Werror`: PASS, `colonialmarines.dmb - 0 errors, 0 warnings`.
 - `tools\build\build.bat dm -DUNIT_TESTS -DCIBUILDING -DANSICOLORS -Werror`: PASS/up-to-date through repo build path.
-- Focused living + non-living smoke:
-  - Command: `py tools\world_edit_visual\scripts\render_workflow.py --isolated --timeout-seconds 180 --poll-seconds 2 --case building_living_target_rooms_6 --case building_living_rectangle_colony --case building_living_size_spacious --case building_storage_target_rooms_5 --case building_workshop_target_rooms_6`
-  - Result: rendered 5, workflow failures 0.
-- Living matrix + negative + non-living safety:
-  - Command: `py tools\world_edit_visual\scripts\render_workflow.py --isolated --timeout-seconds 180 --poll-seconds 2 --case building_living_point_colony --case building_living_point_colony_east --case building_living_point_colony_south --case building_living_point_colony_west --case building_living_size_compact --case building_living_size_standard --case building_living_size_spacious --case building_living_rectangle_colony --case building_living_target_rooms_6 --case building_living_explicit_micro_1x1 --case building_storage_target_rooms_5 --case building_workshop_target_rooms_6`
-  - Result by report source of truth:
-    - `building_living_point_colony`: passed=1, v2 hard/candidates=2/2, semantic coverage=100, clearance=100.
-    - `building_living_point_colony_east`: passed=1, v2 hard/candidates=2/2, semantic coverage=100, clearance=100.
-    - `building_living_point_colony_south`: passed=1, v2 hard/candidates=2/2, semantic coverage=100, clearance=100.
-    - `building_living_point_colony_west`: passed=1, v2 hard/candidates=2/2, semantic coverage=100, clearance=100.
-    - `building_living_size_compact`: passed=1, v2 hard/candidates=1/1, semantic coverage=100, clearance=100.
-    - `building_living_size_standard`: passed=1, v2 hard/candidates=1/1, semantic coverage=100, clearance=100.
-    - `building_living_size_spacious`: passed=1, v2 hard/candidates=2/2, semantic coverage=100, clearance=100.
-    - `building_living_rectangle_colony`: passed=1, v2 hard/candidates=2/3, semantic coverage=100, clearance=100.
-    - `building_living_target_rooms_6`: passed=1, v2 hard/candidates=2/2, semantic coverage=100, clearance=100.
-    - `building_living_explicit_micro_1x1`: passed=1, status=locked.
-    - `building_storage_target_rooms_5`: passed=1, status=supported, hard=0.
-    - `building_workshop_target_rooms_6`: passed=1, status=supported, hard=0.
-- Visual review artifacts checked for `building_living_target_rooms_6`, `building_living_rectangle_colony`, and `building_living_size_spacious`. PNG/sprite output is review evidence only; semantic reports and expectations are the pass/fail contract.
-
-## Plan Fidelity Matrix
-
-| ID | Type | Requirement | Evidence | Status |
-| --- | --- | --- | --- | --- |
-| M1 | MUST | Read request/docs/code entrypoints and old paths. | Read-Only Discovery. | DONE |
-| M2 | MUST | Replace stale task-state. | `PLAN.md`, `TODO.md`, `DECISIONS.md`, `EVIDENCE.md`. | DONE |
-| M3 | MUST | Record challenge and old-path audit. | Plan Mapping Challenge and Old Path Audit in `TODO.md`. | DONE |
-| M4 | MUST | Add semantic layer files. | `semantic/*.dm` files and DME include. | DONE |
-| M5 | MUST | Replace `stage_interiors` placeholder. | `stage_interiors.dm` now calls `run_building_semantic_interiors()`. | DONE |
-| M6 | MUST | Emit via `place_fixture_at()`. | `building_layout_semantic_emitter.dm`; v2 scene path remains `place_fixture_at()`. | DONE |
-| M7 | MUST | Prevent primary purpose-fill fallback. | `stage_fixtures.dm` semantic skip and repair gate. | DONE |
-| M8 | MUST | Add semantic counters/report metrics. | Validation state, hard-counter registry, verdict/report/metadata. | DONE |
-| M9 | MUST | Add max/min expectation aliases. | `world_edit_visual_report.dm`. | DONE |
-| M10 | MUST | Add focused expectations. | Living target/matrix case JSON updates. | DONE |
-| M11 | REJECT | No visualizer generation/random expansion/PNG-only acceptance. | No production generation added under `tools/world_edit_visual`; semantic reports are expectations. | DONE |
-| M12 | CHECK | Run verification. | Verification section. | DONE |
-| M13 | MUST | Sync final evidence. | This file. | DONE |
+- Focused visual workflow:
+  - Command: `py tools\world_edit_visual\scripts\render_workflow.py --timeout-seconds 300 --poll-seconds 2 --case building_living_target_rooms_6 --case building_living_point_colony --case building_living_point_colony_south --case building_living_point_colony_east --case building_living_point_colony_west --case building_living_size_compact --case building_living_size_standard --case building_living_size_spacious --case building_living_rectangle_colony --case building_storage_target_rooms_5 --case building_workshop_target_rooms_6`
+  - Result: rendered 11, workflow failures 0.
+  - Extra rectangle direction command: `py tools\world_edit_visual\scripts\render_workflow.py --timeout-seconds 240 --poll-seconds 2 --case building_living_rectangle_colony_north --case building_living_rectangle_colony_south --case building_living_rectangle_colony_west`
+  - Result: rendered 3, workflow failures 0.
+- Report-source summary:
+  - `building_living_target_rooms_6`: passed=1, status=supported, hard=0, `layout_v2_candidate_count=2`, `layout_v2_hard_valid_candidate_count=2`, wall mapping counters all 0.
+  - Point living N/S/E/W: passed=1, status=supported, hard=0, `layout_v2_candidate_count=2`, `layout_v2_hard_valid_candidate_count=2`, wall mapping counters all 0.
+  - Living compact/standard/spacious: passed=1, status=supported, hard=0; compact/standard have 1 hard-valid candidate, spacious has 2; wall mapping counters all 0.
+  - `building_living_rectangle_colony`: passed=1, status=supported, hard=0, `layout_v2_candidate_count=3`, `layout_v2_hard_valid_candidate_count=2`, wall mapping counters all 0.
+  - Rectangle north/south/west variants: passed=1, status=supported, hard=0, wall mapping counters all 0.
+  - `building_storage_target_rooms_5` and `building_workshop_target_rooms_6`: passed=1, status=supported, hard=0, `layout_v2_enabled=0`, wall mapping counters all 0.

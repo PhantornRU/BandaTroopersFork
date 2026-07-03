@@ -280,7 +280,7 @@
 		return FALSE
 	if(building_layout_v2_enabled(state))
 		return FALSE
-	if(state.fixtures.semantic_interiors_emitted)
+	if(state.fixtures.structured_scene_emitted)
 		return FALSE
 	var/repaired = FALSE
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
@@ -340,7 +340,7 @@
 	validate_building_privacy_rules(state)
 	validate_building_forbidden_rules(state)
 	validate_building_semantic_slot_preflight(state)
-	if(state.fixtures.semantic_interiors_emitted)
+	if(state.fixtures.structured_scene_emitted)
 		credit_building_semantic_scene_requirements(state)
 	validate_building_major_clusters(state)
 	validate_building_furnishing_quality(state)
@@ -968,12 +968,156 @@
 		return state.geometry.wall_lookup[get_step(wall_turf, EAST)] || state.geometry.wall_lookup[get_step(wall_turf, WEST)]
 	return FALSE
 
+/datum/world_edit_generator/building_layout/proc/building_wall_touches_floor_or_opening(datum/world_edit_building_layout_state/state, turf/wall_turf)
+	if(!istype(state) || !istype(wall_turf))
+		return FALSE
+	for(var/check_dir in GLOB.cardinals)
+		var/turf/nearby_turf = get_step(wall_turf, check_dir)
+		if(state.geometry.floor_lookup[nearby_turf] || state.geometry.door_dirs[nearby_turf])
+			return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/get_building_wall_adjacent_domain(datum/world_edit_building_layout_state/state, turf/check_turf)
+	if(!istype(state) || !istype(check_turf))
+		return ""
+	if(state.geometry.door_dirs[check_turf])
+		return "door"
+	if(state.geometry.corridor_lookup[check_turf] || state.geometry.primary_route_turfs.Find(check_turf))
+		return "route"
+	var/datum/world_edit_building_room/room = state.get_room_for_turf(check_turf)
+	if(istype(room))
+		return "room:[room.id]"
+	if(state.geometry.floor_lookup[check_turf])
+		var/zone_id = state.get_zone(check_turf)
+		return length("[zone_id]") ? "zone:[zone_id]" : "floor"
+	return ""
+
+/datum/world_edit_generator/building_layout/proc/count_building_wall_adjacent_mapped_domains(datum/world_edit_building_layout_state/state, turf/wall_turf)
+	if(!istype(state) || !istype(wall_turf))
+		return 0
+	var/list/domain_lookup = list()
+	for(var/check_dir in GLOB.cardinals)
+		var/domain = get_building_wall_adjacent_domain(state, get_step(wall_turf, check_dir))
+		if(length("[domain]"))
+			domain_lookup["[domain]"] = TRUE
+	return length(domain_lookup)
+
+/datum/world_edit_generator/building_layout/proc/building_wall_has_opposite_mapped_domains(datum/world_edit_building_layout_state/state, turf/wall_turf)
+	if(!istype(state) || !istype(wall_turf))
+		return FALSE
+	for(var/check_dir in list(NORTH, EAST))
+		var/domain_a = get_building_wall_adjacent_domain(state, get_step(wall_turf, check_dir))
+		var/domain_b = get_building_wall_adjacent_domain(state, get_step(wall_turf, turn(check_dir, 180)))
+		if(length("[domain_a]") && length("[domain_b]") && domain_a != domain_b)
+			return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/count_building_wall_cardinal_neighbors(datum/world_edit_building_layout_state/state, turf/wall_turf)
+	if(!istype(state) || !istype(wall_turf))
+		return 0
+	var/wall_neighbor_count = 0
+	for(var/check_dir in GLOB.cardinals)
+		if(state.geometry.wall_lookup[get_step(wall_turf, check_dir)])
+			wall_neighbor_count++
+	return wall_neighbor_count
+
+/datum/world_edit_generator/building_layout/proc/building_wall_supports_wall_fixture(datum/world_edit_building_layout_state/state, turf/wall_turf)
+	if(!istype(state) || !istype(wall_turf))
+		return FALSE
+	for(var/check_dir in GLOB.cardinals)
+		var/turf/nearby_turf = get_step(wall_turf, check_dir)
+		if(state.fixtures.wall_fixture_turfs.Find(nearby_turf))
+			return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/build_building_wall_component(datum/world_edit_building_layout_state/state, turf/start_turf, list/visited_wall_lookup)
+	var/list/component = list()
+	if(!istype(state) || !istype(start_turf) || !state.geometry.wall_lookup[start_turf] || visited_wall_lookup[start_turf])
+		return component
+	var/list/open = list(start_turf)
+	while(length(open))
+		var/turf/current_turf = open[1]
+		open.Cut(1, 2)
+		if(!istype(current_turf) || visited_wall_lookup[current_turf] || !state.geometry.wall_lookup[current_turf])
+			continue
+		visited_wall_lookup[current_turf] = TRUE
+		component += current_turf
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/nearby_turf = get_step(current_turf, check_dir)
+			if(state.geometry.wall_lookup[nearby_turf] && !visited_wall_lookup[nearby_turf])
+				open += nearby_turf
+	return component
+
+/datum/world_edit_generator/building_layout/proc/building_wall_component_touches_shell(datum/world_edit_building_layout_state/state, list/component)
+	if(!istype(state) || !islist(component))
+		return FALSE
+	for(var/turf/wall_turf as anything in component)
+		if(!istype(wall_turf))
+			continue
+		if(state.geometry.boundary_lookup[wall_turf])
+			return TRUE
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/nearby_turf = get_step(wall_turf, check_dir)
+			if(state.geometry.boundary_lookup[nearby_turf] && state.geometry.wall_lookup[nearby_turf])
+				return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/building_wall_component_has_mapped_partition(datum/world_edit_building_layout_state/state, list/component)
+	if(!istype(state) || !islist(component))
+		return FALSE
+	for(var/turf/wall_turf as anything in component)
+		if(!istype(wall_turf))
+			continue
+		if(building_wall_has_opposite_mapped_domains(state, wall_turf))
+			return TRUE
+		if(count_building_wall_adjacent_mapped_domains(state, wall_turf) > 1)
+			return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/remove_building_wall_component(datum/world_edit_building_layout_state/state, list/component)
+	if(!istype(state) || !islist(component))
+		return 0
+	var/removed_count = 0
+	for(var/turf/wall_turf as anything in component)
+		if(!istype(wall_turf) || state.geometry.boundary_lookup[wall_turf] || state.geometry.door_dirs[wall_turf])
+			continue
+		if(!state.geometry.wall_lookup[wall_turf])
+			continue
+		state.geometry.wall_lookup.Remove(wall_turf)
+		state.geometry.internal_wall_turfs -= wall_turf
+		removed_count++
+	return removed_count
+
 /datum/world_edit_generator/building_layout/proc/validate_building_wall_geometry_rules(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
 		return
 	var/list/protected_wall_lookup = build_building_wall_repair_protection_lookup(state)
-	for(var/turf/wall_turf as anything in state.geometry.wall_lookup)
-		if(!istype(wall_turf) || state.geometry.door_dirs[wall_turf])
+	var/list/visited_wall_lookup = list()
+	var/repaired_single_sided_wall_count = 0
+	for(var/turf/wall_turf as anything in state.geometry.wall_lookup.Copy())
+		if(!istype(wall_turf))
+			continue
+		if(!state.geometry.footprint_lookup[wall_turf])
+			state.validation.wall_outside_footprint_count++
+			state.add_error("Wall geometry contains a wall outside the footprint at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
+			continue
+		if(!state.geometry.boundary_lookup[wall_turf] && !state.geometry.door_dirs[wall_turf] && !building_wall_touches_floor_or_opening(state, wall_turf))
+			state.validation.wall_unmapped_interior_count++
+			state.add_error("Wall geometry contains an internal wall not mapped to any adjacent room or route at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
+		else if(!state.geometry.boundary_lookup[wall_turf] && !state.geometry.door_dirs[wall_turf] && count_building_wall_adjacent_mapped_domains(state, wall_turf) <= 1 && !building_wall_has_opposite_mapped_domains(state, wall_turf) && count_building_wall_cardinal_neighbors(state, wall_turf) <= 1 && !building_wall_supports_wall_fixture(state, wall_turf))
+			if(building_layout_v2_enabled(state))
+				state.geometry.wall_lookup.Remove(wall_turf)
+				state.geometry.internal_wall_turfs -= wall_turf
+				repaired_single_sided_wall_count++
+				continue
+			state.validation.wall_single_sided_internal_count++
+			state.add_error("Wall geometry contains a single-sided internal wall spur at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
+		if(!state.geometry.boundary_lookup[wall_turf] && !visited_wall_lookup[wall_turf])
+			var/list/component = build_building_wall_component(state, wall_turf, visited_wall_lookup)
+			if(length(component) && !building_wall_component_touches_shell(state, component) && !building_wall_component_has_mapped_partition(state, component))
+				state.validation.wall_orphan_island_count++
+				state.add_error("Wall geometry contains an internal wall island disconnected from the shell near [GLOB.world_edit_helpers.turf_to_text(wall_turf)] (tiles=[length(component)]).")
+		if(state.geometry.door_dirs[wall_turf])
 			continue
 		var/vertical_wall = building_wall_has_axis(state, wall_turf, "vertical")
 		var/horizontal_wall = building_wall_has_axis(state, wall_turf, "horizontal")
@@ -1029,6 +1173,10 @@
 		validate_building_wall_diagonal_pair(state, wall_turf, NORTHWEST, NORTH, WEST)
 		validate_building_wall_diagonal_pair(state, wall_turf, SOUTHEAST, SOUTH, EAST)
 		validate_building_wall_diagonal_pair(state, wall_turf, SOUTHWEST, SOUTH, WEST)
+	if(repaired_single_sided_wall_count > 0)
+		state.add_stage_report("layout_v2_wall_validator_spur_repair", "ok", null, list(
+			"removed_single_sided_wall_tile_count" = repaired_single_sided_wall_count,
+		))
 
 /datum/world_edit_generator/building_layout/proc/validate_building_wall_diagonal_pair(datum/world_edit_building_layout_state/state, turf/wall_turf, diagonal_dir, ortho_a, ortho_b)
 	var/turf/diagonal_turf = get_step(wall_turf, diagonal_dir)

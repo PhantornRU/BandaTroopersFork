@@ -36,6 +36,10 @@
     "storage_without_storage_scene_count": 0,
     "scene_blocks_route_count": 0,
     "unclaimed_interior_wall_count": 0,
+    "wall_outside_footprint_count": 0,
+    "wall_orphan_island_count": 0,
+    "wall_unmapped_interior_count": 0,
+    "wall_single_sided_internal_count": 0,
     "thin_room_strip_count": 0,
     "large_sparse_room_count": 0,
     "corridor_ribbon_count": 0,
@@ -50,8 +54,11 @@
     "semantic_room_primary_scene_missing_count": 0,
     "semantic_major_object_without_scene_count": 0,
     "semantic_pairing_error_count": 0,
+    "legacy_fixture_after_scene_count": 0,
     "semantic_distribution_noise_score_max": 10,
-    "semantic_functional_coverage_percent_min": 85,
+    "semantic_functional_coverage_percent_min": 90,
+    "structured_scene_count_min": 1,
+    "structured_primary_scene_count_min": 1,
     "semantic_route_clearance_percent_min": 100
   },
   "render": {

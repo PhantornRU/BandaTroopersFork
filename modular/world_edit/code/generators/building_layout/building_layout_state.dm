@@ -494,6 +494,10 @@
 	validation.large_empty_unassigned_floor_count = 0
 	validation.oversized_role_room_count = 0
 	validation.unclaimed_interior_wall_count = 0
+	validation.wall_outside_footprint_count = 0
+	validation.wall_orphan_island_count = 0
+	validation.wall_unmapped_interior_count = 0
+	validation.wall_single_sided_internal_count = 0
 	validation.thin_room_strip_count = 0
 	validation.large_sparse_room_count = 0
 	validation.corridor_ribbon_count = 0
@@ -508,6 +512,7 @@
 	validation.semantic_room_primary_scene_missing_count = 0
 	validation.semantic_major_object_without_scene_count = 0
 	validation.semantic_pairing_error_count = 0
+	validation.legacy_fixture_after_scene_count = 0
 	validation.semantic_distribution_noise_score = 0
 	validation.semantic_functional_coverage_percent = 100
 	validation.semantic_route_clearance_percent = 100

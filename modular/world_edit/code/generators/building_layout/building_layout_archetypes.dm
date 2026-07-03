@@ -830,7 +830,7 @@
 	add_cluster("side_table", "secondary", "table_cluster", "table", "table", list("common", "window_band", "social_focus", "focus_ring"), 1, 2, FALSE, 1, 58, FALSE, null, "living_side_table_chunk")
 	add_cluster("window_seat", "detail", "object", "chair", "chair", list("window_band", "common", "focus_ring"), 1, 2, FALSE, 0, 42, FALSE, null, "living_window_seat_chunk")
 	add_cluster("center_chair_group", "secondary", "object", "chair", "chair", list("common", "social_focus", "focus_ring"), 2, 4, FALSE, 0, 60, FALSE, null, "living_chair_group_chunk")
-	object_budgets = list("bed" = 2, "table" = 5, "chair" = 8, "cabinet" = 3, "rack" = 2, "sanitation" = 1, "kitchen_machine" = 1)
+	object_budgets = list("bed" = 2, "table" = 5, "chair" = 8, "cabinet" = 4, "rack" = 2, "sanitation" = 1, "kitchen_machine" = 1)
 	category_minimums = list("bed" = 1, "table" = 2, "chair" = 4, "cabinet" = 1, "sanitation" = 1)
 
 /datum/world_edit_building_archetype/workshop

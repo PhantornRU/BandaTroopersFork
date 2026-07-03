@@ -190,6 +190,10 @@
 	var/list/room_plans_by_id = list()
 	var/list/route_turfs = list()
 	var/list/wall_turfs = list()
+	var/list/solved_wall_lookup = list()
+	var/list/solved_internal_wall_turfs = list()
+	var/list/wall_cleanup_report = list()
+	var/wall_model_ready = FALSE
 	var/list/door_plans = list()
 	var/list/window_plans = list()
 	var/list/errors = list()

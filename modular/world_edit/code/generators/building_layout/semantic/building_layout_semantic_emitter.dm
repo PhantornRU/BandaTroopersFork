@@ -1,3 +1,16 @@
+/datum/world_edit_generator/building_layout/proc/mark_building_structured_scene_emission(datum/world_edit_building_layout_state/state, owner)
+	if(!istype(state))
+		return
+	var/resolved_owner = length("[owner]") ? "[owner]" : "unknown"
+	state.fixtures.structured_scene_emitted = TRUE
+	state.fixtures.structured_scene_owner = resolved_owner
+	state.fixtures.structured_scene_count = length(state.fixtures.scene_plans)
+	state.fixtures.structured_primary_scene_count = length(state.fixtures.scene_primary_counts_by_room)
+	if(resolved_owner == "semantic")
+		state.fixtures.semantic_interiors_emitted = TRUE
+		state.fixtures.semantic_interiors_scene_count = state.fixtures.structured_scene_count
+		state.fixtures.semantic_interiors_primary_scene_count = state.fixtures.structured_primary_scene_count
+
 /datum/world_edit_generator/building_layout/proc/emit_building_semantic_scene_candidate(datum/world_edit_building_layout_state/state, datum/world_edit_building_semantic_scene_candidate/candidate)
 	if(!istype(state) || !istype(candidate) || !istype(candidate.rule) || !istype(candidate.room))
 		return FALSE

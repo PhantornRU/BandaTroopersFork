@@ -20,32 +20,39 @@
 		add_building_semantic_room_field_anchors(state, field)
 		var/list/rules = build_building_semantic_scene_rules_for_room(state, field, global_scene_counts)
 		var/placed_primary = FALSE
-		for(var/datum/world_edit_building_semantic_scene_rule/rule as anything in rules)
-			if(!istype(rule))
-				continue
-			if(length(rule.global_limit_id) && rule.global_limit > 0 && (global_scene_counts[rule.global_limit_id] || 0) >= rule.global_limit)
-				continue
-			var/datum/world_edit_building_semantic_scene_candidate/candidate = select_building_semantic_scene_candidate(state, field, rule)
-			if(!istype(candidate))
+		for(var/phase in list(WORLD_EDIT_BUILDING_SEMANTIC_PHASE_PRIMARY, WORLD_EDIT_BUILDING_SEMANTIC_PHASE_SECONDARY, WORLD_EDIT_BUILDING_SEMANTIC_PHASE_DETAIL))
+			var/phase_has_required = FALSE
+			var/phase_required_satisfied = FALSE
+			var/phase_emitted = FALSE
+			for(var/datum/world_edit_building_semantic_scene_rule/rule as anything in rules)
+				if(!istype(rule) || rule.phase != phase)
+					continue
+				if(length(rule.global_limit_id) && rule.global_limit > 0 && (global_scene_counts[rule.global_limit_id] || 0) >= rule.global_limit)
+					continue
 				if(rule.required)
-					required_missing++
-				continue
-			if(!emit_building_semantic_scene_candidate(state, candidate))
+					phase_has_required = TRUE
+				var/datum/world_edit_building_semantic_scene_candidate/candidate = select_building_semantic_scene_candidate(state, field, rule)
+				if(!istype(candidate))
+					continue
+				if(!emit_building_semantic_scene_candidate(state, candidate))
+					continue
+				scene_count++
+				phase_emitted = TRUE
 				if(rule.required)
-					required_missing++
-				continue
-			scene_count++
-			if(rule.primary)
-				placed_primary = TRUE
-			if(length(rule.global_limit_id))
-				global_scene_counts[rule.global_limit_id] = (global_scene_counts[rule.global_limit_id] || 0) + 1
-			break
-		if(!placed_primary && length(rules))
+					phase_required_satisfied = TRUE
+				if(rule.primary)
+					placed_primary = TRUE
+				if(length(rule.global_limit_id))
+					global_scene_counts[rule.global_limit_id] = (global_scene_counts[rule.global_limit_id] || 0) + 1
+				break
+			if(phase_has_required && !phase_required_satisfied)
+				required_missing++
+			if(!phase_emitted && phase == WORLD_EDIT_BUILDING_SEMANTIC_PHASE_PRIMARY)
+				break
+		if(!placed_primary && building_semantic_room_requires_primary_scene(state, room))
 			state.validation.semantic_room_primary_scene_missing_count++
 	if(scene_count > 0)
-		state.fixtures.semantic_interiors_emitted = TRUE
-		state.fixtures.semantic_interiors_scene_count = scene_count
-		state.fixtures.semantic_interiors_primary_scene_count = length(state.fixtures.scene_primary_counts_by_room)
+		mark_building_structured_scene_emission(state, "semantic")
 		credit_building_semantic_scene_requirements(state)
 	if(required_missing > 0)
 		state.validation.semantic_scene_required_missing_count += required_missing
@@ -55,7 +62,7 @@
 		"required_missing" = required_missing,
 		"public_focal_count" = global_scene_counts["public_focal"] || 0,
 	))
-	return TRUE
+	return required_missing <= 0 && state.validation.semantic_room_primary_scene_missing_count <= 0
 
 /datum/world_edit_generator/building_layout/proc/build_building_semantic_room_field(datum/world_edit_building_layout_state/state, datum/world_edit_building_room/room)
 	if(!istype(state) || !istype(room))
@@ -161,16 +168,24 @@
 		return null
 	var/list/candidates = list()
 	switch(spec.placement_mode)
-		if("anchor")
+		if(WORLD_EDIT_BUILDING_SEMANTIC_PLACE_ANCHOR)
 			candidates += anchor_turf
-		if("adjacent_to_anchor")
+		if(WORLD_EDIT_BUILDING_SEMANTIC_PLACE_ADJACENT)
 			for(var/check_dir in GLOB.cardinals)
 				candidates += get_step(anchor_turf, check_dir)
-		if("wall_near_anchor")
+		if(WORLD_EDIT_BUILDING_SEMANTIC_PLACE_RELATIVE)
+			candidates += build_building_semantic_relative_member_turfs(anchor_turf, spec)
+		if(WORLD_EDIT_BUILDING_SEMANTIC_PLACE_WALL_NEAR)
 			candidates += field.wall_band_turfs
+		if(WORLD_EDIT_BUILDING_SEMANTIC_PLACE_WALL_RUN)
+			candidates += field.wall_band_turfs
+		if(WORLD_EDIT_BUILDING_SEMANTIC_PLACE_CENTER_RING)
+			candidates += field.center_turfs
+			for(var/check_dir in GLOB.cardinals)
+				candidates += get_step(anchor_turf, check_dir)
 		else
 			candidates += field.free_turfs
-	if(spec.placement_mode != "wall_near_anchor")
+	if(spec.placement_mode != WORLD_EDIT_BUILDING_SEMANTIC_PLACE_WALL_NEAR && spec.placement_mode != WORLD_EDIT_BUILDING_SEMANTIC_PLACE_WALL_RUN)
 		for(var/turf/free_turf as anything in field.free_turfs)
 			if(!(free_turf in candidates))
 				candidates += free_turf
@@ -185,9 +200,11 @@
 		if(!state.can_place_fixture(candidate_turf))
 			continue
 		var/fallback_dir = get_cardinal_dir_toward(candidate_turf, anchor_turf || field.focus_turf || state.geometry.semantic_hub_turf || state.geometry.center_turf, state.placement_dir || SOUTH)
-		if(spec.placement_mode == "adjacent_to_anchor")
+		if(spec.placement_mode == WORLD_EDIT_BUILDING_SEMANTIC_PLACE_ADJACENT)
 			fallback_dir = get_cardinal_dir_toward(candidate_turf, anchor_turf, fallback_dir)
 		if(!islist(build_building_fixture_place_context(state, candidate_turf, place_rule, fallback_dir, spec.wall_required)))
+			continue
+		if(!building_semantic_member_clearance_ok(state, field, candidate_turf, spec, occupied))
 			continue
 		var/score = score_building_semantic_member_turf(state, field, candidate_turf, anchor_turf, spec)
 		if(score > best_score)
@@ -202,9 +219,17 @@
 	if(istype(field.focus_turf))
 		score -= get_dist(candidate_turf, field.focus_turf) * 5
 	if(candidate_turf in field.wall_band_turfs)
-		score += spec.placement_mode == "wall_near_anchor" ? 140 : 20
+		if(spec.placement_mode in list(WORLD_EDIT_BUILDING_SEMANTIC_PLACE_WALL_NEAR, WORLD_EDIT_BUILDING_SEMANTIC_PLACE_WALL_RUN))
+			score += 140
+		else
+			score += 20
 	if(candidate_turf in field.center_turfs)
-		score += spec.placement_mode == "anchor" ? 120 : 15
+		if(spec.placement_mode in list(WORLD_EDIT_BUILDING_SEMANTIC_PLACE_ANCHOR, WORLD_EDIT_BUILDING_SEMANTIC_PLACE_CENTER_RING))
+			score += 120
+		else
+			score += 15
+	if(spec.placement_mode == WORLD_EDIT_BUILDING_SEMANTIC_PLACE_RELATIVE)
+		score += 90
 	if(candidate_turf in field.route_edge_turfs)
 		score -= 260
 	if(candidate_turf in field.door_buffer_turfs)
@@ -213,6 +238,54 @@
 	if(spec.wall_required && !length(wall_dirs))
 		score -= 10000
 	return score
+
+/datum/world_edit_generator/building_layout/proc/build_building_semantic_relative_member_turfs(turf/anchor_turf, datum/world_edit_building_semantic_scene_member_spec/spec)
+	var/list/candidates = list()
+	if(!istype(anchor_turf) || !istype(spec))
+		return candidates
+	if(!length(spec.allowed_relative_dirs))
+		candidates += locate(anchor_turf.x + spec.dx, anchor_turf.y + spec.dy, anchor_turf.z)
+		return candidates
+	for(var/relative_dir as anything in spec.allowed_relative_dirs)
+		var/list/offset = rotate_building_semantic_relative_offset(spec.dx, spec.dy, relative_dir)
+		var/turf/relative_turf = locate(anchor_turf.x + offset["dx"], anchor_turf.y + offset["dy"], anchor_turf.z)
+		if(istype(relative_turf) && !(relative_turf in candidates))
+			candidates += relative_turf
+	return candidates
+
+/datum/world_edit_generator/building_layout/proc/rotate_building_semantic_relative_offset(dx, dy, relative_dir)
+	var/resolved_dx = round(text2num("[dx]") || 0)
+	var/resolved_dy = round(text2num("[dy]") || 0)
+	switch(relative_dir)
+		if(SOUTH)
+			return list("dx" = -resolved_dx, "dy" = -resolved_dy)
+		if(EAST)
+			return list("dx" = resolved_dy, "dy" = -resolved_dx)
+		if(WEST)
+			return list("dx" = -resolved_dy, "dy" = resolved_dx)
+	return list("dx" = resolved_dx, "dy" = resolved_dy)
+
+/datum/world_edit_generator/building_layout/proc/building_semantic_member_clearance_ok(datum/world_edit_building_layout_state/state, datum/world_edit_building_semantic_room_field/field, turf/member_turf, datum/world_edit_building_semantic_scene_member_spec/spec, list/occupied)
+	if(!istype(state) || !istype(field) || !istype(member_turf) || !istype(spec))
+		return FALSE
+	for(var/forbidden_tag as anything in spec.forbidden_anchor_tags)
+		if(state.has_anchor(forbidden_tag, member_turf))
+			return FALSE
+	if(!length(spec.clearance_offsets))
+		return TRUE
+	for(var/list/offset as anything in spec.clearance_offsets)
+		if(!islist(offset))
+			continue
+		var/check_dx = round(text2num("[offset["dx"]]") || 0)
+		var/check_dy = round(text2num("[offset["dy"]]") || 0)
+		var/turf/check_turf = locate(member_turf.x + check_dx, member_turf.y + check_dy, member_turf.z)
+		if(!istype(check_turf) || !(check_turf in field.floor_turfs))
+			return FALSE
+		if(occupied[check_turf] || state.geometry.wall_lookup[check_turf])
+			return FALSE
+		if(state.geometry.reserved_lookup[check_turf] || state.geometry.door_dirs[check_turf] || state.has_anchor("door_cone", check_turf))
+			return FALSE
+	return TRUE
 
 /datum/world_edit_generator/building_layout/proc/score_building_semantic_scene_candidate(datum/world_edit_building_layout_state/state, datum/world_edit_building_semantic_scene_candidate/candidate)
 	var/score = candidate.rule.priority + length(candidate.members) * 100
