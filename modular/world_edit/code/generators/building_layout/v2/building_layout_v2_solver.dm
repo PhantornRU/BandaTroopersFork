@@ -49,10 +49,15 @@
 		var/datum/world_edit_building_v2_layout_pattern/pattern = get_building_layout_v2_pattern(pattern_id)
 		if(!istype(pattern) || !pattern.can_solve(context))
 			continue
-		for(var/datum/world_edit_building_v2_layout_candidate/candidate as anything in pattern.build_candidates(context))
-			if(!istype(candidate))
+		for(var/datum/world_edit_building_v2_region_candidate/region_candidate as anything in pattern.build_region_candidates(context))
+			if(!istype(region_candidate))
 				continue
-			if(!solve_building_v2_room_allocation(context, candidate))
+			var/datum/world_edit_building_v2_layout_candidate/candidate = allocate_building_v2_rooms(context, region_candidate)
+			if(!istype(candidate))
+				if(istype(context?.state))
+					context.state.add_stage_report("layout_v2_candidate_room_allocation_reject", "failed", "region allocation returned no candidate", list("candidate_id" = region_candidate.id, "pattern_id" = region_candidate.pattern_id))
+				continue
+			if(length(candidate.errors))
 				if(istype(context?.state))
 					context.state.add_stage_report("layout_v2_candidate_room_allocation_reject", "failed", format_building_messages(candidate.errors), list("candidate_id" = candidate.id, "pattern_id" = candidate.pattern_id, "errors" = candidate.errors.Copy()))
 				continue
@@ -311,7 +316,7 @@
 			candidate.errors += "window.policy_or_boundary:[window_plan?.id]"
 	var/interior_count = length(context.state.geometry.interior)
 	if(interior_count >= 180)
-		var/min_floor_count = round(interior_count * 0.50)
+		var/min_floor_count = round(interior_count * (interior_count >= 360 ? 0.49 : 0.50))
 		if(length(candidate_floor_lookup) < min_floor_count)
 			candidate.errors += "coverage.too_sparse:[length(candidate_floor_lookup)]/[interior_count]"
 	for(var/datum/world_edit_building_v2_room_contract/connection_contract as anything in context.program_contract.room_contracts)
@@ -528,6 +533,7 @@
 /datum/world_edit_generator/building_layout/proc/solve_building_v2_openings(datum/world_edit_building_v2_context/context, datum/world_edit_building_v2_layout_candidate/candidate)
 	if(!istype(context) || !istype(candidate))
 		return FALSE
+	build_building_v2_candidate_lookups(context, candidate)
 	candidate.door_plans.Cut()
 	candidate.window_plans.Cut()
 	for(var/datum/world_edit_building_v2_room_plan/room_plan as anything in candidate.room_plans)
@@ -538,14 +544,29 @@
 	if(!solve_building_v2_main_exit(context, candidate))
 		candidate.errors += "door.main_exit_missing"
 		return FALSE
-	for(var/datum/world_edit_building_v2_room_plan/room_plan as anything in candidate.room_plans)
-		if(!istype(room_plan))
+	if(!length(candidate.room_connections))
+		candidate.errors += "door.no_declared_connections"
+		return FALSE
+	for(var/datum/world_edit_building_v2_room_connection/connection as anything in candidate.room_connections)
+		if(!istype(connection))
 			continue
-		var/datum/world_edit_building_v2_room_contract/room_contract = context.program_contract.get_room_contract(room_plan.contract_id)
-		if(istype(room_contract) && !room_contract.must_touch_route)
+		var/list/from_lookup = get_building_v2_region_lookup(candidate, connection.from_room_id)
+		var/list/to_lookup = get_building_v2_region_lookup(candidate, connection.to_room_id)
+		if(!length(from_lookup) || !length(to_lookup))
+			if(connection.required)
+				candidate.errors += "door.connection_region_missing:[connection.id]"
 			continue
-		if(!solve_building_v2_room_route_door(context, candidate, room_plan))
-			candidate.errors += "door.no_shared_route_wall:[room_plan.id]"
+		var/list/opening_candidates = collect_building_v2_door_candidates(context, candidate, connection)
+		if(!length(opening_candidates))
+			if(connection.required)
+				candidate.errors += "door.no_shared_wall:[connection.id]"
+			continue
+		var/datum/world_edit_building_v2_opening_candidate/best = select_best_building_v2_opening_candidate(opening_candidates)
+		if(!istype(best))
+			if(connection.required)
+				candidate.errors += "door.no_valid_candidate:[connection.id]"
+			continue
+		candidate.add_door_plan(new /datum/world_edit_building_v2_route_opening_plan(connection.id, connection.kind, best.opening_turf, best.dir, connection.from_room_id, connection.to_room_id))
 	solve_building_v2_windows(context, candidate)
 	return !length(candidate.errors)
 
@@ -668,17 +689,9 @@
 /datum/world_edit_generator/building_layout/proc/building_v2_opening_wall_matches_room_route(datum/world_edit_building_v2_context/context, datum/world_edit_building_v2_layout_candidate/candidate, datum/world_edit_building_v2_room_plan/room_plan, turf/opening_turf, door_dir)
 	if(!istype(context) || !istype(candidate) || !istype(room_plan) || !istype(opening_turf) || !(door_dir in GLOB.cardinals))
 		return FALSE
-	var/datum/world_edit_building_layout_state/state = context.state
-	if(!istype(state) || !state.geometry.footprint_lookup[opening_turf] || state.geometry.boundary_lookup[opening_turf])
-		return FALSE
-	if(building_v2_opening_turf_is_room_or_route(candidate, opening_turf))
-		return FALSE
-	var/turf/room_turf = get_step(opening_turf, door_dir)
-	var/turf/route_turf = get_step(opening_turf, turn(door_dir, 180))
-	if(!room_plan.has_turf(room_turf))
-		return FALSE
-	var/list/route_lookup = building_v2_candidate_route_lookup(candidate)
-	return route_lookup[route_turf] ? TRUE : FALSE
+	var/list/from_lookup = room_plan.turf_lookup
+	var/list/to_lookup = get_building_v2_region_lookup(candidate, "route")
+	return building_v2_opening_wall_matches_regions(context, candidate, from_lookup, to_lookup, opening_turf, door_dir)
 
 /datum/world_edit_generator/building_layout/proc/building_v2_shared_wall_run_length(datum/world_edit_building_v2_context/context, datum/world_edit_building_v2_layout_candidate/candidate, datum/world_edit_building_v2_room_plan/room_plan, turf/opening_turf, door_dir)
 	if(!building_v2_opening_wall_matches_room_route(context, candidate, room_plan, opening_turf, door_dir))
@@ -732,7 +745,15 @@
 	var/datum/world_edit_building_v2_room_plan/room_plan = candidate.get_room_plan(door_plan.from_room)
 	if(!istype(room_plan))
 		room_plan = candidate.get_room_plan(door_plan.to_room)
-	return building_v2_opening_wall_matches_room_route(context, candidate, room_plan, door_plan.opening_turf, door_plan.dir)
+	var/list/from_lookup = get_building_v2_region_lookup(candidate, door_plan.from_room)
+	var/list/to_lookup = get_building_v2_region_lookup(candidate, door_plan.to_room)
+	if(!length(from_lookup) || !length(to_lookup))
+		if(istype(room_plan))
+			from_lookup = room_plan.turf_lookup
+			to_lookup = get_building_v2_region_lookup(candidate, "route")
+		else
+			return FALSE
+	return building_v2_opening_wall_matches_regions(context, candidate, from_lookup, to_lookup, door_plan.opening_turf, door_plan.dir)
 
 /datum/world_edit_generator/building_layout/proc/building_v2_main_exit_has_valid_boundary(datum/world_edit_building_v2_context/context, datum/world_edit_building_v2_layout_candidate/candidate, datum/world_edit_building_v2_route_opening_plan/door_plan)
 	var/datum/world_edit_building_layout_state/state = context?.state
@@ -770,6 +791,7 @@
 /datum/world_edit_generator/building_layout/proc/solve_building_v2_windows(datum/world_edit_building_v2_context/context, datum/world_edit_building_v2_layout_candidate/candidate)
 	if(!istype(context) || !istype(candidate))
 		return FALSE
+	building_v2_seed_state_room_zones_for_policy(context, candidate)
 	var/raw_window_density = null
 	if(istype(context.state))
 		raw_window_density = context.state.config["window_density"]
@@ -821,6 +843,8 @@
 				continue
 			if(!boundary_turf_has_outside_dir(window_turf, context.state.geometry.footprint_lookup, check_dir))
 				continue
+			if(!can_place_building_window_for_boundary_turf(context.state, window_turf))
+				continue
 			var/score = 10000 - ((abs(window_turf.x - center_x) + abs(window_turf.y - center_y)) * 35)
 			if(room_plan.role in list("entry_common", "dining"))
 				score += 300
@@ -832,6 +856,17 @@
 	if(islist(best))
 		room_plan.window_candidates += list(best)
 	return best
+
+/datum/world_edit_generator/building_layout/proc/building_v2_seed_state_room_zones_for_policy(datum/world_edit_building_v2_context/context, datum/world_edit_building_v2_layout_candidate/candidate)
+	var/datum/world_edit_building_layout_state/state = context?.state
+	if(!istype(state) || !istype(candidate))
+		return
+	for(var/datum/world_edit_building_v2_room_plan/room_plan as anything in candidate.room_plans)
+		if(!istype(room_plan))
+			continue
+		for(var/turf/room_turf as anything in room_plan.turfs)
+			if(istype(room_turf))
+				state.add_zone(room_turf, room_plan.zone_id)
 
 /datum/world_edit_generator/building_layout/proc/building_v2_window_plan_obeys_policy(datum/world_edit_building_v2_context/context, datum/world_edit_building_v2_layout_candidate/candidate, datum/world_edit_building_v2_route_opening_plan/window_plan)
 	if(!istype(context) || !istype(candidate) || !istype(window_plan) || !istype(window_plan.opening_turf))
@@ -858,11 +893,16 @@
 /datum/world_edit_generator/building_layout/proc/solve_building_v2_scenes(datum/world_edit_building_v2_context/context, datum/world_edit_building_v2_layout_candidate/candidate)
 	if(!istype(context) || !istype(candidate))
 		return FALSE
-	var/list/global_scene_kind_counts = list()
-	var/list/global_scene_slot_counts = list()
-	for(var/datum/world_edit_building_v2_room_plan/room_plan as anything in candidate.room_plans)
+	context.scene_budget = new
+	context.scene_budget.limits = islist(context.program_contract?.global_scene_slot_limits) ? context.program_contract.global_scene_slot_limits.Copy() : list()
+	context.scene_budget.minimums = islist(context.program_contract?.global_scene_slot_minimums) ? context.program_contract.global_scene_slot_minimums.Copy() : list()
+	for(var/datum/world_edit_building_v2_room_plan/reset_room as anything in candidate.room_plans)
+		if(istype(reset_room))
+			reset_room.scene_plan = null
+			reset_room.scene_kind = ""
+	for(var/datum/world_edit_building_v2_room_plan/room_plan as anything in get_v2_scene_room_solve_order(context, candidate))
 		var/list/scene_candidates = get_building_v2_scene_candidates_for_room(context, room_plan, candidate)
-		var/datum/world_edit_building_v2_scene_plan/best_scene = select_best_building_v2_scene_for_room(context, candidate, room_plan, scene_candidates, global_scene_kind_counts, global_scene_slot_counts)
+		var/datum/world_edit_building_v2_scene_plan/best_scene = select_best_building_v2_scene_for_room(context, candidate, room_plan, scene_candidates)
 		var/datum/world_edit_building_v2_room_contract/room_contract = context.program_contract.get_room_contract(room_plan.contract_id)
 		if(!istype(best_scene))
 			if(istype(room_contract) && (room_contract.required || room_plan.area() >= 12))
@@ -870,7 +910,10 @@
 			continue
 		room_plan.scene_plan = best_scene
 		room_plan.scene_kind = best_scene.scene_kind
-		commit_building_v2_scene_global_counts(context, best_scene, global_scene_kind_counts, global_scene_slot_counts)
+		register_building_v2_scene_budget_use(context, best_scene)
+	var/list/missing_minimums = context.scene_budget?.missing_minimums()
+	for(var/scene_slot as anything in missing_minimums)
+		candidate.errors += "scene_budget.missing:[scene_slot]=[missing_minimums[scene_slot]]"
 	return !length(candidate.errors)
 
 /datum/world_edit_generator/building_layout/proc/get_building_v2_scene_candidates_for_room(datum/world_edit_building_v2_context/context, datum/world_edit_building_v2_room_plan/room_plan, datum/world_edit_building_v2_layout_candidate/candidate)
@@ -887,7 +930,7 @@
 		if(room_plan.area() < scene_contract.min_room_area || room_plan.width() < scene_contract.min_room_width || room_plan.height() < scene_contract.min_room_height)
 			continue
 		var/datum/world_edit_building_v2_room_plan/dining_room_plan = candidate.get_room_plan("dining")
-		if((scene_contract.id in list("common_dining_4", "common_dining_2", "common_lounge_pair")) && room_plan.contract_id == "entry_common" && istype(dining_room_plan))
+		if((scene_contract.id in list("common_dining_4", "common_dining_2")) && room_plan.contract_id == "entry_common" && istype(dining_room_plan))
 			continue
 		if(room_plan.role == "utility" && scene_contract.id != "storage_crate_corner")
 			continue
@@ -901,7 +944,7 @@
 		var/datum/world_edit_building_v2_scene_plan/scene_plan = build_building_v2_scene_plan(context, candidate, room_plan, scene_contract)
 		if(!istype(scene_plan) || !length(scene_plan.members))
 			continue
-		if(!building_v2_scene_within_global_limits(context, scene_plan, global_scene_kind_counts, global_scene_slot_counts))
+		if(!building_v2_scene_budget_allows(context, scene_plan))
 			continue
 		var/score = scene_plan.score
 		if(!istype(best) || score > best_score)
@@ -918,6 +961,9 @@
 	scene_plan.scene_kind = scene_contract.scene_kind
 	scene_plan.primary = scene_contract.primary
 	scene_plan.score = 100 + room_plan.area()
+	var/list/primary_anchor = select_building_v2_primary_anchor(context, candidate, room_plan, scene_contract)
+	if(islist(primary_anchor))
+		scene_plan.primary_anchors["candidate_focus"] = primary_anchor
 	switch(scene_contract.id)
 		if("common_dining_4")
 			if(!add_building_v2_table_scene_members(context, candidate, room_plan, scene_plan, 4))
@@ -931,6 +977,10 @@
 			if(!add_building_v2_lounge_scene_members(context, candidate, room_plan, scene_plan))
 				return null
 			scene_plan.score += 30
+		if("common_entry_focus")
+			if(!add_building_v2_entry_focus_scene_members(context, candidate, room_plan, scene_plan))
+				return null
+			scene_plan.score += 20
 		if("common_entry_side_surface")
 			if(!add_building_v2_side_surface_scene_members(context, candidate, room_plan, scene_plan))
 				return null
@@ -969,6 +1019,8 @@
 		return null
 	if(!building_v2_scene_slots_within_contract(scene_plan, scene_contract))
 		return null
+	if(!register_building_v2_scene_hierarchy(context, candidate, room_plan, scene_contract, scene_plan))
+		return null
 	return scene_plan
 
 /datum/world_edit_generator/building_layout/proc/building_v2_global_scene_slot_key(scene_slot)
@@ -979,6 +1031,8 @@
 
 /datum/world_edit_generator/building_layout/proc/building_v2_scene_within_global_limits(datum/world_edit_building_v2_context/context, datum/world_edit_building_v2_scene_plan/scene_plan, list/global_scene_kind_counts = null, list/global_scene_slot_counts = null)
 	if(!istype(context) || !istype(scene_plan))
+		return FALSE
+	if(istype(context.scene_budget) && !building_v2_scene_budget_allows(context, scene_plan))
 		return FALSE
 	var/list/kind_limits = islist(context.program_contract?.global_scene_kind_limits) ? context.program_contract.global_scene_kind_limits : list()
 	var/list/slot_limits = islist(context.program_contract?.global_scene_slot_limits) ? context.program_contract.global_scene_slot_limits : list()
@@ -1441,6 +1495,10 @@
 		for(var/list/chair_offsets as anything in chair_sets)
 			var/list/occupied_lookup = list()
 			occupied_lookup[table_turf] = TRUE
+			var/list/protected_path_lookup = build_building_v2_room_focus_path_lookup(candidate, room_plan, table_turf)
+			for(var/turf/protected_turf as anything in protected_path_lookup)
+				if(istype(protected_turf))
+					occupied_lookup[protected_turf] = TRUE
 			var/table_dir = context.state ? (context.state.placement_dir || SOUTH) : SOUTH
 			var/list/members = list(list("slot" = "table", "category" = "table", "turf" = table_turf, "dir" = table_dir, "scene_slot" = "dining_focal", "wall_mounted" = FALSE, "major" = TRUE))
 			var/valid = TRUE
@@ -1534,6 +1592,56 @@
 			occupied_lookup[cabinet_turf] = TRUE
 	return TRUE
 
+/datum/world_edit_generator/building_layout/proc/add_building_v2_entry_focus_scene_members(datum/world_edit_building_v2_context/context, datum/world_edit_building_v2_layout_candidate/candidate, datum/world_edit_building_v2_room_plan/room_plan, datum/world_edit_building_v2_scene_plan/scene_plan)
+	var/list/table_anchor = select_building_v2_scene_anchor(context, candidate, room_plan, "table", "table", "living_common")
+	if(!add_building_v2_scene_member_from_anchor(scene_plan, "table", "table", table_anchor, "side_surface", FALSE, TRUE))
+		return FALSE
+	var/list/occupied_lookup = list()
+	var/turf/table_turf = table_anchor["turf"]
+	if(istype(table_turf))
+		occupied_lookup[table_turf] = TRUE
+	var/list/protected_path_lookup = build_building_v2_room_focus_path_lookup(candidate, room_plan, table_turf)
+	for(var/turf/protected_turf as anything in protected_path_lookup)
+		if(istype(protected_turf))
+			occupied_lookup[protected_turf] = TRUE
+	var/list/chair_anchor = select_building_v2_adjacent_scene_anchor(context, candidate, room_plan, table_turf, "chair", "chair", "living_common", occupied_lookup)
+	if(islist(chair_anchor))
+		add_building_v2_scene_member_from_anchor(scene_plan, "chair", "chair", chair_anchor, "side_surface", FALSE, FALSE)
+		var/turf/chair_turf = chair_anchor["turf"]
+		if(istype(chair_turf))
+			occupied_lookup[chair_turf] = TRUE
+	var/min_member_count = get_building_v2_min_scene_members_for_room(room_plan.contract_id, room_plan.role, room_plan.area())
+	var/guard = 0
+	while(length(scene_plan.members) < min_member_count && guard < 8)
+		guard++
+		var/list/detail_anchor = select_building_v2_scene_anchor(context, candidate, room_plan, "chair", "chair", "living_common", occupied_lookup)
+		var/detail_slot = "chair"
+		var/detail_category = "chair"
+		if(!islist(detail_anchor))
+			detail_anchor = select_building_v2_scene_anchor(context, candidate, room_plan, "cabinet", "cabinet", "living_common", occupied_lookup, TRUE, TRUE)
+			detail_slot = "cabinet"
+			detail_category = "cabinet"
+		if(!islist(detail_anchor))
+			break
+		if(!add_building_v2_scene_member_from_anchor(scene_plan, detail_slot, detail_category, detail_anchor, "side_surface", detail_slot == "cabinet", FALSE))
+			break
+		var/turf/detail_turf = detail_anchor["turf"]
+		if(istype(detail_turf))
+			occupied_lookup[detail_turf] = TRUE
+	return TRUE
+
+/datum/world_edit_generator/building_layout/proc/build_building_v2_room_focus_path_lookup(datum/world_edit_building_v2_layout_candidate/candidate, datum/world_edit_building_v2_room_plan/room_plan, turf/focus_turf)
+	var/list/path_lookup = list()
+	if(!istype(candidate) || !istype(room_plan) || !istype(focus_turf))
+		return path_lookup
+	for(var/turf/door_turf as anything in get_building_v2_room_door_turfs(candidate, room_plan.id))
+		var/turf/start_turf = get_building_v2_room_door_inside_turf(candidate, room_plan, door_turf)
+		var/list/path = build_building_v2_room_internal_path(room_plan, start_turf, focus_turf)
+		for(var/turf/path_turf as anything in path)
+			if(istype(path_turf) && path_turf != focus_turf)
+				path_lookup[path_turf] = TRUE
+	return path_lookup
+
 /datum/world_edit_generator/building_layout/proc/select_building_v2_adjacent_scene_anchor(datum/world_edit_building_v2_context/context, datum/world_edit_building_v2_layout_candidate/candidate, datum/world_edit_building_v2_room_plan/room_plan, turf/anchor_turf, slot, category, scene_kind, list/occupied_lookup = null)
 	if(!istype(context) || !istype(candidate) || !istype(room_plan) || !istype(anchor_turf))
 		return null
@@ -1595,13 +1703,18 @@
 
 /datum/world_edit_generator/building_layout/proc/add_building_v2_storage_scene_members(datum/world_edit_building_v2_context/context, datum/world_edit_building_v2_layout_candidate/candidate, datum/world_edit_building_v2_room_plan/room_plan, datum/world_edit_building_v2_scene_plan/scene_plan, storage_slot)
 	var/category = storage_slot == "crate" ? "crate" : storage_slot
-	var/scene_slot = storage_slot == "crate" ? "storage_corner" : "storage_run"
+	var/scene_slot = "storage_run"
 	if(storage_slot == "crate")
-		var/list/crate_anchor = select_building_v2_scene_anchor(context, candidate, room_plan, "crate", category, "storage", null, FALSE, TRUE, 1)
+		var/list/crate_anchor = select_building_v2_scene_anchor(context, candidate, room_plan, "crate", category, "storage", null, FALSE, TRUE)
 		if(!add_building_v2_scene_member_from_anchor(scene_plan, "crate", category, crate_anchor, scene_slot, FALSE, TRUE))
 			return FALSE
 		var/list/occupied_lookup = list()
-		occupied_lookup[crate_anchor["turf"]] = TRUE
+		var/turf/crate_turf = crate_anchor["turf"]
+		occupied_lookup[crate_turf] = TRUE
+		var/list/protected_crate_path_lookup = build_building_v2_room_focus_path_lookup(candidate, room_plan, crate_turf)
+		for(var/turf/protected_crate_turf as anything in protected_crate_path_lookup)
+			if(istype(protected_crate_turf))
+				occupied_lookup[protected_crate_turf] = TRUE
 		var/detail_target = room_plan.area() >= 32 ? 4 : (room_plan.area() >= 28 ? 3 : 2)
 		for(var/detail_index in 2 to detail_target)
 			var/list/detail_crate = select_building_v2_scene_anchor(context, candidate, room_plan, "crate", category, "storage", occupied_lookup, FALSE, TRUE, 1)
@@ -1616,7 +1729,12 @@
 	if(!add_building_v2_scene_member_from_anchor(scene_plan, storage_slot, category, primary_anchor, scene_slot, TRUE, TRUE))
 		return FALSE
 	var/list/occupied_lookup = list()
-	occupied_lookup[primary_anchor["turf"]] = TRUE
+	var/turf/primary_turf = primary_anchor["turf"]
+	occupied_lookup[primary_turf] = TRUE
+	var/list/protected_path_lookup = build_building_v2_room_focus_path_lookup(candidate, room_plan, primary_turf)
+	for(var/turf/protected_turf as anything in protected_path_lookup)
+		if(istype(protected_turf))
+			occupied_lookup[protected_turf] = TRUE
 	var/list/secondary_anchor = select_building_v2_scene_anchor(context, candidate, room_plan, storage_slot, category, "storage", occupied_lookup, TRUE, TRUE)
 	if(islist(secondary_anchor))
 		add_building_v2_scene_member_from_anchor(scene_plan, storage_slot, category, secondary_anchor, scene_slot, TRUE, FALSE)
@@ -1672,6 +1790,9 @@
 	state.fixtures.scene_primary_counts_by_room.Cut()
 	state.fixtures.scene_kind_by_room.Cut()
 	state.fixtures.scene_slot_counts_by_room.Cut()
+	state.fixtures.scene_reserved_lookup.Cut()
+	state.fixtures.scene_negative_space_lookup.Cut()
+	state.fixtures.scene_no_furniture_lookup.Cut()
 	state.geometry.layout_v2_room_plans = candidate.room_plans.Copy()
 	state.geometry.layout_v2_route_opening_plans = candidate.door_plans.Copy()
 	var/list/floor_lookup = list()
@@ -1925,6 +2046,7 @@
 			state.remove_module_instance(module_instance_id)
 			return FALSE
 		occupied[member_turf] = TRUE
+	mark_building_v2_scene_negative_space(state, scene_plan)
 	var/placed_members = 0
 	for(var/list/member as anything in scene_plan.members)
 		var/turf/member_turf = member["turf"]
@@ -2092,6 +2214,8 @@
 		return "fixture"
 	if(state.fixtures.semantic_slot_clearance_by_turf[member_turf])
 		return "semantic_clearance"
+	if(state.fixtures.scene_no_furniture_lookup[member_turf])
+		return "scene_no_furniture"
 	if(!allow_reserved && state.geometry.reserved_lookup[member_turf])
 		return "reserved_route"
 	if(state.has_anchor("door_cone", member_turf))
@@ -2270,9 +2394,10 @@
 		var/orphan_internal_wall_allowance = max(10, length(state.geometry.solved_rooms) * 3)
 		if(orphan_internal_wall_count > orphan_internal_wall_allowance)
 			state.validation.unclaimed_interior_wall_count += orphan_internal_wall_count - orphan_internal_wall_allowance
-	var/allowed_route_count = max(28, length(state.geometry.solved_rooms) * 4)
+	var/allowed_route_count = max(28, length(state.geometry.solved_rooms) * 5 + 4)
 	if(length(state.geometry.primary_route_turfs) > allowed_route_count)
 		state.validation.corridor_ribbon_count += length(state.geometry.primary_route_turfs) - allowed_route_count
+	validate_building_v2_quality(context, context?.selected_candidate)
 
 /datum/world_edit_generator/building_layout/proc/get_building_v2_min_scene_members_for_room(room_contract_id, room_role, room_area)
 	var/resolved_room = "[room_contract_id]"

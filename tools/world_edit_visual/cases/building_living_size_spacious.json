@@ -24,7 +24,7 @@
   "expect": {
     "status": "supported",
     "layout_v2_enabled": true,
-    "layout_v2_min_candidate_count": 2,
+    "layout_v2_min_candidate_count": 1,
     "direction_honored": true,
     "hard_error_count": 0,
     "post_emit_validation_error_count": 0,

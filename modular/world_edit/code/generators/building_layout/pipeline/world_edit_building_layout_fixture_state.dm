@@ -33,6 +33,9 @@
 	var/list/scene_primary_counts_by_room = list()
 	var/list/scene_kind_by_room = list()
 	var/list/scene_slot_counts_by_room = list()
+	var/list/scene_reserved_lookup = list()
+	var/list/scene_negative_space_lookup = list()
+	var/list/scene_no_furniture_lookup = list()
 	var/structured_scene_emitted = FALSE
 	var/structured_scene_owner = ""
 	var/structured_scene_count = 0

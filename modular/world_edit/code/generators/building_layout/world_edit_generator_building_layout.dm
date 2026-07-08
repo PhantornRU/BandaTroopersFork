@@ -1700,6 +1700,29 @@
 		"layout_v2_door_not_shared_wall_count",
 		"layout_v2_room_without_door_count",
 		"layout_v2_forbidden_room_window_count",
+		"v2_empty_large_room_count",
+		"v2_isolated_room_count",
+		"v2_door_corner_count",
+		"v2_door_not_on_shared_wall_count",
+		"v2_door_no_shared_wall_count",
+		"v2_door_short_segment_count",
+		"v2_door_near_other_door_count",
+		"v2_door_invalid_clearance_count",
+		"v2_room_allocation_failed_count",
+		"v2_room_bad_aspect_count",
+		"v2_room_thin_strip_count",
+		"v2_room_scene_capacity_failed_count",
+		"v2_scene_required_missing_count",
+		"v2_primary_anchor_missing_count",
+		"v2_negative_space_missing_count",
+		"v2_scene_blocks_negative_space_count",
+		"v2_secondary_anchor_conflict_count",
+		"v2_scene_overfill_count",
+		"v2_scene_underfill_count",
+		"v2_scene_budget_overflow_count",
+		"v2_scene_budget_missing_required_count",
+		"v2_duplicate_focal_scene_count",
+		"v2_window_policy_violation_count",
 		"semantic_scene_route_block_count",
 		"semantic_scene_door_clearance_block_count",
 		"semantic_scene_required_missing_count",
@@ -1796,6 +1819,29 @@
 		if("layout_v2_door_not_shared_wall_count") return state.validation.layout_v2_door_not_shared_wall_count
 		if("layout_v2_room_without_door_count") return state.validation.layout_v2_room_without_door_count
 		if("layout_v2_forbidden_room_window_count") return state.validation.layout_v2_forbidden_room_window_count
+		if("v2_empty_large_room_count") return state.validation.v2_empty_large_room_count
+		if("v2_isolated_room_count") return state.validation.v2_isolated_room_count
+		if("v2_door_corner_count") return state.validation.v2_door_corner_count
+		if("v2_door_not_on_shared_wall_count") return state.validation.v2_door_not_on_shared_wall_count
+		if("v2_door_no_shared_wall_count") return state.validation.v2_door_no_shared_wall_count
+		if("v2_door_short_segment_count") return state.validation.v2_door_short_segment_count
+		if("v2_door_near_other_door_count") return state.validation.v2_door_near_other_door_count
+		if("v2_door_invalid_clearance_count") return state.validation.v2_door_invalid_clearance_count
+		if("v2_room_allocation_failed_count") return state.validation.v2_room_allocation_failed_count
+		if("v2_room_bad_aspect_count") return state.validation.v2_room_bad_aspect_count
+		if("v2_room_thin_strip_count") return state.validation.v2_room_thin_strip_count
+		if("v2_room_scene_capacity_failed_count") return state.validation.v2_room_scene_capacity_failed_count
+		if("v2_scene_required_missing_count") return state.validation.v2_scene_required_missing_count
+		if("v2_primary_anchor_missing_count") return state.validation.v2_primary_anchor_missing_count
+		if("v2_negative_space_missing_count") return state.validation.v2_negative_space_missing_count
+		if("v2_scene_blocks_negative_space_count") return state.validation.v2_scene_blocks_negative_space_count
+		if("v2_secondary_anchor_conflict_count") return state.validation.v2_secondary_anchor_conflict_count
+		if("v2_scene_overfill_count") return state.validation.v2_scene_overfill_count
+		if("v2_scene_underfill_count") return state.validation.v2_scene_underfill_count
+		if("v2_scene_budget_overflow_count") return state.validation.v2_scene_budget_overflow_count
+		if("v2_scene_budget_missing_required_count") return state.validation.v2_scene_budget_missing_required_count
+		if("v2_duplicate_focal_scene_count") return state.validation.v2_duplicate_focal_scene_count
+		if("v2_window_policy_violation_count") return state.validation.v2_window_policy_violation_count
 		if("semantic_scene_route_block_count") return state.validation.semantic_scene_route_block_count
 		if("semantic_scene_door_clearance_block_count") return state.validation.semantic_scene_door_clearance_block_count
 		if("semantic_scene_required_missing_count") return state.validation.semantic_scene_required_missing_count

@@ -2,6 +2,7 @@
 	var/datum/world_edit_generator/building_layout/generator
 	var/datum/world_edit_building_layout_state/state
 	var/datum/world_edit_building_v2_program_contract/program_contract
+	var/datum/world_edit_building_v2_scene_budget/scene_budget
 	var/datum/world_edit_building_v2_layout_candidate/selected_candidate = null
 	var/list/errors = list()
 	var/list/warnings = list()
@@ -11,6 +12,10 @@
 	generator = _generator
 	state = _state
 	program_contract = _program_contract
+	if(istype(program_contract))
+		scene_budget = new
+		scene_budget.limits = islist(program_contract.global_scene_slot_limits) ? program_contract.global_scene_slot_limits.Copy() : list()
+		scene_budget.minimums = islist(program_contract.global_scene_slot_minimums) ? program_contract.global_scene_slot_minimums.Copy() : list()
 
 /datum/world_edit_building_v2_context/proc/bounds_width()
 	if(!istype(state) || !islist(state.geometry.bounds))
@@ -86,6 +91,7 @@
 	var/list/allowed_layout_patterns = list()
 	var/list/global_scene_kind_limits = list()
 	var/list/global_scene_slot_limits = list()
+	var/list/global_scene_slot_minimums = list()
 	var/min_total_area = 0
 	var/preferred_total_area = 0
 
@@ -126,6 +132,9 @@
 	var/privacy_class = "public"
 	var/must_touch_route = TRUE
 	var/exterior_window_policy = "optional"
+	var/window_policy = "optional"
+	var/max_aspect = 4
+	var/target_aspect = 1.333
 	var/max_scene_count = 1
 	var/list/required_scene_kinds = list()
 	var/list/allowed_scene_kinds = list()
@@ -182,14 +191,22 @@
 /datum/world_edit_building_v2_layout_pattern/proc/build_candidates(datum/world_edit_building_v2_context/context)
 	return list()
 
+/datum/world_edit_building_v2_layout_pattern/proc/build_region_candidates(datum/world_edit_building_v2_context/context)
+	return list()
+
 /datum/world_edit_building_v2_layout_candidate
 	var/id = ""
 	var/pattern_id = ""
+	var/datum/world_edit_building_v2_region_candidate/region_candidate = null
 	var/list/room_allocation_requests = list()
 	var/list/room_plans = list()
 	var/list/room_plans_by_id = list()
+	var/list/room_connections = list()
 	var/list/route_turfs = list()
+	var/list/route_lookup = list()
 	var/list/wall_turfs = list()
+	var/list/wall_lookup = list()
+	var/list/floor_lookup = list()
 	var/list/solved_wall_lookup = list()
 	var/list/solved_internal_wall_turfs = list()
 	var/list/wall_cleanup_report = list()
@@ -217,6 +234,11 @@
 	if(!istype(route_turf) || route_turf in route_turfs)
 		return
 	route_turfs += route_turf
+	route_lookup[route_turf] = TRUE
+
+/datum/world_edit_building_v2_layout_candidate/proc/add_room_connection(datum/world_edit_building_v2_room_connection/connection)
+	if(istype(connection))
+		room_connections += connection
 
 /datum/world_edit_building_v2_layout_candidate/proc/add_door_plan(datum/world_edit_building_v2_route_opening_plan/opening_plan)
 	if(istype(opening_plan))
@@ -321,6 +343,115 @@
 	from_room = "[_from_room]"
 	to_room = "[_to_room]"
 
+/datum/world_edit_building_v2_room_connection
+	var/id = ""
+	var/from_room_id = ""
+	var/to_room_id = ""
+	var/kind = "door"
+	var/privacy = "public"
+	var/required = TRUE
+	var/min_shared_wall_length = 3
+	var/max_door_count = 1
+	var/prefer_center = TRUE
+	var/allow_corner = FALSE
+
+/datum/world_edit_building_v2_room_connection/New(_id = "", _from_room_id = "", _to_room_id = "", _privacy = "public", _required = TRUE, _kind = "door")
+	. = ..()
+	id = "[_id]"
+	from_room_id = "[_from_room_id]"
+	to_room_id = "[_to_room_id]"
+	privacy = length("[_privacy]") ? "[_privacy]" : "public"
+	required = _required ? TRUE : FALSE
+	kind = length("[_kind]") ? "[_kind]" : "door"
+
+/datum/world_edit_building_v2_opening_candidate
+	var/id = ""
+	var/turf/opening_turf
+	var/dir = NORTH
+	var/from_room_id = ""
+	var/to_room_id = ""
+	var/segment_index = 0
+	var/segment_len = 0
+	var/segment_center_distance = 0
+	var/corner = FALSE
+	var/near_other_door = FALSE
+	var/front_clear = FALSE
+	var/back_clear = FALSE
+	var/privacy = "public"
+	var/privacy_penalty = 0
+	var/score = 0
+	var/list/reject_reasons = list()
+
+/datum/world_edit_building_v2_influence_zone
+	var/id = ""
+	var/role = ""
+	var/x1 = 0
+	var/y1 = 0
+	var/x2 = 0
+	var/y2 = 0
+	var/list/preferred_room_contracts = list()
+	var/list/forbidden_room_contracts = list()
+	var/priority = 0
+
+/datum/world_edit_building_v2_influence_zone/New(_id = "", _role = "", _x1 = 0, _y1 = 0, _x2 = 0, _y2 = 0, list/_preferred_room_contracts = null, _priority = 0)
+	. = ..()
+	id = "[_id]"
+	role = "[_role]"
+	x1 = round(text2num("[_x1]") || 0)
+	y1 = round(text2num("[_y1]") || 0)
+	x2 = round(text2num("[_x2]") || 0)
+	y2 = round(text2num("[_y2]") || 0)
+	preferred_room_contracts = islist(_preferred_room_contracts) ? _preferred_room_contracts.Copy() : list()
+	priority = round(text2num("[_priority]") || 0)
+
+/datum/world_edit_building_v2_route_hint
+	var/id = ""
+	var/kind = "line"
+	var/x1 = 0
+	var/y1 = 0
+	var/x2 = 0
+	var/y2 = 0
+	var/list/zone_ids = list()
+
+/datum/world_edit_building_v2_route_hint/New(_id = "", _kind = "line", _x1 = 0, _y1 = 0, _x2 = 0, _y2 = 0, list/_zone_ids = null)
+	. = ..()
+	id = "[_id]"
+	kind = length("[_kind]") ? "[_kind]" : "line"
+	x1 = round(text2num("[_x1]") || 0)
+	y1 = round(text2num("[_y1]") || 0)
+	x2 = round(text2num("[_x2]") || x1)
+	y2 = round(text2num("[_y2]") || y1)
+	zone_ids = islist(_zone_ids) ? _zone_ids.Copy() : list()
+
+/datum/world_edit_building_v2_region_candidate
+	var/id = ""
+	var/pattern_id = ""
+	var/score = 0
+	var/list/influence_zones = list()
+	var/list/route_hints = list()
+	var/list/room_connections = list()
+
+/datum/world_edit_building_v2_region_candidate/New(_pattern_id = "", _id = "", _score = 0)
+	. = ..()
+	pattern_id = "[_pattern_id]"
+	id = length("[_id]") ? "[_id]" : pattern_id
+	score = round(text2num("[_score]") || 0)
+
+/datum/world_edit_building_v2_region_candidate/proc/add_influence_zone(zone_id, role, x1, y1, x2, y2, list/preferred_room_contracts = null, priority = 0)
+	var/datum/world_edit_building_v2_influence_zone/zone = new(zone_id, role, x1, y1, x2, y2, preferred_room_contracts, priority)
+	influence_zones += zone
+	return zone
+
+/datum/world_edit_building_v2_region_candidate/proc/add_route_hint(hint_id, kind, x1, y1, x2, y2, list/zone_ids = null)
+	var/datum/world_edit_building_v2_route_hint/hint = new(hint_id, kind, x1, y1, x2, y2, zone_ids)
+	route_hints += hint
+	return hint
+
+/datum/world_edit_building_v2_region_candidate/proc/add_connection(connection_id, from_room_id, to_room_id, privacy = "public", required = TRUE, kind = "door")
+	var/datum/world_edit_building_v2_room_connection/connection = new(connection_id, from_room_id, to_room_id, privacy, required, kind)
+	room_connections += connection
+	return connection
+
 /datum/world_edit_building_v2_scene_contract
 	var/id = ""
 	var/scene_kind = ""
@@ -337,6 +468,16 @@
 	var/max_per_building = 999
 	var/max_occupancy_ratio = 50
 	var/min_free_ratio = 30
+	var/list/primary_modules = list()
+	var/list/secondary_modules = list()
+	var/list/detail_modules = list()
+	var/primary_anchor_policy = "center"
+	var/secondary_anchor_policy = "free_walls"
+	var/negative_space_policy = "door_to_focus"
+	var/max_primary_count = 1
+	var/max_secondary_count = 2
+	var/max_detail_count = 2
+	var/min_negative_space_tiles = 1
 	var/list/required_modules = list()
 	var/list/optional_modules = list()
 	var/list/scene_slot_limits = list()
@@ -357,6 +498,11 @@
 	var/list/members = list()
 	var/list/occupied_turfs = list()
 	var/list/clearance_turfs = list()
+	var/list/primary_anchors = list()
+	var/list/secondary_anchors = list()
+	var/list/detail_anchors = list()
+	var/list/negative_space_turfs = list()
+	var/list/no_furniture_lookup = list()
 	var/list/scene_slot_counts = list()
 	var/score = 0
 
@@ -376,3 +522,27 @@
 	occupied_turfs += member_turf
 	if(major)
 		scene_slot_counts[member["scene_slot"]] = (scene_slot_counts[member["scene_slot"]] || 0) + 1
+
+/datum/world_edit_building_v2_scene_budget
+	var/list/limits = list()
+	var/list/minimums = list()
+	var/list/used = list()
+
+/datum/world_edit_building_v2_scene_budget/proc/can_use(scene_slot, amount = 1)
+	var/current = round(text2num("[used[scene_slot]]") || 0)
+	var/limit = round(text2num("[limits[scene_slot]]") || 0)
+	if(limit <= 0)
+		return TRUE
+	return current + amount <= limit
+
+/datum/world_edit_building_v2_scene_budget/proc/use(scene_slot, amount = 1)
+	used[scene_slot] = round(text2num("[used[scene_slot]]") || 0) + round(text2num("[amount]") || 0)
+
+/datum/world_edit_building_v2_scene_budget/proc/missing_minimums()
+	var/list/missing = list()
+	for(var/scene_slot as anything in minimums)
+		var/current = round(text2num("[used[scene_slot]]") || 0)
+		var/minimum = round(text2num("[minimums[scene_slot]]") || 0)
+		if(current < minimum)
+			missing[scene_slot] = minimum - current
+	return missing

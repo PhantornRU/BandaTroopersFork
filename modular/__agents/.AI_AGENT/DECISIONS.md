@@ -1,45 +1,29 @@
-# DECISIONS - PR99 Structured Scene And Wall Topology Hardening
+# DECISIONS - PR99 Building Layout v2.1 Universal Solver
 
-## D-001: Use one structured-scene ownership contract
-- Decision: Add shared fixture-state fields for structured scene ownership and use them for both living v2 and semantic interiors.
-- Why: The review rejects private `semantic_interiors_emitted` gating because v2 scene emission can still allow old fixture/fallback behavior to pass unnoticed.
+## D-001: Implement v2.1 inside modular World Edit
+- Decision: Keep all new solver logic under `modular/world_edit/code/generators/building_layout/v2/**` and wire it through the existing modular DME include.
+- Why: The active scope is the modular production `building_layout` generator; `tools/world_edit_visual` remains report-only.
 
-## D-002: Stage success follows semantic validity
-- Decision: `stage_interiors` must reserve door cones, run semantic interiors, report the `interiors` stage, and return false when required/primary semantic scene counters are nonzero.
-- Why: A stage that always returns success makes missing identity scenes invisible to the pipeline.
+## D-002: Preserve existing public request contract
+- Decision: Do not change user-facing request keys or enable v2 for non-living programs in this pass.
+- Why: The review explicitly says stabilize living before storage/workshop expansion.
 
-## D-003: Legacy fixtures after structured scenes are a hard failure
-- Decision: Track `legacy_fixture_after_scene_count` and include it in hard counters, verdict/report metrics, and expectations.
-- Why: The current bad screenshots can be visually improved by stray old fixtures while still violating the solver contract.
+## D-003: Use new v2.1 counters beside legacy `layout_v2_*`
+- Decision: Add `v2_*` counters requested by the review while retaining existing `layout_v2_*` counters and expectations.
+- Why: Existing focused cases and prior PR99 evidence use the older names; removing them would create unrelated report churn.
 
-## D-004: Multi-scene is phase-based
-- Decision: Emit at most one accepted rule per phase per room, ordered `primary`, `secondary`, `detail`, with required primary scene identity first.
-- Why: The review wants layered scenes, not scatter. Phase limits keep output bounded and deterministic.
+## D-004: Scene hierarchy wraps current emit recipes
+- Decision: Keep the existing slot/category member emitters as module recipes, but require primary anchor, negative-space mask, budget checks, and composition validation around them.
+- Why: The plan allows the current scene solver as a base; replacing every furniture recipe at once is unnecessary for the v2.1 acceptance contract.
 
-## D-005: Room classes are explicit contracts
-- Decision: Introduce `resolve_building_semantic_room_class(state, room)` and build scene rules from the class.
-- Why: Loose string matching makes beds/tables/storage appear in wrong contexts and weakens validation.
+## D-005: One strict hard-valid candidate is acceptable for constrained living cases
+- Decision: Focused case expectations may require `layout_v2_min_candidate_count = 1` where stricter v2.1 quality filters reject alternate candidates.
+- Why: The acceptance contract is a hard-valid, visually reviewed living output, not preserving weaker candidate counts from pre-v2.1 geometry.
 
-## D-006: Footprint-aware members extend the model, not the emitter
-- Decision: Add member footprint/relative placement fields to semantic specs and continue emitting through `place_fixture_at()`.
-- Why: The emitter already owns object placement metadata; rule grammar should decide where grouped members belong.
+## D-006: Adjacent opposing corridor doors are allowed when both are valid shared-wall openings
+- Decision: The v2 door-nearness validator treats a distance of 1 as the compact conflict threshold instead of rejecting opposing corridor doors two tiles apart.
+- Why: Compact central corridors can legitimately place opposite room doors near each other; corner/shared-wall/clearance counters still reject invalid openings.
 
-## D-007: Visual review tightens semantic gates
-- Decision: Update focused expectations to zero legacy-after-scene, coverage >= 90, route clearance 100, and noise <= 10.
-- Why: PNG/sprite artifacts are review output only; semantic counters must be the pass/fail surface.
-
-## D-008: Wall topology is a hard solver contract
-- Decision: Add explicit hard counters for walls outside the footprint and orphan internal wall islands, expose them in reports, and expect zero in focused living cases.
-- Why: The latest visual review shows wall chunks that are disconnected from shell, isolated, or visually outside mapping. These cannot remain PNG-only review notes.
-
-## D-009: V2 must clean leftover wall derivation
-- Decision: Keep v2 wall derivation deterministic, but remove/reject isolated leftover internal wall cells after floor/door/window emission.
-- Why: Treating every non-floor footprint cell as a wall hides allocation/mapping mistakes and creates shell artifacts that validators currently miss.
-
-## D-010: Living cabinet budget follows scene grammar
-- Decision: Raise living `cabinet` object budget from 3 to 4.
-- Why: Large common side-surface scenes and bedroom storage can legitimately need four cabinet-category placements. The previous budget made the rectangle regression fail during v2 scene emission despite valid room/scene contracts.
-
-## D-011: Wall mapping beats shell connectivity
-- Decision: Add a separate hard counter for internal wall tiles that are connected to the shell but not adjacent to any mapped room/route floor or opening.
-- Why: Component connectivity alone is too weak. A bad leftover wall spur can touch the shell and still be visually isolated or outside-looking.
+## D-007: Storage/workshop remain smoke-only in this pass
+- Decision: Do not enable v2.1 allocation/opening/scene behavior for storage or workshop yet; only run smoke visual cases for regression safety.
+- Why: The review requires living to pass counters and manual visual review before expanding to storage/workshop.
