@@ -7,7 +7,7 @@
 	var/datum/world_edit_building_layout_geometry_state/geometry
 	var/datum/world_edit_building_layout_fixture_state/fixtures
 	var/datum/world_edit_building_layout_validation_state/validation
-	var/layout_v2_context
+	var/layout_context
 
 	var/root_seed = 0
 	var/stage_seed_footprint = 0
@@ -230,8 +230,8 @@
 	geometry.solved_regions.Cut()
 	geometry.divider_plans.Cut()
 	geometry.internal_wall_turfs.Cut()
-	geometry.layout_v2_room_plans.Cut()
-	geometry.layout_v2_route_opening_plans.Cut()
+	geometry.layout_room_plans.Cut()
+	geometry.layout_route_opening_plans.Cut()
 	geometry.primary_route_turfs.Cut()
 	geometry.separator_lane_turfs.Cut()
 	geometry.separator_lane_lookup.Cut()
@@ -501,34 +501,43 @@
 	validation.thin_room_strip_count = 0
 	validation.large_sparse_room_count = 0
 	validation.corridor_ribbon_count = 0
-	validation.layout_v2_underfurnished_room_count = 0
-	validation.layout_v2_required_connection_missing_count = 0
-	validation.layout_v2_door_not_shared_wall_count = 0
-	validation.layout_v2_room_without_door_count = 0
-	validation.layout_v2_forbidden_room_window_count = 0
-	validation.v2_empty_large_room_count = 0
-	validation.v2_isolated_room_count = 0
-	validation.v2_door_corner_count = 0
-	validation.v2_door_not_on_shared_wall_count = 0
-	validation.v2_door_no_shared_wall_count = 0
-	validation.v2_door_short_segment_count = 0
-	validation.v2_door_near_other_door_count = 0
-	validation.v2_door_invalid_clearance_count = 0
-	validation.v2_room_allocation_failed_count = 0
-	validation.v2_room_bad_aspect_count = 0
-	validation.v2_room_thin_strip_count = 0
-	validation.v2_room_scene_capacity_failed_count = 0
-	validation.v2_scene_required_missing_count = 0
-	validation.v2_primary_anchor_missing_count = 0
-	validation.v2_negative_space_missing_count = 0
-	validation.v2_scene_blocks_negative_space_count = 0
-	validation.v2_secondary_anchor_conflict_count = 0
-	validation.v2_scene_overfill_count = 0
-	validation.v2_scene_underfill_count = 0
-	validation.v2_scene_budget_overflow_count = 0
-	validation.v2_scene_budget_missing_required_count = 0
-	validation.v2_duplicate_focal_scene_count = 0
-	validation.v2_window_policy_violation_count = 0
+	validation.layout_underfurnished_room_count = 0
+	validation.layout_required_connection_missing_count = 0
+	validation.layout_door_not_shared_wall_count = 0
+	validation.layout_room_without_door_count = 0
+	validation.layout_forbidden_room_window_count = 0
+	validation.layout_empty_large_room_count = 0
+	validation.layout_isolated_room_count = 0
+	validation.layout_door_corner_count = 0
+	validation.layout_door_not_on_shared_wall_count = 0
+	validation.layout_door_no_shared_wall_count = 0
+	validation.layout_door_short_segment_count = 0
+	validation.layout_door_near_other_door_count = 0
+	validation.layout_door_invalid_clearance_count = 0
+	validation.layout_room_allocation_failed_count = 0
+	validation.layout_room_bad_aspect_count = 0
+	validation.layout_room_thin_strip_count = 0
+	validation.layout_room_scene_capacity_failed_count = 0
+	validation.layout_scene_required_missing_count = 0
+	validation.layout_primary_anchor_missing_count = 0
+	validation.layout_negative_space_missing_count = 0
+	validation.layout_scene_blocks_negative_space_count = 0
+	validation.layout_secondary_anchor_conflict_count = 0
+	validation.layout_scene_overfill_count = 0
+	validation.layout_scene_underfill_count = 0
+	validation.layout_scene_budget_overflow_count = 0
+	validation.layout_scene_budget_missing_required_count = 0
+	validation.layout_duplicate_focal_scene_count = 0
+	validation.layout_window_policy_violation_count = 0
+	validation.layout_public_room_hard_closed_count = 0
+	validation.layout_public_opening_missing_count = 0
+	validation.layout_opposing_route_door_pair_count = 0
+	validation.layout_corridor_wall_canyon_count = 0
+	validation.layout_route_wall_canyon_length = 0
+	validation.layout_excessive_wall_to_floor_ratio_count = 0
+	validation.layout_template_geometry_reject_count = 0
+	validation.layout_missing_wall_context_reject_count = 0
+	validation.layout_hard_valid_candidate_shortage_count = 0
 	validation.semantic_scene_route_block_count = 0
 	validation.semantic_scene_door_clearance_block_count = 0
 	validation.semantic_scene_required_missing_count = 0

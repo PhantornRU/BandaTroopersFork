@@ -1,39 +1,40 @@
-# TODO - PR99 Building Layout v2.1 Universal Solver
+# TODO - Canonical Building Layout Solver Rewrite
 
 | ID | Type | Requirement | Status |
 | --- | --- | --- | --- |
-| M1 | MUST | Read `08.07.06_review.md`, stable guidance, active task-state, include graph, v2 solver/contracts/living files, validation/report surfaces. | [x] |
-| M2 | MUST | Replace stale wall-topology task-state with v2.1 contract before product edits. | [x] |
-| M3 | MUST | Record self plan-mapping challenge and old-path audit before implementation. | [x] |
-| M4 | MUST | Add v2.1 datums/state: influence zones, region candidates, room connections, opening candidates, scene budget, scene hierarchy fields. | [x] |
-| M5 | MUST | Change living patterns to output influence zones, route hints, and room connections; no hardcoded doors and no production fixed room slots. | [x] |
-| M6 | MUST | Add room allocator that builds rectangles from room contracts with target area/aspect and rejects thin/pen rooms and scene-capacity failures. | [x] |
-| M7 | MUST | Replace opening flow with connection-driven shared-wall segment solver; choose best non-corner center segment and expose door failure counters. | [x] |
-| M8 | MUST | Keep window solving policy-driven and expose v2 window-policy hard failures. | [x] |
-| M9 | MUST | Add scene hierarchy: primary anchor, negative-space/no-furniture mask, secondary/detail anchors, and validation against negative-space blocking. | [x] |
-| M10 | MUST | Add global scene budget with focal limits and required bedroom/sanitation/storage scene minimums; solve required rooms first. | [x] |
-| M11 | MUST | Add v2.1 quality validator hard counters for empty large rooms, isolated rooms, invalid doors, thin rooms, scene missing, duplicate focal scenes, negative-space blocking, and windows. | [x] |
-| M12 | MUST | Expose new counters through hard counters, metadata/report metrics, visual report metrics, and focused living expectations. | [x] |
-| C1 | CHECK | Run compile/diff/focused visual workflow and record final Plan Fidelity/verification evidence. | [x] |
+| M1 | MUST | Preserve dirty baseline; refresh task contract before product edits. | DONE |
+| M2 | MUST | Self challenge maps entrypoints, old staged path, shared primitives and forbidden aliases. | DONE |
+| M3 | MUST | Canonical rename removes `v2` files/types/procs/defines/state/metadata/counters without aliases. | IN PROGRESS: final alias audit pending |
+| M4 | MUST | Compile one solver contract from the archetype catalog for all 15 programs. | IN PROGRESS: all-program compiler implemented; contract tests pending |
+| M5 | MUST | Generic bounded pattern/room/route solver replaces coordinate living recipes and reaches exact target count semantically. | IN PROGRESS: living passes; route-after-room integration is under verification for storage matrix |
+| M6 | MUST | Generic opening/window/partition solver owns wall materialization and physical doors. | IN PROGRESS |
+| M7 | MUST | Generic scene hierarchy and placement-module dispatch replaces scene-id switch and legacy fixture placement. | IN PROGRESS: generic module dispatch is active; legacy helper deletion pending |
+| M8 | MUST | Trial quality selection hard-fails structural, architectural and semantic placement defects. | PENDING |
+| M9 | MUST | Delete staged V1 orchestration and all production fallback/compat paths. | IN PROGRESS: stage files and entrypoint branch deleted; final old-path audit pending |
+| M10 | MUST | Update active docs, unit tests, reports and visual cases to canonical contract. | PENDING |
+| C1 | CHECK | Build plus focused/full unit verification. | PENDING |
+| C2 | CHECK | All 15 representative visual cases plus living direction/size matrix. | PENDING |
+| C3 | CHECK | Manual sprite review and old-path/diff audit. | PENDING |
 
-## Forbidden Substitutions
+## Forbidden substitutions
 
 | ID | Forbidden substitution |
 | --- | --- |
-| F1 | No visualizer-side generation, repair, success simulation, or report-only fix. |
-| F2 | No hardcoded `add_building_v2_door(x, y)` in living patterns. |
-| F3 | No fixed final room-slot pattern path as the production allocation path. |
-| F4 | No fallback wrapper leaving the old living v2 core production-reachable. |
-| F5 | No expanding to storage/workshop before living v2.1 passes focused checks. |
-| F6 | No counter-only acceptance without diff-level solver path evidence. |
+| F1 | Keeping V1 reachable behind a flag, program check or fallback. |
+| F2 | Retaining old metadata/type aliases for compatibility. |
+| F3 | Adding per-program coordinate recipes instead of declarative contracts. |
+| F4 | Keeping `switch(scene_contract.id)` or equivalent scene-id dispatch. |
+| F5 | Satisfying target count with arbitrary divider rooms. |
+| F6 | Solving failures in the visualizer/report layer. |
 
-## Old Path Audit
+## Old path audit
 
-| Old path | Required result | Current evidence |
+| Old path | Required result | Audit |
 | --- | --- | --- |
-| `pattern.build_candidates()` fixed slots | Not production-reachable for living v2.1 candidate generation. | Generator now consumes `build_region_candidates()` and allocator output. |
-| `add_building_v2_room_allocation_slot()` from living patterns | Not used by living v2.1 production path. | `rg` found no `add_building_v2_room_allocation_slot()` matches in `building_layout_v2_living.dm`. |
-| `add_building_v2_door()` from living patterns | Not used by living v2.1 production path. | `rg` found no `add_building_v2_door()` matches in `building_layout_v2_living.dm`. |
-| room-loop opening solver | Replace with declared `room_connections` shared-wall solver. | `solve_building_v2_openings()` now iterates `candidate.room_connections` and uses `collect_building_v2_door_candidates()`. |
-| scene switch-only builder | Keep emission recipes but route them through primary/negative/secondary hierarchy and validation. | Scene plans are registered through `register_building_v2_scene_hierarchy()` and validated by v2 quality. |
-| legacy hard counter names only | Add v2.1 counters while preserving existing report contracts. | `v2_*` counters are in validation state, hard-counter lookup, visual report metrics, and focused living expectations. |
+| `if(use_building_layout_v2(request)) ... else staged pipeline` | Single canonical call, no branch. | `rg use_building_layout_v2` |
+| `/datum/world_edit_generation_stage/**` | Removed from include graph and code. | `rg world_edit_generation_stage` |
+| `v2/**`, `building_v2_*`, `WORLD_EDIT_V2_*` | Canonically renamed; no production/test/case hits. | targeted `rg` |
+| `use_layout_v2`, `layout_v2_*`, `v2_*` metadata | Removed/renamed; no aliases. | targeted `rg` |
+| fixed living region/route coordinate builders | Removed from production. | symbol/callsite audit |
+| `switch(scene_contract.id)` | Removed; generic module pattern dispatch only. | fixed-string `rg` |
+| legacy semantic-interior/fixture entrypoints | Removed or reduced to shared low-level primitives with canonical callsites. | callsite audit |

@@ -26,8 +26,8 @@
 	var/list/separator_lane_turfs = list()
 	var/list/separator_lane_lookup = list()
 	var/list/internal_wall_turfs = list()
-	var/list/layout_v2_room_plans = list()
-	var/list/layout_v2_route_opening_plans = list()
+	var/list/layout_room_plans = list()
+	var/list/layout_route_opening_plans = list()
 	var/datum/world_edit_room_graph/room_graph
 	var/datum/world_edit_bsp_node/bsp_root
 	var/turf/center_turf

@@ -1,9 +1,9 @@
 /datum/world_edit_generator/building_layout/proc/run_building_semantic_interiors(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || state.has_errors())
 		return FALSE
-	if(building_layout_v2_enabled(state))
-		state.add_stage_report("semantic_interiors", "skipped", "layout_v2 owns scene emission", list(
-			"layout_v2_enabled" = TRUE,
+	if(building_layout_solver_enabled(state))
+		state.add_stage_report("semantic_interiors", "skipped", "building_layout owns scene emission", list(
+			"layout_enabled" = TRUE,
 		))
 		return TRUE
 	var/list/global_scene_counts = list()

@@ -55,6 +55,8 @@
 	return specs
 
 /datum/world_edit_generator/building_layout/proc/build_infrastructure_anchor_list(datum/world_edit_building_layout_state/state)
+	if(building_layout_solver_enabled(state))
+		return list("wall_anchor", "service_wall", "storage_wall")
 	var/list/anchors = list("wall_anchor", "service_wall", "storage_wall", "entry_buffer", "public_side")
 	if(length("[state.semantic_plan?.primary_zone_id]"))
 		anchors += state.semantic_plan.primary_zone_id

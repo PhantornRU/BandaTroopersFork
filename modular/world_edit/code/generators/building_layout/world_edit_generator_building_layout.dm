@@ -450,9 +450,6 @@
 	if(!istype(archetype))
 		config["error"] = "Unable to resolve building program '[config["archetype_id"]]'."
 		return config
-	var/raw_use_layout_v2 = islist(params) ? params["use_layout_v2"] : null
-	var/use_layout_v2 = isnull(raw_use_layout_v2) ? (archetype.id == "living") : (GLOB.world_edit_helpers.parse_bool(raw_use_layout_v2) ? TRUE : FALSE)
-
 	var/auto_size = isnull(islist(params) ? params["auto_size"] : null) ? TRUE : GLOB.world_edit_helpers.parse_bool(params["auto_size"])
 	config["half_width"] = num_param(params, "half_width", 4, 1, 8)
 	config["half_depth"] = num_param(params, "half_depth", 4, 1, 8)
@@ -465,9 +462,6 @@
 		apply_building_size_profile(config, config["size_profile"])
 	if(config["auto_size"])
 		apply_building_minimum_point_size(config, archetype)
-	if(use_layout_v2 && archetype.id == "living" && !has_building_param(params, "half_width") && !has_building_param(params, "half_depth"))
-		config["half_width"] = max(round(text2num("[config["half_width"]]") || 0), 6)
-		config["half_depth"] = max(round(text2num("[config["half_depth"]]") || 0), 6)
 	config["final_half_width"] = config["half_width"]
 	config["final_half_depth"] = config["half_depth"]
 	config["target_room_count"] = num_param(params, "target_room_count", 0, 0, 24)
@@ -480,8 +474,6 @@
 	config["confirm_large_replacement"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["confirm_large_replacement"] : null) ? TRUE : FALSE
 	config["debug_reports"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["debug_reports"] : null) ? TRUE : FALSE
 	config["skip_feasibility_dry_solve"] = GLOB.world_edit_helpers.parse_bool(islist(params) ? params["skip_feasibility_dry_solve"] : null) ? TRUE : FALSE
-	config["use_layout_v2"] = use_layout_v2
-
 	var/default_shell_preset = length("[archetype.suggested_shell_preset]") ? archetype.suggested_shell_preset : "colony"
 	config["faction_preset"] = resolve_building_option(islist(params) ? params["faction_preset"] : null, get_building_faction_options(), default_shell_preset)
 	var/list/catalog = get_building_faction_catalog()
@@ -1528,37 +1520,7 @@
 	var/datum/world_edit_building_layout_state/state = build_building_layout_state(request, shape_contract, placement_context, validated)
 	if(!istype(state) || state.has_errors())
 		return state
-	if(use_building_layout_v2(request))
-		build_building_layout_v2_state(state)
-		return state
-
-	var/datum/world_edit_generation_context/context = new(request, state, src)
-	var/list/pipeline = list(
-		new /datum/world_edit_generation_stage/layout_graph(),
-		new /datum/world_edit_generation_stage/spatial_partition(),
-		new /datum/world_edit_generation_stage/room_shapes(),
-		new /datum/world_edit_generation_stage/geometry(),
-		new /datum/world_edit_generation_stage/derived_walls(),
-		new /datum/world_edit_generation_stage/semantic_rooms(),
-		new /datum/world_edit_generation_stage/anchors(),
-		new /datum/world_edit_generation_stage/semantic_slots(),
-		new /datum/world_edit_generation_stage/infrastructure(),
-		new /datum/world_edit_generation_stage/interiors(),
-		new /datum/world_edit_generation_stage/fixtures(),
-		new /datum/world_edit_generation_stage/clutter_detailing(),
-		new /datum/world_edit_generation_stage/facade(),
-		new /datum/world_edit_generation_stage/validation(),
-		new /datum/world_edit_generation_stage/microvariation(),
-		new /datum/world_edit_generation_stage/macros(),
-		new /datum/world_edit_generation_stage/scoring()
-	)
-
-	for(var/datum/world_edit_generation_stage/stage in pipeline)
-		if(!stage.execute(context))
-			break
-		if(context.has_errors() && stage.id != "validation") // Validation might record errors but should finish
-			break
-
+	solve_building_layout(state)
 	return state
 
 /datum/world_edit_generator/building_layout/proc/calculate_building_style_metrics(datum/world_edit_building_layout_state/state)
@@ -1695,34 +1657,38 @@
 		"thin_room_strip_count",
 		"large_sparse_room_count",
 		"corridor_ribbon_count",
-		"layout_v2_underfurnished_room_count",
-		"layout_v2_required_connection_missing_count",
-		"layout_v2_door_not_shared_wall_count",
-		"layout_v2_room_without_door_count",
-		"layout_v2_forbidden_room_window_count",
-		"v2_empty_large_room_count",
-		"v2_isolated_room_count",
-		"v2_door_corner_count",
-		"v2_door_not_on_shared_wall_count",
-		"v2_door_no_shared_wall_count",
-		"v2_door_short_segment_count",
-		"v2_door_near_other_door_count",
-		"v2_door_invalid_clearance_count",
-		"v2_room_allocation_failed_count",
-		"v2_room_bad_aspect_count",
-		"v2_room_thin_strip_count",
-		"v2_room_scene_capacity_failed_count",
-		"v2_scene_required_missing_count",
-		"v2_primary_anchor_missing_count",
-		"v2_negative_space_missing_count",
-		"v2_scene_blocks_negative_space_count",
-		"v2_secondary_anchor_conflict_count",
-		"v2_scene_overfill_count",
-		"v2_scene_underfill_count",
-		"v2_scene_budget_overflow_count",
-		"v2_scene_budget_missing_required_count",
-		"v2_duplicate_focal_scene_count",
-		"v2_window_policy_violation_count",
+		"layout_underfurnished_room_count",
+		"layout_required_connection_missing_count",
+		"layout_door_not_shared_wall_count",
+		"layout_room_without_door_count",
+		"layout_forbidden_room_window_count",
+		"layout_empty_large_room_count",
+		"layout_isolated_room_count",
+		"layout_door_corner_count",
+		"layout_door_not_on_shared_wall_count",
+		"layout_door_no_shared_wall_count",
+		"layout_door_short_segment_count",
+		"layout_door_near_other_door_count",
+		"layout_door_invalid_clearance_count",
+		"layout_room_allocation_failed_count",
+		"layout_room_bad_aspect_count",
+		"layout_room_thin_strip_count",
+		"layout_room_scene_capacity_failed_count",
+		"layout_scene_required_missing_count",
+		"layout_primary_anchor_missing_count",
+		"layout_negative_space_missing_count",
+		"layout_scene_blocks_negative_space_count",
+		"layout_secondary_anchor_conflict_count",
+		"layout_scene_overfill_count",
+		"layout_scene_underfill_count",
+		"layout_scene_budget_overflow_count",
+		"layout_scene_budget_missing_required_count",
+		"layout_duplicate_focal_scene_count",
+		"layout_window_policy_violation_count",
+		"layout_public_room_hard_closed_count",
+		"layout_public_opening_missing_count",
+		"layout_corridor_wall_canyon_count",
+		"layout_hard_valid_candidate_shortage_count",
 		"semantic_scene_route_block_count",
 		"semantic_scene_door_clearance_block_count",
 		"semantic_scene_required_missing_count",
@@ -1814,34 +1780,43 @@
 		if("thin_room_strip_count") return state.validation.thin_room_strip_count
 		if("large_sparse_room_count") return state.validation.large_sparse_room_count
 		if("corridor_ribbon_count") return state.validation.corridor_ribbon_count
-		if("layout_v2_underfurnished_room_count") return state.validation.layout_v2_underfurnished_room_count
-		if("layout_v2_required_connection_missing_count") return state.validation.layout_v2_required_connection_missing_count
-		if("layout_v2_door_not_shared_wall_count") return state.validation.layout_v2_door_not_shared_wall_count
-		if("layout_v2_room_without_door_count") return state.validation.layout_v2_room_without_door_count
-		if("layout_v2_forbidden_room_window_count") return state.validation.layout_v2_forbidden_room_window_count
-		if("v2_empty_large_room_count") return state.validation.v2_empty_large_room_count
-		if("v2_isolated_room_count") return state.validation.v2_isolated_room_count
-		if("v2_door_corner_count") return state.validation.v2_door_corner_count
-		if("v2_door_not_on_shared_wall_count") return state.validation.v2_door_not_on_shared_wall_count
-		if("v2_door_no_shared_wall_count") return state.validation.v2_door_no_shared_wall_count
-		if("v2_door_short_segment_count") return state.validation.v2_door_short_segment_count
-		if("v2_door_near_other_door_count") return state.validation.v2_door_near_other_door_count
-		if("v2_door_invalid_clearance_count") return state.validation.v2_door_invalid_clearance_count
-		if("v2_room_allocation_failed_count") return state.validation.v2_room_allocation_failed_count
-		if("v2_room_bad_aspect_count") return state.validation.v2_room_bad_aspect_count
-		if("v2_room_thin_strip_count") return state.validation.v2_room_thin_strip_count
-		if("v2_room_scene_capacity_failed_count") return state.validation.v2_room_scene_capacity_failed_count
-		if("v2_scene_required_missing_count") return state.validation.v2_scene_required_missing_count
-		if("v2_primary_anchor_missing_count") return state.validation.v2_primary_anchor_missing_count
-		if("v2_negative_space_missing_count") return state.validation.v2_negative_space_missing_count
-		if("v2_scene_blocks_negative_space_count") return state.validation.v2_scene_blocks_negative_space_count
-		if("v2_secondary_anchor_conflict_count") return state.validation.v2_secondary_anchor_conflict_count
-		if("v2_scene_overfill_count") return state.validation.v2_scene_overfill_count
-		if("v2_scene_underfill_count") return state.validation.v2_scene_underfill_count
-		if("v2_scene_budget_overflow_count") return state.validation.v2_scene_budget_overflow_count
-		if("v2_scene_budget_missing_required_count") return state.validation.v2_scene_budget_missing_required_count
-		if("v2_duplicate_focal_scene_count") return state.validation.v2_duplicate_focal_scene_count
-		if("v2_window_policy_violation_count") return state.validation.v2_window_policy_violation_count
+		if("layout_underfurnished_room_count") return state.validation.layout_underfurnished_room_count
+		if("layout_required_connection_missing_count") return state.validation.layout_required_connection_missing_count
+		if("layout_door_not_shared_wall_count") return state.validation.layout_door_not_shared_wall_count
+		if("layout_room_without_door_count") return state.validation.layout_room_without_door_count
+		if("layout_forbidden_room_window_count") return state.validation.layout_forbidden_room_window_count
+		if("layout_empty_large_room_count") return state.validation.layout_empty_large_room_count
+		if("layout_isolated_room_count") return state.validation.layout_isolated_room_count
+		if("layout_door_corner_count") return state.validation.layout_door_corner_count
+		if("layout_door_not_on_shared_wall_count") return state.validation.layout_door_not_on_shared_wall_count
+		if("layout_door_no_shared_wall_count") return state.validation.layout_door_no_shared_wall_count
+		if("layout_door_short_segment_count") return state.validation.layout_door_short_segment_count
+		if("layout_door_near_other_door_count") return state.validation.layout_door_near_other_door_count
+		if("layout_door_invalid_clearance_count") return state.validation.layout_door_invalid_clearance_count
+		if("layout_room_allocation_failed_count") return state.validation.layout_room_allocation_failed_count
+		if("layout_room_bad_aspect_count") return state.validation.layout_room_bad_aspect_count
+		if("layout_room_thin_strip_count") return state.validation.layout_room_thin_strip_count
+		if("layout_room_scene_capacity_failed_count") return state.validation.layout_room_scene_capacity_failed_count
+		if("layout_scene_required_missing_count") return state.validation.layout_scene_required_missing_count
+		if("layout_primary_anchor_missing_count") return state.validation.layout_primary_anchor_missing_count
+		if("layout_negative_space_missing_count") return state.validation.layout_negative_space_missing_count
+		if("layout_scene_blocks_negative_space_count") return state.validation.layout_scene_blocks_negative_space_count
+		if("layout_secondary_anchor_conflict_count") return state.validation.layout_secondary_anchor_conflict_count
+		if("layout_scene_overfill_count") return state.validation.layout_scene_overfill_count
+		if("layout_scene_underfill_count") return state.validation.layout_scene_underfill_count
+		if("layout_scene_budget_overflow_count") return state.validation.layout_scene_budget_overflow_count
+		if("layout_scene_budget_missing_required_count") return state.validation.layout_scene_budget_missing_required_count
+		if("layout_duplicate_focal_scene_count") return state.validation.layout_duplicate_focal_scene_count
+		if("layout_window_policy_violation_count") return state.validation.layout_window_policy_violation_count
+		if("layout_public_room_hard_closed_count") return state.validation.layout_public_room_hard_closed_count
+		if("layout_public_opening_missing_count") return state.validation.layout_public_opening_missing_count
+		if("layout_opposing_route_door_pair_count") return state.validation.layout_opposing_route_door_pair_count
+		if("layout_corridor_wall_canyon_count") return state.validation.layout_corridor_wall_canyon_count
+		if("layout_route_wall_canyon_length") return state.validation.layout_route_wall_canyon_length
+		if("layout_excessive_wall_to_floor_ratio_count") return state.validation.layout_excessive_wall_to_floor_ratio_count
+		if("layout_template_geometry_reject_count") return state.validation.layout_template_geometry_reject_count
+		if("layout_missing_wall_context_reject_count") return state.validation.layout_missing_wall_context_reject_count
+		if("layout_hard_valid_candidate_shortage_count") return state.validation.layout_hard_valid_candidate_shortage_count
 		if("semantic_scene_route_block_count") return state.validation.semantic_scene_route_block_count
 		if("semantic_scene_door_clearance_block_count") return state.validation.semantic_scene_door_clearance_block_count
 		if("semantic_scene_required_missing_count") return state.validation.semantic_scene_required_missing_count
@@ -1925,12 +1900,12 @@
 	verdict.set_metric("shape_id", "[state.config["placement_shape_id"] || ""]")
 	verdict.set_metric("layout_candidate_score", state.config["layout_candidate_score"] || state.validation.layout_candidate_score)
 	verdict.set_metric("layout_candidate_index", state.config["layout_candidate_index"] || 1)
-	verdict.set_metric("layout_v2_enabled", state.config["layout_v2_enabled"] ? TRUE : FALSE)
-	verdict.set_metric("layout_v2_pattern_id", "[state.config["layout_v2_pattern_id"] || ""]")
-	verdict.set_metric("layout_v2_candidate_id", "[state.config["layout_v2_candidate_id"] || ""]")
-	verdict.set_metric("layout_v2_candidate_count", state.config["layout_v2_candidate_count"] || 0)
-	verdict.set_metric("layout_v2_hard_valid_candidate_count", state.config["layout_v2_hard_valid_candidate_count"] || 0)
-	verdict.set_metric("layout_v2_scene_count", state.config["layout_v2_scene_count"] || 0)
+	verdict.set_metric("layout_enabled", state.config["layout_enabled"] ? TRUE : FALSE)
+	verdict.set_metric("layout_pattern_id", "[state.config["layout_pattern_id"] || ""]")
+	verdict.set_metric("layout_candidate_id", "[state.config["layout_candidate_id"] || ""]")
+	verdict.set_metric("layout_candidate_count", state.config["layout_candidate_count"] || 0)
+	verdict.set_metric("layout_hard_valid_candidate_count", state.config["layout_hard_valid_candidate_count"] || 0)
+	verdict.set_metric("layout_scene_count", state.config["layout_scene_count"] || 0)
 	verdict.set_metric("semantic_distribution_noise_score", state.validation.semantic_distribution_noise_score)
 	verdict.set_metric("semantic_functional_coverage_percent", state.validation.semantic_functional_coverage_percent)
 	verdict.set_metric("semantic_route_clearance_percent", state.validation.semantic_route_clearance_percent)
@@ -2107,6 +2082,15 @@
 		report["hard_counters"] = hard_counters
 		for(var/counter_name as anything in hard_counters)
 			report[counter_name] = hard_counters[counter_name]
+		report["layout_public_room_hard_closed_count"] = state.validation.layout_public_room_hard_closed_count
+		report["layout_public_opening_missing_count"] = state.validation.layout_public_opening_missing_count
+		report["layout_opposing_route_door_pair_count"] = state.validation.layout_opposing_route_door_pair_count
+		report["layout_corridor_wall_canyon_count"] = state.validation.layout_corridor_wall_canyon_count
+		report["layout_route_wall_canyon_length"] = state.validation.layout_route_wall_canyon_length
+		report["layout_excessive_wall_to_floor_ratio_count"] = state.validation.layout_excessive_wall_to_floor_ratio_count
+		report["layout_template_geometry_reject_count"] = state.validation.layout_template_geometry_reject_count
+		report["layout_missing_wall_context_reject_count"] = state.validation.layout_missing_wall_context_reject_count
+		report["layout_hard_valid_candidate_shortage_count"] = state.validation.layout_hard_valid_candidate_shortage_count
 		report["semantic_distribution_noise_score"] = state.validation.semantic_distribution_noise_score
 		report["semantic_functional_coverage_percent"] = state.validation.semantic_functional_coverage_percent
 		report["semantic_route_clearance_percent"] = state.validation.semantic_route_clearance_percent
@@ -2246,7 +2230,7 @@
 		return result
 
 	var/resolved_shape_id = "[shape_contract?.shape_id || shape_id || WORLD_EDIT_SHAPE_POINT]"
-	var/list/candidate_families = (resolved_shape_id == WORLD_EDIT_SHAPE_POINT) ? (use_building_layout_v2(request) ? list("RECT") : get_ordered_building_footprint_candidate_families(request.config)) : list(uppertext("[resolved_shape_id]"))
+	var/list/candidate_families = (resolved_shape_id == WORLD_EDIT_SHAPE_POINT) ? get_ordered_building_footprint_candidate_families(request.config) : list(uppertext("[resolved_shape_id]"))
 	var/list/size_candidates = resolved_shape_id == WORLD_EDIT_SHAPE_POINT ? get_building_point_size_candidate_specs(request.config) : list(list("index" = 1, "half_width" = request.config["half_width"], "half_depth" = request.config["half_depth"]))
 	var/attempt_index = 0
 	var/first_candidate_error = null
@@ -2329,7 +2313,7 @@
 		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 		return plan
 
-	var/list/candidate_families = (shape_id == WORLD_EDIT_SHAPE_POINT) ? (use_building_layout_v2(request) ? list("RECT") : get_ordered_building_footprint_candidate_families(request.config)) : list(uppertext("[shape_id]"))
+	var/list/candidate_families = (shape_id == WORLD_EDIT_SHAPE_POINT) ? get_ordered_building_footprint_candidate_families(request.config) : list(uppertext("[shape_id]"))
 	var/list/size_candidates = shape_id == WORLD_EDIT_SHAPE_POINT ? get_building_point_size_candidate_specs(request.config) : list(list("index" = 1, "half_width" = request.config["half_width"], "half_depth" = request.config["half_depth"]))
 	var/list/candidate_reports = list()
 	var/datum/world_edit_building_layout_state/best_state = null

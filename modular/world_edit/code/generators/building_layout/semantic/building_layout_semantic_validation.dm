@@ -22,7 +22,7 @@
 			continue
 		var/turf/target_turf = placement["turf"]
 		var/dense = istype(target_turf) && building_object_path_is_dense(placement["obj_path"])
-		var/has_scene = GLOB.world_edit_helpers.parse_bool(placement["semantic_scene"]) || GLOB.world_edit_helpers.parse_bool(placement["layout_v2"]) || length("[placement["scene_id"] || ""]")
+		var/has_scene = GLOB.world_edit_helpers.parse_bool(placement["semantic_scene"]) || GLOB.world_edit_helpers.parse_bool(placement["layout_scene"]) || length("[placement["scene_id"] || ""]")
 		if(dense && has_scene)
 			dense_scene_object_count++
 			if(state.geometry.reserved_lookup[target_turf] || state.has_anchor("door_cone", target_turf))
@@ -31,7 +31,7 @@
 			legacy_after_scene_count++
 			if(GLOB.world_edit_helpers.parse_bool(placement["major"]))
 				unscened_major_count++
-		else if(GLOB.world_edit_helpers.parse_bool(placement["major"]) && !has_scene && (state.fixtures.semantic_interiors_emitted || building_layout_v2_enabled(state)))
+		else if(GLOB.world_edit_helpers.parse_bool(placement["major"]) && !has_scene && (state.fixtures.semantic_interiors_emitted || building_layout_solver_enabled(state)))
 			unscened_major_count++
 	state.fixtures.legacy_fixture_after_scene_count = legacy_after_scene_count
 	state.validation.legacy_fixture_after_scene_count = max(state.validation.legacy_fixture_after_scene_count, legacy_after_scene_count)
@@ -45,7 +45,7 @@
 	var/clearance_percent = dense_scene_object_count > 0 ? round((dense_scene_object_count - blocked_scene_object_count) * 100 / dense_scene_object_count) : 100
 	state.validation.semantic_functional_coverage_percent = clamp(coverage_percent, 0, 100)
 	state.validation.semantic_route_clearance_percent = clamp(clearance_percent, 0, 100)
-	state.validation.semantic_distribution_noise_score = min(100, state.validation.semantic_pairing_error_count * 10 + state.validation.semantic_major_object_without_scene_count * 15 + state.validation.legacy_fixture_after_scene_count * 20 + state.validation.common_scene_fragmentation_count * 8 + state.validation.room_scene_duplicate_count * 8 + state.validation.layout_v2_underfurnished_room_count * 12 + state.validation.large_sparse_room_count * 12 + state.validation.large_empty_unassigned_floor_count * 12)
+	state.validation.semantic_distribution_noise_score = min(100, state.validation.semantic_pairing_error_count * 10 + state.validation.semantic_major_object_without_scene_count * 15 + state.validation.legacy_fixture_after_scene_count * 20 + state.validation.common_scene_fragmentation_count * 8 + state.validation.room_scene_duplicate_count * 8 + state.validation.layout_underfurnished_room_count * 12 + state.validation.large_sparse_room_count * 12 + state.validation.large_empty_unassigned_floor_count * 12)
 
 /datum/world_edit_generator/building_layout/proc/building_semantic_room_requires_primary_scene(datum/world_edit_building_layout_state/state, datum/world_edit_building_room/room)
 	if(!istype(room))

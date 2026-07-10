@@ -225,6 +225,7 @@
 	if(!degraded_tiny_layout && istype(state.archetype))
 		degraded_tiny_layout = length(state.geometry.floor_turfs) < get_building_program_required_compact_area(state.archetype)
 	var/allow_reserved_template = degraded_tiny_layout && findtext(chunk.id, "micro")
+	var/max_layout_candidates = building_layout_solver_enabled(state) ? max(8, cluster_spec.max_count * 4) : 0
 	for(var/turf/floor_turf as anything in get_fixture_candidate_turfs_for_anchors(state, anchor_ids))
 		var/owner = state.get_semantic_slot_owner(floor_turf)
 		if(length(owner) && owner != requirement_id)
@@ -278,6 +279,8 @@
 		score += length(chunk.cells) * 35
 		candidates += floor_turf
 		candidate_scores[floor_turf] = score
+		if(max_layout_candidates > 0 && length(candidates) >= max_layout_candidates)
+			break
 	return list("turfs" = candidates, "scores" = candidate_scores)
 
 /datum/world_edit_generator/building_layout/proc/select_best_template_candidate(list/candidates, list/candidate_scores)

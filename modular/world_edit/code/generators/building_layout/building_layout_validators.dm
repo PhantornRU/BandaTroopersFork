@@ -278,7 +278,7 @@
 /datum/world_edit_generator/building_layout/proc/repair_building_missing_major_clusters(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !istype(state.semantic_plan))
 		return FALSE
-	if(building_layout_v2_enabled(state))
+	if(building_layout_solver_enabled(state))
 		return FALSE
 	if(state.fixtures.structured_scene_emitted)
 		return FALSE
@@ -344,7 +344,7 @@
 		credit_building_semantic_scene_requirements(state)
 	validate_building_major_clusters(state)
 	validate_building_furnishing_quality(state)
-	validate_building_layout_v2_scenes(state)
+	validate_building_layout_scenes(state)
 	validate_building_semantic_scene_contracts(state)
 	validate_building_infrastructure_rules(state)
 	validate_building_direction_contract(state)
@@ -1105,7 +1105,7 @@
 			state.validation.wall_unmapped_interior_count++
 			state.add_error("Wall geometry contains an internal wall not mapped to any adjacent room or route at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
 		else if(!state.geometry.boundary_lookup[wall_turf] && !state.geometry.door_dirs[wall_turf] && count_building_wall_adjacent_mapped_domains(state, wall_turf) <= 1 && !building_wall_has_opposite_mapped_domains(state, wall_turf) && count_building_wall_cardinal_neighbors(state, wall_turf) <= 1 && !building_wall_supports_wall_fixture(state, wall_turf))
-			if(building_layout_v2_enabled(state))
+			if(building_layout_solver_enabled(state))
 				state.geometry.wall_lookup.Remove(wall_turf)
 				state.geometry.internal_wall_turfs -= wall_turf
 				repaired_single_sided_wall_count++
@@ -1174,7 +1174,7 @@
 		validate_building_wall_diagonal_pair(state, wall_turf, SOUTHEAST, SOUTH, EAST)
 		validate_building_wall_diagonal_pair(state, wall_turf, SOUTHWEST, SOUTH, WEST)
 	if(repaired_single_sided_wall_count > 0)
-		state.add_stage_report("layout_v2_wall_validator_spur_repair", "ok", null, list(
+		state.add_stage_report("layout_wall_validator_spur_repair", "ok", null, list(
 			"removed_single_sided_wall_tile_count" = repaired_single_sided_wall_count,
 		))
 
@@ -1381,7 +1381,7 @@
 /datum/world_edit_generator/building_layout/proc/validate_building_semantic_slot_preflight(datum/world_edit_building_layout_state/state)
 	if(!istype(state) || !islist(state.validation.semantic_slot_reports))
 		return
-	if(building_layout_v2_enabled(state))
+	if(building_layout_solver_enabled(state))
 		return
 	for(var/list/report as anything in state.validation.semantic_slot_reports)
 		if(!islist(report))
@@ -1394,7 +1394,7 @@
 		state.add_warning("Program [state.archetype.id] in [shape_label] footprint cannot reserve required pattern '[report["id"]]': found [round(text2num("[report["best_capacity"]]") || 0)] slots, needs [round(text2num("[report["required"]]") || 0)].")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_major_clusters(datum/world_edit_building_layout_state/state)
-	if(building_layout_v2_enabled(state))
+	if(building_layout_solver_enabled(state))
 		return
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan.get_cluster_specs("major"))
 		if(!cluster_spec.required)
@@ -1898,18 +1898,18 @@
 /datum/world_edit_generator/building_layout/proc/validate_building_signature_rules(datum/world_edit_building_layout_state/state)
 	var/raw_score = 0
 	var/max_score = 0
-	if(building_layout_v2_enabled(state))
+	if(building_layout_solver_enabled(state))
 		state.validation.signature_max_score = 0
 		state.validation.signature_score = 100
-		var/v2_open_floor = 0
-		var/v2_relevant_floor = 0
-		for(var/turf/v2_floor_turf as anything in state.geometry.floor_turfs)
-			if(!istype(v2_floor_turf) || state.geometry.wall_lookup[v2_floor_turf] || state.geometry.door_dirs[v2_floor_turf])
+		var/layout_open_floor = 0
+		var/layout_relevant_floor = 0
+		for(var/turf/layout_floor_turf as anything in state.geometry.floor_turfs)
+			if(!istype(layout_floor_turf) || state.geometry.wall_lookup[layout_floor_turf] || state.geometry.door_dirs[layout_floor_turf])
 				continue
-			v2_relevant_floor++
-			if(!state.fixtures.fixture_lookup[v2_floor_turf] && !state.geometry.reserved_lookup[v2_floor_turf])
-				v2_open_floor++
-		state.validation.empty_floor_ratio = v2_relevant_floor > 0 ? round(v2_open_floor * 100 / v2_relevant_floor) : 0
+			layout_relevant_floor++
+			if(!state.fixtures.fixture_lookup[layout_floor_turf] && !state.geometry.reserved_lookup[layout_floor_turf])
+				layout_open_floor++
+		state.validation.empty_floor_ratio = layout_relevant_floor > 0 ? round(layout_open_floor * 100 / layout_relevant_floor) : 0
 		return
 	if(islist(state.semantic_plan.signature_minimums))
 		for(var/signature_id as anything in state.semantic_plan.signature_minimums)
@@ -1956,7 +1956,7 @@
 	return clamp(threshold, 35, 78)
 
 /datum/world_edit_generator/building_layout/proc/validate_building_nested_room_rules(datum/world_edit_building_layout_state/state)
-	if(building_layout_v2_enabled(state))
+	if(building_layout_solver_enabled(state))
 		return
 	var/list/nested_specs = islist(state.semantic_plan?.nested_room_specs) ? state.semantic_plan.nested_room_specs.Copy() : list()
 	if(!length(nested_specs) && length("[state.semantic_plan?.nested_inner_zone]"))

@@ -148,9 +148,9 @@
 			return undo?["restored"] ? TRUE : FALSE
 		if("hard_error_count")
 			return report_data?["hard_error_count"] || 0
-		if("layout_v2_min_candidate_count")
-			var/list/v2_metrics = report_data?["metrics"]
-			return v2_metrics?["layout_v2_hard_valid_candidate_count"] || v2_metrics?["layout_v2_candidate_count"] || 0
+		if("layout_min_candidate_count")
+			var/list/layout_metrics = report_data?["metrics"]
+			return layout_metrics?["layout_hard_valid_candidate_count"] || layout_metrics?["layout_candidate_count"] || 0
 		if("semantic_distribution_noise_score_max")
 			var/list/semantic_noise_metrics = report_data?["metrics"]
 			return semantic_noise_metrics?["semantic_distribution_noise_score"] || 0
@@ -189,7 +189,7 @@
 	return "[expected]" == "[actual]"
 
 /datum/world_edit_visual_case/proc/visual_expectation_satisfied(key, expected, actual)
-	if("[key]" == "layout_v2_min_candidate_count")
+	if("[key]" == "layout_min_candidate_count")
 		return round(text2num("[actual]") || 0) >= round(text2num("[expected]") || 0)
 	var/key_text = "[key]"
 	if(length(key_text) > 4 && copytext(key_text, length(key_text) - 3) == "_min")
@@ -432,13 +432,12 @@
 			"room_count_divider_count",
 			"room_count_satisfied",
 			"room_count_gap",
-			"use_layout_v2",
-			"layout_v2_enabled",
-			"layout_v2_pattern_id",
-			"layout_v2_candidate_id",
-			"layout_v2_candidate_count",
-			"layout_v2_hard_valid_candidate_count",
-			"layout_v2_scene_count",
+			"layout_enabled",
+			"layout_pattern_id",
+			"layout_candidate_id",
+			"layout_candidate_count",
+			"layout_hard_valid_candidate_count",
+			"layout_scene_count",
 			"mandatory_room_missing_count",
 			"mandatory_room_no_bounds_count",
 			"mandatory_room_no_access_count",
@@ -501,34 +500,43 @@
 			"thin_room_strip_count",
 			"large_sparse_room_count",
 			"corridor_ribbon_count",
-			"layout_v2_underfurnished_room_count",
-			"layout_v2_required_connection_missing_count",
-			"layout_v2_door_not_shared_wall_count",
-			"layout_v2_room_without_door_count",
-			"layout_v2_forbidden_room_window_count",
-			"v2_empty_large_room_count",
-			"v2_isolated_room_count",
-			"v2_door_corner_count",
-			"v2_door_not_on_shared_wall_count",
-			"v2_door_no_shared_wall_count",
-			"v2_door_short_segment_count",
-			"v2_door_near_other_door_count",
-			"v2_door_invalid_clearance_count",
-			"v2_room_allocation_failed_count",
-			"v2_room_bad_aspect_count",
-			"v2_room_thin_strip_count",
-			"v2_room_scene_capacity_failed_count",
-			"v2_scene_required_missing_count",
-			"v2_primary_anchor_missing_count",
-			"v2_negative_space_missing_count",
-			"v2_scene_blocks_negative_space_count",
-			"v2_secondary_anchor_conflict_count",
-			"v2_scene_overfill_count",
-			"v2_scene_underfill_count",
-			"v2_scene_budget_overflow_count",
-			"v2_scene_budget_missing_required_count",
-			"v2_duplicate_focal_scene_count",
-			"v2_window_policy_violation_count",
+			"layout_underfurnished_room_count",
+			"layout_required_connection_missing_count",
+			"layout_door_not_shared_wall_count",
+			"layout_room_without_door_count",
+			"layout_forbidden_room_window_count",
+			"layout_empty_large_room_count",
+			"layout_isolated_room_count",
+			"layout_door_corner_count",
+			"layout_door_not_on_shared_wall_count",
+			"layout_door_no_shared_wall_count",
+			"layout_door_short_segment_count",
+			"layout_door_near_other_door_count",
+			"layout_door_invalid_clearance_count",
+			"layout_room_allocation_failed_count",
+			"layout_room_bad_aspect_count",
+			"layout_room_thin_strip_count",
+			"layout_room_scene_capacity_failed_count",
+			"layout_scene_required_missing_count",
+			"layout_primary_anchor_missing_count",
+			"layout_negative_space_missing_count",
+			"layout_scene_blocks_negative_space_count",
+			"layout_secondary_anchor_conflict_count",
+			"layout_scene_overfill_count",
+			"layout_scene_underfill_count",
+			"layout_scene_budget_overflow_count",
+			"layout_scene_budget_missing_required_count",
+			"layout_duplicate_focal_scene_count",
+			"layout_window_policy_violation_count",
+			"layout_public_room_hard_closed_count",
+			"layout_public_opening_missing_count",
+			"layout_opposing_route_door_pair_count",
+			"layout_corridor_wall_canyon_count",
+			"layout_route_wall_canyon_length",
+			"layout_excessive_wall_to_floor_ratio_count",
+			"layout_template_geometry_reject_count",
+			"layout_missing_wall_context_reject_count",
+			"layout_hard_valid_candidate_shortage_count",
 			"semantic_scene_route_block_count",
 			"semantic_scene_door_clearance_block_count",
 			"semantic_scene_required_missing_count",

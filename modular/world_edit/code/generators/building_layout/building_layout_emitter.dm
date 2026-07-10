@@ -540,6 +540,10 @@
 	plan.metadata["user_facing_failure_reason"] = state.validation.user_facing_failure_reason
 	plan.metadata["support_status_report"] = state.validation.support_status_report.Copy()
 	var/detailed_reports = should_emit_detailed_building_reports(state.config)
+	if(building_layout_solver_enabled(state))
+		var/datum/world_edit_building_layout_context/layout_context = state.layout_context
+		if(istype(layout_context?.selected_candidate))
+			sync_building_layout_physical_door_state(state, layout_context.selected_candidate)
 	plan.metadata["stage_reports"] = detailed_reports ? state.validation.stage_reports.Copy() : list()
 	plan.metadata["stage_report_count"] = length(state.validation.stage_reports)
 	plan.metadata["room_reports"] = detailed_reports ? state.validation.room_reports.Copy() : list()
@@ -595,13 +599,12 @@
 	plan.metadata["layout_candidate_reports"] = islist(state.config["layout_candidate_reports"]) ? state.config["layout_candidate_reports"].Copy() : list()
 	plan.metadata["selected_candidate_report"] = islist(state.config["selected_candidate_report"]) ? state.config["selected_candidate_report"].Copy() : list()
 	plan.metadata["layout_candidate_index"] = state.config["layout_candidate_index"] || 1
-	plan.metadata["use_layout_v2"] = state.config["use_layout_v2"] ? TRUE : FALSE
-	plan.metadata["layout_v2_enabled"] = state.config["layout_v2_enabled"] ? TRUE : FALSE
-	plan.metadata["layout_v2_pattern_id"] = state.config["layout_v2_pattern_id"] || ""
-	plan.metadata["layout_v2_candidate_id"] = state.config["layout_v2_candidate_id"] || ""
-	plan.metadata["layout_v2_candidate_count"] = state.config["layout_v2_candidate_count"] || 0
-	plan.metadata["layout_v2_hard_valid_candidate_count"] = state.config["layout_v2_hard_valid_candidate_count"] || 0
-	plan.metadata["layout_v2_scene_count"] = state.config["layout_v2_scene_count"] || 0
+	plan.metadata["layout_enabled"] = state.config["layout_enabled"] ? TRUE : FALSE
+	plan.metadata["layout_pattern_id"] = state.config["layout_pattern_id"] || ""
+	plan.metadata["layout_candidate_id"] = state.config["layout_candidate_id"] || ""
+	plan.metadata["layout_candidate_count"] = state.config["layout_candidate_count"] || 0
+	plan.metadata["layout_hard_valid_candidate_count"] = state.config["layout_hard_valid_candidate_count"] || 0
+	plan.metadata["layout_scene_count"] = state.config["layout_scene_count"] || 0
 	plan.metadata["semantic_region_claim_count"] = state.validation.region_claim_count
 	plan.metadata["semantic_region_claim_reports"] = detailed_reports ? state.validation.region_claim_reports.Copy() : list()
 	plan.metadata["rectangular_region_candidate_count"] = state.validation.rectangular_region_candidate_count
@@ -658,6 +661,15 @@
 	plan.metadata["hard_counters"] = build_building_state_hard_counter_report(state)
 	for(var/counter_name as anything in plan.metadata["hard_counters"])
 		plan.metadata["[counter_name]"] = plan.metadata["hard_counters"][counter_name]
+	plan.metadata["layout_public_room_hard_closed_count"] = state.validation.layout_public_room_hard_closed_count
+	plan.metadata["layout_public_opening_missing_count"] = state.validation.layout_public_opening_missing_count
+	plan.metadata["layout_opposing_route_door_pair_count"] = state.validation.layout_opposing_route_door_pair_count
+	plan.metadata["layout_corridor_wall_canyon_count"] = state.validation.layout_corridor_wall_canyon_count
+	plan.metadata["layout_route_wall_canyon_length"] = state.validation.layout_route_wall_canyon_length
+	plan.metadata["layout_excessive_wall_to_floor_ratio_count"] = state.validation.layout_excessive_wall_to_floor_ratio_count
+	plan.metadata["layout_template_geometry_reject_count"] = state.validation.layout_template_geometry_reject_count
+	plan.metadata["layout_missing_wall_context_reject_count"] = state.validation.layout_missing_wall_context_reject_count
+	plan.metadata["layout_hard_valid_candidate_shortage_count"] = state.validation.layout_hard_valid_candidate_shortage_count
 	plan.metadata["semantic_distribution_noise_score"] = state.validation.semantic_distribution_noise_score
 	plan.metadata["semantic_functional_coverage_percent"] = state.validation.semantic_functional_coverage_percent
 	plan.metadata["semantic_route_clearance_percent"] = state.validation.semantic_route_clearance_percent
@@ -870,6 +882,15 @@
 	plan.metadata["hard_counters"] = build_building_state_hard_counter_report(state)
 	for(var/counter_name as anything in plan.metadata["hard_counters"])
 		plan.metadata["[counter_name]"] = plan.metadata["hard_counters"][counter_name]
+	plan.metadata["layout_public_room_hard_closed_count"] = state.validation.layout_public_room_hard_closed_count
+	plan.metadata["layout_public_opening_missing_count"] = state.validation.layout_public_opening_missing_count
+	plan.metadata["layout_opposing_route_door_pair_count"] = state.validation.layout_opposing_route_door_pair_count
+	plan.metadata["layout_corridor_wall_canyon_count"] = state.validation.layout_corridor_wall_canyon_count
+	plan.metadata["layout_route_wall_canyon_length"] = state.validation.layout_route_wall_canyon_length
+	plan.metadata["layout_excessive_wall_to_floor_ratio_count"] = state.validation.layout_excessive_wall_to_floor_ratio_count
+	plan.metadata["layout_template_geometry_reject_count"] = state.validation.layout_template_geometry_reject_count
+	plan.metadata["layout_missing_wall_context_reject_count"] = state.validation.layout_missing_wall_context_reject_count
+	plan.metadata["layout_hard_valid_candidate_shortage_count"] = state.validation.layout_hard_valid_candidate_shortage_count
 	var/datum/world_edit_validation_verdict/generation_verdict = build_building_generation_validation_verdict(state)
 	plan.metadata["generation_validation_verdict"] = generation_verdict.as_payload()
 	plan.metadata["validation_verdict"] = plan.metadata["generation_validation_verdict"]
