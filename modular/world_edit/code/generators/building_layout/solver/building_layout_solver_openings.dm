@@ -34,6 +34,9 @@
 	if(!length(from_lookup) || !length(to_lookup))
 		return opening_candidates
 	var/opening_kind = get_building_layout_connection_opening_kind(context, connection, room_contract)
+	var/datum/world_edit_building_layout_opening_candidate/reserved_candidate = build_reserved_building_layout_opening_candidate(context, candidate, connection, room_contract, from_lookup, to_lookup, opening_kind)
+	if(istype(reserved_candidate))
+		opening_candidates += reserved_candidate
 	var/index = 0
 	for(var/turf/from_turf as anything in from_lookup)
 		if(!istype(from_turf))
@@ -67,6 +70,46 @@
 			score_building_layout_opening_candidate(context, candidate, room_contract, opening_candidate)
 			opening_candidates += opening_candidate
 	return opening_candidates
+
+/datum/world_edit_generator/building_layout/proc/build_reserved_building_layout_opening_candidate(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate, datum/world_edit_building_layout_room_connection/connection, datum/world_edit_building_layout_room_contract/room_contract, list/from_lookup, list/to_lookup, opening_kind)
+	if(!istype(context) || !istype(candidate) || !istype(connection) || !islist(from_lookup) || !islist(to_lookup))
+		return null
+	var/room_id = connection.from_room_id == "route" ? connection.to_room_id : connection.from_room_id
+	var/list/reservation = candidate.get_route_access_reservation(room_id)
+	var/list/wall_run = reservation?["wall_run"]
+	if(!islist(wall_run) || length(wall_run) < 2)
+		return null
+	var/turf/opening_turf = wall_run[max(round((length(wall_run) + 1) / 2), 1)]
+	if(!istype(opening_turf))
+		return null
+	var/door_dir = 0
+	for(var/check_dir in GLOB.cardinals)
+		if(from_lookup[get_step(opening_turf, check_dir)] && to_lookup[get_step(opening_turf, turn(check_dir, 180))])
+			door_dir = check_dir
+			break
+	if(!(door_dir in GLOB.cardinals) || !building_layout_opening_wall_matches_regions(context, candidate, from_lookup, to_lookup, opening_turf, door_dir))
+		return null
+	var/datum/world_edit_building_layout_opening_candidate/opening_candidate = new
+	opening_candidate.id = "[connection.id]_reserved"
+	opening_candidate.opening_turf = opening_turf
+	opening_candidate.dir = door_dir
+	opening_candidate.from_room_id = connection.from_room_id
+	opening_candidate.to_room_id = connection.to_room_id
+	opening_candidate.privacy = connection.privacy
+	opening_candidate.segment_len = building_layout_shared_wall_run_length_for_regions(context, candidate, from_lookup, to_lookup, opening_turf, door_dir)
+	var/opening_width = get_building_layout_connection_opening_width(room_contract, opening_kind, opening_candidate.segment_len)
+	opening_candidate.opening_turfs = build_building_layout_opening_turf_run(context, candidate, from_lookup, to_lookup, opening_turf, door_dir, opening_width)
+	opening_candidate.segment_center_distance = building_layout_shared_wall_segment_center_distance(context, candidate, from_lookup, to_lookup, opening_turf, door_dir)
+	opening_candidate.corner = building_layout_opening_at_segment_end_for_regions(context, candidate, from_lookup, to_lookup, opening_turf, door_dir)
+	var/avoid_near_opening = !istype(room_contract) || (room_contract.avoid_facing_route_doors && !room_contract.allow_public_route_merge)
+	opening_candidate.near_other_door = avoid_near_opening && building_layout_opening_near_existing_door(candidate, opening_turf, 1, door_dir)
+	opening_candidate.front_clear = building_layout_opening_side_clear(candidate, get_step(opening_turf, door_dir))
+	opening_candidate.back_clear = building_layout_opening_side_clear(candidate, get_step(opening_turf, turn(door_dir, 180)))
+	validate_building_layout_opening_candidate(context, candidate, connection, room_contract, opening_candidate)
+	score_building_layout_opening_candidate(context, candidate, room_contract, opening_candidate)
+	if(!length(opening_candidate.reject_reasons))
+		opening_candidate.score += 5000
+	return opening_candidate
 
 /datum/world_edit_generator/building_layout/proc/select_best_building_layout_opening_candidate(list/opening_candidates)
 	var/datum/world_edit_building_layout_opening_candidate/best = null
@@ -206,7 +249,8 @@
 		opening_candidate.reject_reasons += "short_segment"
 	if(opening_candidate.segment_len > 0 && !length(opening_candidate.opening_turfs))
 		opening_candidate.reject_reasons += "opening_width"
-	if(opening_candidate.corner && !connection?.allow_corner)
+	var/controlled_opening = !(get_building_layout_connection_opening_kind(context, connection, room_contract) in list(WORLD_EDIT_BUILDING_OPENING_ARCH, WORLD_EDIT_BUILDING_OPENING_WIDE_ARCH))
+	if(opening_candidate.corner && controlled_opening && !connection?.allow_corner)
 		opening_candidate.reject_reasons += "corner"
 	if(opening_candidate.near_other_door)
 		opening_candidate.reject_reasons += "near_other_door"

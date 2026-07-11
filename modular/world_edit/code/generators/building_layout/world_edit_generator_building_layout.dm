@@ -52,14 +52,14 @@
 	config["size_profile"] = resolve_building_size_profile(profile_id)
 	switch(config["size_profile"])
 		if(WORLD_EDIT_BUILDING_SIZE_PROFILE_COMPACT)
-			config["half_width"] = 3
-			config["half_depth"] = 3
+			config["half_width"] = 6
+			config["half_depth"] = 6
 		if(WORLD_EDIT_BUILDING_SIZE_PROFILE_SPACIOUS)
 			config["half_width"] = 8
 			config["half_depth"] = 8
 		else
-			config["half_width"] = 5
-			config["half_depth"] = 5
+			config["half_width"] = 7
+			config["half_depth"] = 7
 	config["requested_half_width"] = config["half_width"]
 	config["requested_half_depth"] = config["half_depth"]
 	config["auto_size"] = FALSE
@@ -2230,7 +2230,8 @@
 		return result
 
 	var/resolved_shape_id = "[shape_contract?.shape_id || shape_id || WORLD_EDIT_SHAPE_POINT]"
-	var/list/candidate_families = (resolved_shape_id == WORLD_EDIT_SHAPE_POINT) ? get_ordered_building_footprint_candidate_families(request.config) : list(uppertext("[resolved_shape_id]"))
+	var/list/ordered_candidate_families = (resolved_shape_id == WORLD_EDIT_SHAPE_POINT) ? get_ordered_building_footprint_candidate_families(request.config) : list(uppertext("[resolved_shape_id]"))
+	var/list/candidate_families = length(ordered_candidate_families) ? list(ordered_candidate_families[1]) : list("RECT")
 	var/list/size_candidates = resolved_shape_id == WORLD_EDIT_SHAPE_POINT ? get_building_point_size_candidate_specs(request.config) : list(list("index" = 1, "half_width" = request.config["half_width"], "half_depth" = request.config["half_depth"]))
 	var/attempt_index = 0
 	var/first_candidate_error = null
@@ -2313,7 +2314,8 @@
 		finalize_shared_placement_plan_metadata(plan, shape_contract, placement_context)
 		return plan
 
-	var/list/candidate_families = (shape_id == WORLD_EDIT_SHAPE_POINT) ? get_ordered_building_footprint_candidate_families(request.config) : list(uppertext("[shape_id]"))
+	var/list/ordered_candidate_families = (shape_id == WORLD_EDIT_SHAPE_POINT) ? get_ordered_building_footprint_candidate_families(request.config) : list(uppertext("[shape_id]"))
+	var/list/candidate_families = length(ordered_candidate_families) ? list(ordered_candidate_families[1]) : list("RECT")
 	var/list/size_candidates = shape_id == WORLD_EDIT_SHAPE_POINT ? get_building_point_size_candidate_specs(request.config) : list(list("index" = 1, "half_width" = request.config["half_width"], "half_depth" = request.config["half_depth"]))
 	var/list/candidate_reports = list()
 	var/datum/world_edit_building_layout_state/best_state = null

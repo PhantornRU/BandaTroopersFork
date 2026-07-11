@@ -70,6 +70,27 @@
 			y = min_y + local_x - 1
 	return locate(x, y, z_level)
 
+/datum/world_edit_building_layout_context/proc/local_coordinates(turf/world_turf)
+	if(!istype(world_turf) || !istype(state) || !islist(state.geometry.bounds))
+		return null
+	var/min_x = round(text2num("[state.geometry.bounds["min_x"]]") || 0)
+	var/max_x = round(text2num("[state.geometry.bounds["max_x"]]") || 0)
+	var/min_y = round(text2num("[state.geometry.bounds["min_y"]]") || 0)
+	var/max_y = round(text2num("[state.geometry.bounds["max_y"]]") || 0)
+	var/local_x = world_turf.x - min_x + 1
+	var/local_y = max_y - world_turf.y + 1
+	switch(state.placement_dir)
+		if(SOUTH)
+			local_x = max_x - world_turf.x + 1
+			local_y = world_turf.y - min_y + 1
+		if(EAST)
+			local_x = max_y - world_turf.y + 1
+			local_y = max_x - world_turf.x + 1
+		if(WEST)
+			local_x = world_turf.y - min_y + 1
+			local_y = world_turf.x - min_x + 1
+	return list("x" = local_x, "y" = local_y)
+
 /datum/world_edit_building_layout_context/proc/local_dir_to_world_dir(local_dir)
 	switch(state?.placement_dir)
 		if(SOUTH)
@@ -261,7 +282,7 @@
 	route_lookup[route_turf] = TRUE
 
 /datum/world_edit_building_layout_candidate/proc/reserve_route_access(room_id, list/wall_run, list/route_run, list/connector_run = null)
-	if(!length("[room_id]") || !islist(wall_run) || !islist(route_run) || length(wall_run) != 3 || length(route_run) != 3)
+	if(!length("[room_id]") || !islist(wall_run) || !islist(route_run) || length(wall_run) < 2 || length(wall_run) != length(route_run))
 		return FALSE
 	var/list/reservation = list("room_id" = "[room_id]", "wall_run" = wall_run.Copy(), "route_run" = route_run.Copy(), "connector_run" = islist(connector_run) ? connector_run.Copy() : list())
 	access_reservations_by_room["[room_id]"] = reservation
@@ -562,7 +583,7 @@
 	var/list/scene_slot_counts = list()
 	var/score = 0
 
-/datum/world_edit_building_layout_scene_plan/proc/add_member(slot, category, turf/member_turf, dir_to_use = SOUTH, scene_slot = "", wall_mounted = FALSE, major = FALSE)
+/datum/world_edit_building_layout_scene_plan/proc/add_member(slot, category, turf/member_turf, dir_to_use = SOUTH, scene_slot = "", wall_mounted = FALSE, major = FALSE, datum/world_edit_building_cluster_spec/cluster_spec = null)
 	if(!istype(member_turf))
 		return
 	var/list/member = list(
@@ -574,6 +595,8 @@
 		"wall_mounted" = wall_mounted ? TRUE : FALSE,
 		"major" = major ? TRUE : FALSE,
 	)
+	if(istype(cluster_spec))
+		member["cluster_spec"] = cluster_spec
 	members += list(member)
 	occupied_turfs += member_turf
 	if(major)

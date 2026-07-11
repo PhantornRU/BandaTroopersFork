@@ -38,8 +38,8 @@ Status: PASS WITH RISKS
 | --- | --- | --- | --- | --- |
 | M1 | MUST | Refresh contract and preserve baseline. | Task-state plus clean discovery of current dirty scope. | DONE |
 | M2 | MUST | Self challenge and old-path map. | Sections above. | DONE |
-| M3-M10 | MUST | Canonical rewrite and removal. | Pending implementation evidence. | PENDING |
-| C1-C3 | CHECK | Verification and visual acceptance. | Pending. | PENDING |
+| M3-M10 | MUST | Canonical rewrite and removal. | Canonical solver, generic scenes, old-path removal and clean alias audit documented below. | DONE |
+| C1-C3 | CHECK | Verification and visual acceptance. | Compile, targeted units, visual matrices, determinism, sprite review and diff audit documented below. | DONE |
 
 ## Implementation progress 2026-07-10
 
@@ -49,3 +49,22 @@ Status: PASS WITH RISKS
 - Compile evidence: `BUILD.cmd --ci dm -DUNIT_TESTS` succeeds with zero errors and warnings after the canonical solver changes.
 - `building_living_target_rooms_6` passes ordinary visual acceptance with exact six rooms and two hard-valid candidates.
 - Isolated visual rendering was used only to generate representative sprites; it does not execute report expectations. Ordinary visual acceptance for storage and the remaining matrix is still open while route-after-room allocation is being finished.
+
+## Acceptance evidence 2026-07-11
+
+- Route access is reserved before later room allocation as `room_id + wall_run + route_run + connector_run`; controlled openings use a three-turf run and public openings use a two-turf run.
+- Route-role rooms are materialized as clear reserved route area and do not receive furnishing scenes.
+- Required/signature scene rooms solve before fallback identities. Optional/detail members consume only the budget left after every major identity. Compact substitutes are alternatives and are not emitted beside their primary module.
+- Ordered exact zone anchors own clusters before generic tags; this fixed cross-room ownership in office, medbay and checkpoint without program-specific solver branches.
+- `BUILD.cmd --ci dm -DUNIT_TESTS`: 0 errors, 0 warnings.
+- Ordinary target matrix passed for living, storage, workshop, office, hydroponics and dormitory.
+- Ordinary representative matrix passed for checkpoint, medbay, kitchen, security, chapel, ritual_chamber, compound_colony, engineering and laboratory.
+- Final combined ordinary workflow: `15/15 ready`, `rendered=15`, `failures=0`.
+- Active review documentation and unit contracts now use canonical naming and exact semantic room-count expectations.
+- Targeted unit results in `data/unit_tests.json`: exact semantic room count, all-program contract matrix and route side-run contract each returned `UNIT_TEST_PASSED` (`status=0`).
+- A full unscoped unit run exceeded ten minutes in the existing solver-heavy test file; it exposed and led to fixing an out-of-bounds door-cone depth loop. The subsequent targeted canonical tests passed.
+- Extended living acceptance passed for point N/S/E/W, rectangle N/S/W and compact/standard/spacious profiles.
+- Same-seed replay returned `status=matched`, `same_seed_layout_hash=1` and matching footprint, room-graph, route, wall and pattern-credit hashes.
+- Manual review covered one semantic sprite for each of the 15 programs. Route/entry/hub negative space remains clear by contract; semantic rooms have primary identity and zero empty/sparse/underfill hard counters.
+- Final production/test/case audit has no hits for the removed switch, V1/V2 aliases, staged generation type, `door_plans`, legacy divider/layout entrypoints or legacy fixture/room-fill orchestration.
+- Final `git diff --check` exits 0; only informational working-tree line-ending warnings are emitted.

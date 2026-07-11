@@ -441,11 +441,10 @@
 	TEST_ASSERT_EQUAL(plan.metadata["raw_category_credit_count"] || 0, 0, "Full layout used raw category semantic credit.")
 	TEST_ASSERT_EQUAL(plan.metadata["semantic_credit_without_emitted_slots_count"] || 0, 0, "Full layout credited semantic slots without emitted objects.")
 
-/datum/unit_test/world_edit_building_layout/large_layout_uses_room_purpose_fill/Run()
+/datum/unit_test/world_edit_building_layout/large_layout_uses_scene_hierarchy/Run()
 	var/datum/world_edit_plan/plan = build_living_point_plan(list(
 		"archetype_id" = "living",
 		"faction_preset" = "colony",
-		"use_layout_v2" = FALSE,
 		"auto_size" = FALSE,
 		"half_width" = 8,
 		"half_depth" = 8,
@@ -456,10 +455,12 @@
 	))
 	TEST_ASSERT_NOTNULL(plan, "Large living layout plan was not created.")
 	TEST_ASSERT(!plan.metadata["error"], "Large living layout failed: [plan.metadata["error"]]")
-	TEST_ASSERT(round(text2num("[plan.metadata["room_fill_fixture_count"]]") || 0) > 0, "Large layout did not place any room-purpose fill fixtures.")
+	TEST_ASSERT(round(text2num("[plan.metadata["layout_scene_count"]]") || 0) > 0, "Large layout did not emit canonical room scenes.")
+	TEST_ASSERT_EQUAL(round(text2num("[plan.metadata["layout_empty_large_room_count"]]") || 0), 0, "Large layout retained an empty large room.")
+	TEST_ASSERT_EQUAL(round(text2num("[plan.metadata["layout_underfurnished_room_count"]]") || 0), 0, "Large layout retained an underfurnished room.")
 	TEST_ASSERT_EQUAL(plan.metadata["semantic_credit_without_emitted_slots_count"] || 0, 0, "Large layout credited semantic slots without emitted objects.")
 
-/datum/unit_test/world_edit_building_layout/target_room_count_uses_physical_dividers/Run()
+/datum/unit_test/world_edit_building_layout/target_room_count_is_exact_semantic_contract/Run()
 	var/list/base_params = list(
 		"archetype_id" = "living",
 		"faction_preset" = "colony",
@@ -468,7 +469,6 @@
 		"half_depth" = 8,
 		"building_seed" = 91,
 		"detail_budget" = 75,
-		"use_layout_v2" = FALSE,
 		"replace_blocked_turfs" = TRUE,
 		"respect_blockers" = FALSE,
 	)
@@ -481,9 +481,59 @@
 	var/datum/world_edit_plan/target_plan = build_living_point_plan(target_params)
 	TEST_ASSERT_NOTNULL(target_plan, "Target room-count layout plan was not created.")
 	TEST_ASSERT(!target_plan.metadata["error"], "Target room-count layout failed: [target_plan.metadata["error"]]")
-	TEST_ASSERT(round(text2num("[target_plan.metadata["room_count_divider_count"]]") || 0) > 0, "Target room-count layout did not create physical room-count dividers.")
-	TEST_ASSERT(round(text2num("[target_plan.metadata["room_count"]]") || 0) > base_room_count, "Target room-count layout did not increase solved room count.")
-	TEST_ASSERT(round(text2num("[target_plan.metadata["internal_wall_count"]]") || 0) > round(text2num("[base_plan.metadata["internal_wall_count"]]") || 0), "Target room-count layout did not add internal wall geometry.")
+	TEST_ASSERT_EQUAL(round(text2num("[target_plan.metadata["room_count"]]") || 0), round(text2num("[target_params["target_room_count"]]") || 0), "Target room-count layout did not create the exact semantic room count.")
+	TEST_ASSERT_EQUAL(round(text2num("[target_plan.metadata["room_count_divider_count"]]") || 0), 0, "Canonical target room count must not use arbitrary divider rooms.")
+	TEST_ASSERT_EQUAL(round(text2num("[target_plan.metadata["room_count_gap"]]") || 0), 0, "Canonical target room count reported a nonzero room gap.")
+
+/datum/unit_test/world_edit_building_layout/canonical_program_contract_matrix/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/list/program_ids = generator.get_building_archetype_ids()
+	TEST_ASSERT_EQUAL(length(program_ids), 15, "Canonical building layout catalog must expose exactly 15 programs.")
+	var/turf/anchor_turf = get_test_anchor_turf()
+	TEST_ASSERT_NOTNULL(anchor_turf, "Program contract matrix could not resolve an anchor turf.")
+	prepare_building_test_canvas(anchor_turf, 8)
+	for(var/program_id as anything in program_ids)
+		var/list/config = generator.normalize_building_params(list("archetype_id" = program_id, "target_room_count" = 0))
+		var/removed_layout_switch_key = "use_layout" + "_v2"
+		TEST_ASSERT(!(removed_layout_switch_key in config), "Removed layout switch leaked into normalized config for [program_id].")
+		var/datum/world_edit_building_request/request = new
+		request.config = config
+		request.archetype = generator.get_building_archetype(program_id)
+		var/datum/world_edit_building_layout_state/state = new
+		state.config = config
+		state.request = request
+		state.archetype = request.archetype
+		state.semantic_plan = request.archetype.build_semantic_plan(request)
+		state.geometry.bounds = list("min_x" = anchor_turf.x - 7, "max_x" = anchor_turf.x + 7, "min_y" = anchor_turf.y - 7, "max_y" = anchor_turf.y + 7, "width" = 15, "height" = 15)
+		for(var/turf/footprint_turf in block(locate(anchor_turf.x - 7, anchor_turf.y - 7, anchor_turf.z), locate(anchor_turf.x + 7, anchor_turf.y + 7, anchor_turf.z)))
+			state.geometry.footprint += footprint_turf
+			state.geometry.footprint_lookup[footprint_turf] = TRUE
+		var/datum/world_edit_building_layout_program_contract/program = generator.build_building_layout_program_contract(state)
+		TEST_ASSERT_NOTNULL(program, "Program contract did not compile for [program_id].")
+		TEST_ASSERT_EQUAL(program.id, "[program_id]", "Program contract id mismatch for [program_id].")
+		TEST_ASSERT_EQUAL(length(program.room_contracts), program.target_room_count, "Program contract room count is not exact for [program_id].")
+		TEST_ASSERT(program.max_layout_candidates <= 24, "Program contract exceeded the 24 layout-candidate bound for [program_id].")
+
+/datum/unit_test/world_edit_building_layout/route_side_run_contract/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/datum/world_edit_building_layout_room_contract/room_contract = new
+	room_contract.route_opening_kind = "door"
+	TEST_ASSERT_EQUAL(generator.building_layout_room_access_run_length(room_contract), 3, "Controlled doors must reserve a three-turf side run.")
+	room_contract.route_opening_kind = "arch"
+	TEST_ASSERT_EQUAL(generator.building_layout_room_access_run_length(room_contract), 2, "Public openings must reserve a two-turf side run.")
+	var/turf/anchor_turf = get_test_anchor_turf()
+	TEST_ASSERT_NOTNULL(anchor_turf, "Side-run contract could not resolve an anchor turf.")
+	var/turf/east_turf = get_step(anchor_turf, EAST)
+	var/turf/east_two_turf = get_step(east_turf, EAST)
+	var/list/wall_run = list(anchor_turf, east_turf, east_two_turf)
+	var/list/route_run = list(get_step(anchor_turf, SOUTH), get_step(east_turf, SOUTH), get_step(east_two_turf, SOUTH))
+	var/datum/world_edit_building_layout_candidate/candidate = new
+	TEST_ASSERT(candidate.reserve_route_access("controlled_room", wall_run, route_run, list()), "Valid controlled side-run reservation was rejected.")
+	var/list/reservation = candidate.get_route_access_reservation("controlled_room")
+	TEST_ASSERT_EQUAL(length(reservation["wall_run"]), 3, "Controlled reservation lost wall-run width.")
+	TEST_ASSERT_EQUAL(length(reservation["route_run"]), 3, "Controlled reservation lost route-run width.")
+	TEST_ASSERT(!candidate.reserve_route_access("bad_room", wall_run, route_run.Copy(1, 3), list()), "Mismatched wall/route side runs must be rejected.")
+
 
 /datum/unit_test/world_edit_building_layout/living_sanitation_connected/Run()
 	var/datum/world_edit_building_layout_state/state = build_living_point_state(list(

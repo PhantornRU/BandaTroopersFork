@@ -929,7 +929,7 @@
 	add_adjacency("counter_line", "secure_side")
 	add_adjacency("secure_side", "observation")
 	add_nested_room("secure_side", "observation", 8, 8, 1)
-	add_signature_cluster("checkpoint_control", "major", "signature_security_counter", "table", "table", list("counter_line", "counter_front", "counter_line_turf", "secure_side"), 4, 5, FALSE, 0, 100, "checkpoint_counter_control", 50)
+	add_signature_cluster("checkpoint_control", "major", "run", "table", "table", list("counter_line", "counter_front", "counter_line_turf", "secure_side"), 2, 3, FALSE, 0, 100, "checkpoint_counter_control", 50)
 	add_cluster("operator_console", "secondary", "wall_object", "console", "console", list("secure_side", "counter_back", "observation", "wall_anchor"), 1, 1, TRUE, 0, 95, FALSE)
 	add_signature_cluster("security_storage", "major", "wall_object", "cabinet", "cabinet", list("observation", "secure_side", "wall_anchor"), 1, 1, TRUE, 0, 80, "secure_storage", 20)
 	add_cluster("visitor_chair", "secondary", "object", "chair", "chair", list("public_side", "public_route"), 1, 1, FALSE, 0, 45, FALSE)

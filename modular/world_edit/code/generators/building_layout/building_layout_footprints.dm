@@ -161,13 +161,13 @@
 		else
 			non_rect += family_id
 	var/list/ordered = list()
+	if(has_rect)
+		ordered += "RECT"
 	var/datum/world_edit_building_prng/rng = new /datum/world_edit_building_prng(build_stage_seed(config["effective_seed"] || config["building_seed"] || 1, "footprint_candidate_order"))
 	while(length(non_rect) && length(ordered) < WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
 		var/picked_family = rng.pick_from(non_rect)
 		ordered += picked_family
 		non_rect -= picked_family
-	if(has_rect && length(ordered) < WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
-		ordered += "RECT"
 	if(!length(ordered))
 		ordered += "RECT"
 	return ordered

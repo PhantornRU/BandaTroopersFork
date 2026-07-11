@@ -21,3 +21,11 @@
 ## D-006: Shared primitives survive only with canonical ownership
 - Provider/template/emitter/infrastructure/facade/microvariation helpers may remain where the new solver calls them.
 - Old orchestration and legacy high-level placement entrypoints must be removed.
+
+## D-007: Access is an allocation-time contract
+- Controlled rooms reserve three parallel wall/route turfs; public rooms reserve at least two.
+- Missing side-run rejects the room rectangle before scene/opening emission.
+
+## D-008: Required identity precedes optional detail
+- All required/signature scenes reserve global budgets before fallback secondary/detail members.
+- Compact substitutes are mutually exclusive alternatives to primary modules.

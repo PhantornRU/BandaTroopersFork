@@ -147,7 +147,7 @@
 	add_adjacency("desk_core", "private_nook", FALSE)
 	add_adjacency("filing_wall", "records_nook", FALSE)
 	add_nested_room("desk_core", "private_nook", 8, 8, 1)
-	add_signature_cluster("primary_desk_suite", "major", "signature_office_suite", "table", "table", list("desk_core", "desk_anchor", "work_cluster", "focus_center"), 3, 3, FALSE, 1, 100, "desk_suite", 45)
+	add_signature_cluster("primary_desk_suite", "major", "table_cluster", "table", "table", list("desk_core", "desk_anchor", "work_cluster", "focus_center"), 1, 1, FALSE, 1, 100, "desk_suite", 45)
 	add_signature_cluster("filing_cabinets", "major", "run", "filing", "cabinet", list("filing_wall", "filing_wall_anchor", "storage_wall"), 2, 3, TRUE, 0, 90, "filing_wall", 25)
 	add_cluster("office_console", "secondary", "wall_object", "console", "console", list("desk_core", "wall_anchor"), 1, 1, TRUE, 0, 70, FALSE)
 	add_cluster("visitor_chairs", "secondary", "run", "chair", "chair", list("visitor_side", "public_route"), 2, 2, FALSE, 0, 55, FALSE)

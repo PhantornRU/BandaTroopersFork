@@ -49,7 +49,7 @@
 		for(var/datum/world_edit_building_layout_region_candidate/region_candidate as anything in pattern.build_region_candidates(context))
 			if(!istype(region_candidate))
 				continue
-			for(var/allocation_variant in 0 to 3)
+			for(var/allocation_variant in 0 to 1)
 				if(length(candidates) >= context.program_contract.max_layout_candidates)
 					break
 				var/datum/world_edit_building_layout_candidate/candidate = allocate_building_layout_rooms(context, region_candidate, allocation_variant)
@@ -141,6 +141,8 @@
 			hard_valid_count++
 			if(!istype(selected_candidate))
 				selected_candidate = candidate
+			if(hard_valid_count >= 2)
+				break
 			continue
 		var/list/hard_counters = build_building_state_hard_counter_report(trial_state)
 		context.state.add_stage_report("layout_candidate_post_emit_reject", "failed", format_building_messages(trial_state.validation.errors), list(
@@ -896,6 +898,8 @@
 			reset_room.scene_plan = null
 			reset_room.scene_kind = ""
 	for(var/datum/world_edit_building_layout_room_plan/room_plan as anything in get_layout_scene_room_solve_order(context, candidate))
+		if(room_plan.role == "route")
+			continue
 		var/list/scene_candidates = get_building_layout_scene_candidates_for_room(context, room_plan, candidate)
 		var/datum/world_edit_building_layout_scene_plan/best_scene = select_best_building_layout_scene_for_room(context, candidate, room_plan, scene_candidates)
 		var/datum/world_edit_building_layout_room_contract/room_contract = context.program_contract.get_room_contract(room_plan.contract_id)
@@ -906,10 +910,42 @@
 		room_plan.scene_plan = best_scene
 		room_plan.scene_kind = best_scene.scene_kind
 		register_building_layout_scene_budget_use(context, best_scene)
+	allocate_building_layout_optional_scene_budget(context, candidate)
 	var/list/missing_minimums = context.scene_budget?.missing_minimums()
 	for(var/scene_slot as anything in missing_minimums)
 		candidate.errors += "scene_budget.missing:[scene_slot]=[missing_minimums[scene_slot]]"
 	return !length(candidate.errors)
+
+/datum/world_edit_generator/building_layout/proc/allocate_building_layout_optional_scene_budget(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate)
+	if(!istype(context?.scene_budget) || !istype(candidate))
+		return
+	for(var/datum/world_edit_building_layout_room_plan/room_plan as anything in get_layout_scene_room_solve_order(context, candidate))
+		var/datum/world_edit_building_layout_scene_plan/scene_plan = room_plan?.scene_plan
+		if(!istype(scene_plan))
+			continue
+		var/list/kept_members = list()
+		for(var/list/member as anything in scene_plan.members)
+			if(!islist(member))
+				continue
+			if(member["major"])
+				kept_members += list(member)
+				continue
+			var/category = "[member["category"]]"
+			if(!context.scene_budget.can_use(category, 1))
+				continue
+			context.scene_budget.use(category, 1)
+			kept_members += list(member)
+		scene_plan.members = kept_members
+		scene_plan.occupied_turfs.Cut()
+		for(var/list/kept_member as anything in kept_members)
+			var/turf/kept_turf = kept_member["turf"]
+			if(istype(kept_turf))
+				scene_plan.occupied_turfs += kept_turf
+		if(!ensure_building_layout_scene_min_members(context, candidate, room_plan, scene_plan))
+			candidate.errors += "scene.underfilled:[room_plan.id]"
+			continue
+		if(!building_layout_scene_members_clear_candidate_paths(candidate, scene_plan))
+			candidate.errors += "scene.secondary_blocks_path:[room_plan.id]"
 
 /datum/world_edit_generator/building_layout/proc/get_building_layout_scene_candidates_for_room(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_room_plan/room_plan, datum/world_edit_building_layout_candidate/candidate)
 	var/list/scenes = list()
@@ -1009,6 +1045,29 @@
 		var/list/fallback_anchor = select_building_layout_scene_anchor(context, candidate, room_plan, scene_contract.fallback_slot, scene_contract.fallback_category, scene_contract.scene_kind, occupied_lookup, FALSE, TRUE)
 		if(!add_building_layout_scene_member_from_anchor(scene_plan, scene_contract.fallback_slot, scene_contract.fallback_category, fallback_anchor, scene_contract.fallback_category, FALSE, TRUE))
 			return FALSE
+		var/turf/fallback_turf = fallback_anchor?["turf"]
+		if(istype(fallback_turf))
+			occupied_lookup[fallback_turf] = TRUE
+		if(room_plan.area() >= 16)
+			var/list/secondary_fallback_anchor = select_building_layout_scene_anchor(context, candidate, room_plan, scene_contract.fallback_slot, scene_contract.fallback_category, scene_contract.scene_kind, occupied_lookup, FALSE, TRUE)
+			if(!add_building_layout_scene_member_from_anchor(scene_plan, scene_contract.fallback_slot, scene_contract.fallback_category, secondary_fallback_anchor, scene_contract.fallback_category, FALSE, FALSE))
+				return FALSE
+	if(room_plan.area() >= 16 && length(scene_plan.members) < 2)
+		var/secondary_slot = scene_contract.fallback_slot
+		var/secondary_category = scene_contract.fallback_category
+		if(scene_contract.scene_kind == "bedroom" || room_plan.role == "private")
+			secondary_slot = "cabinet"
+			secondary_category = "cabinet"
+		else if(scene_contract.scene_kind == "storage" || room_plan.role == "storage")
+			secondary_slot = "rack"
+			secondary_category = "rack"
+		else if(room_plan.role in list("entry", "route"))
+			secondary_slot = "light"
+			secondary_category = "light"
+		var/datum/world_edit_building_place_rule/secondary_rule = resolve_building_place_rule(secondary_slot, secondary_category)
+		var/list/secondary_anchor = select_building_layout_scene_anchor(context, candidate, room_plan, secondary_slot, secondary_category, scene_contract.scene_kind, occupied_lookup, secondary_rule.needs_wall, TRUE)
+		if(!add_building_layout_scene_member_from_anchor(scene_plan, secondary_slot, secondary_category, secondary_anchor, secondary_category, secondary_rule.needs_wall, FALSE))
+			return FALSE
 	return length(scene_plan.members) > 0
 
 /datum/world_edit_generator/building_layout/proc/add_building_layout_cluster_module(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate, datum/world_edit_building_layout_room_plan/room_plan, datum/world_edit_building_layout_scene_plan/scene_plan, datum/world_edit_building_cluster_spec/cluster_spec, list/occupied_lookup, remaining_budget)
@@ -1024,7 +1083,7 @@
 		if(!islist(anchor))
 			break
 		var/is_major = cluster_spec.phase == "major" || cluster_spec.required
-		if(!add_building_layout_scene_member_from_anchor(scene_plan, cluster_spec.slot, cluster_spec.category, anchor, cluster_spec.category, cluster_spec.wall_required, is_major))
+		if(!add_building_layout_scene_member_from_anchor(scene_plan, cluster_spec.slot, cluster_spec.category, anchor, cluster_spec.category, cluster_spec.wall_required, is_major, cluster_spec))
 			break
 		var/turf/anchor_turf = anchor["turf"]
 		if(istype(anchor_turf))
@@ -1038,7 +1097,7 @@
 	if(!islist(table_anchor))
 		return 0
 	var/table_is_major = cluster_spec.required || cluster_spec.phase == "major"
-	if(!add_building_layout_scene_member_from_anchor(scene_plan, cluster_spec.slot, cluster_spec.category, table_anchor, cluster_spec.category, FALSE, table_is_major))
+	if(!add_building_layout_scene_member_from_anchor(scene_plan, cluster_spec.slot, cluster_spec.category, table_anchor, cluster_spec.category, FALSE, table_is_major, cluster_spec))
 		return 0
 	var/turf/table_turf = table_anchor["turf"]
 	local_occupied[table_turf] = TRUE
@@ -1367,8 +1426,24 @@
 			if(!istype(opening_turf))
 				continue
 			add_building_layout_scene_blocked_turf(blocked_lookup, opening_turf)
-			add_building_layout_scene_blocked_turf(blocked_lookup, get_step(opening_turf, door_plan.dir))
-			add_building_layout_scene_blocked_turf(blocked_lookup, get_step(opening_turf, turn(door_plan.dir, 180)))
+			var/inward_dir = turn(door_plan.dir, 180)
+			var/list/door_cone_profile = get_building_door_cone_profile(context.state)
+			if(!length(door_cone_profile))
+				continue
+			for(var/depth_index in 0 to length(door_cone_profile) - 1)
+				var/turf/base_turf = opening_turf
+				if(depth_index > 0)
+					for(var/depth_step in 1 to depth_index)
+						base_turf = get_step(base_turf, inward_dir)
+				if(!istype(base_turf))
+					break
+				add_building_layout_scene_blocked_turf(blocked_lookup, base_turf)
+				var/lateral_steps = round(text2num("[door_cone_profile[depth_index + 1]]") || 0)
+				for(var/side_dir as anything in list(turn(inward_dir, 90), turn(inward_dir, -90)))
+					var/turf/side_turf = base_turf
+					for(var/side_step in 1 to lateral_steps)
+						side_turf = get_step(side_turf, side_dir)
+						add_building_layout_scene_blocked_turf(blocked_lookup, side_turf)
 	for(var/datum/world_edit_building_layout_route_opening_plan/window_plan as anything in candidate.window_plans)
 		if(!istype(window_plan) || !istype(window_plan.opening_turf))
 			continue
@@ -1441,7 +1516,33 @@
 				require_wall = TRUE
 				prefer_wall = TRUE
 			else
-				return FALSE
+				switch(room_plan.role)
+					if("private")
+						detail_slot = "cabinet"
+						detail_category = "cabinet"
+						detail_scene_slot = "private_storage"
+						require_wall = TRUE
+						prefer_wall = TRUE
+					if("public")
+						detail_slot = "chair"
+						detail_category = "chair"
+						detail_scene_slot = "public_seating"
+					if("hub", "work", "secure")
+						detail_slot = "console"
+						detail_category = "console"
+						detail_scene_slot = "work_support"
+						require_wall = TRUE
+						prefer_wall = TRUE
+					if("service", "support")
+						detail_slot = "rack"
+						detail_category = "rack"
+						detail_scene_slot = "service_storage"
+						require_wall = TRUE
+						prefer_wall = TRUE
+		if(!length(detail_slot))
+			return FALSE
+		if(istype(context.scene_budget) && !context.scene_budget.can_use(detail_category, 1))
+			return FALSE
 		var/list/detail_anchor = null
 		if(scene_plan.scene_kind in list("dining", "living_common"))
 			detail_anchor = select_building_layout_adjacent_scene_anchor(context, candidate, room_plan, focus_turf, detail_slot, detail_category, scene_plan.scene_kind, occupied_lookup)
@@ -1451,6 +1552,8 @@
 			return FALSE
 		if(!add_building_layout_scene_member_from_anchor(scene_plan, detail_slot, detail_category, detail_anchor, detail_scene_slot, require_wall, FALSE))
 			return FALSE
+		if(istype(context.scene_budget))
+			context.scene_budget.use(detail_category, 1)
 		var/turf/detail_turf = detail_anchor["turf"]
 		if(istype(detail_turf))
 			occupied_lookup[detail_turf] = TRUE
@@ -1576,13 +1679,13 @@
 			best_score = fallback_score
 	return best_anchor
 
-/datum/world_edit_generator/building_layout/proc/add_building_layout_scene_member_from_anchor(datum/world_edit_building_layout_scene_plan/scene_plan, slot, category, anchor, scene_slot, wall_mounted = FALSE, major = FALSE)
+/datum/world_edit_generator/building_layout/proc/add_building_layout_scene_member_from_anchor(datum/world_edit_building_layout_scene_plan/scene_plan, slot, category, anchor, scene_slot, wall_mounted = FALSE, major = FALSE, datum/world_edit_building_cluster_spec/cluster_spec = null)
 	var/turf/anchor_turf = null
 	if(islist(anchor))
 		anchor_turf = anchor["turf"]
 	if(!istype(scene_plan) || !istype(anchor_turf))
 		return FALSE
-	scene_plan.add_member(slot, category, anchor_turf, anchor["dir"] || SOUTH, scene_slot, wall_mounted, major)
+	scene_plan.add_member(slot, category, anchor_turf, anchor["dir"] || SOUTH, scene_slot, wall_mounted, major, cluster_spec)
 	return TRUE
 
 /datum/world_edit_generator/building_layout/proc/add_building_layout_table_scene_members(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate, datum/world_edit_building_layout_room_plan/room_plan, datum/world_edit_building_layout_scene_plan/scene_plan, chair_count)
@@ -1929,6 +2032,8 @@
 				floor_lookup[room_turf] = TRUE
 				floor_turfs += room_turf
 			state.add_zone(room_turf, room_plan.zone_id)
+			if(room_plan.role == "route")
+				state.add_corridor_turf(room_turf)
 		room.focus_turf = select_building_layout_room_focus(room_plan)
 		state.add_solved_room(room)
 		var/datum/world_edit_building_solved_region/region = new("layout_region_[room_plan.id]", room_plan.zone_id, (room_plan.role in list("entry", "private", "service", "storage", "secure")) ? 100 : 50)
@@ -2185,8 +2290,9 @@
 		var/turf/member_turf = member["turf"]
 		var/slot = "[member["slot"]]"
 		var/category = "[member["category"]]"
+		var/datum/world_edit_building_cluster_spec/cluster_spec = member["cluster_spec"]
 		var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(slot, category)
-		var/list/place_context = build_building_fixture_place_context(state, member_turf, place_rule, member["dir"], place_rule.needs_wall, null, null)
+		var/list/place_context = build_building_fixture_place_context(state, member_turf, place_rule, member["dir"], place_rule.needs_wall, cluster_spec, null)
 		if(!islist(place_context))
 			state.add_stage_report("layout_scene", "failed", "place_context_failed", list(
 				"room_id" = room_plan.id,
@@ -2201,7 +2307,7 @@
 			return FALSE
 		var/wall_mounted = place_context["wall_mounted"] ? TRUE : FALSE
 		var/wall_dir = place_context["wall_dir"]
-		if(!place_fixture_at(state, member_turf, slot, place_context["dir"] || member["dir"], category, member["major"], wall_mounted, place_rule, wall_dir, null, null, null, "layout_scene", FALSE, module_id, module_instance_id, length(scene_plan.members), scene_plan.scene_kind, "layout_[room_plan.id]", slot in list("table", "chair"), TRUE))
+		if(!place_fixture_at(state, member_turf, slot, place_context["dir"] || member["dir"], category, member["major"], wall_mounted, place_rule, wall_dir, cluster_spec, null, null, "layout_scene", FALSE, module_id, module_instance_id, length(scene_plan.members), scene_plan.scene_kind, "layout_[room_plan.id]", slot in list("table", "chair"), TRUE))
 			state.add_stage_report("layout_scene", "failed", "fixture_emit_failed", list(
 				"room_id" = room_plan.id,
 				"scene_id" = scene_plan.scene_contract_id,
@@ -2534,6 +2640,9 @@
 	if(layout_room_count > 0)
 		allowed_route_count = max(allowed_route_count, layout_room_count * 5 + 4)
 		var/layout_route_budget = length(context.selected_candidate.route_turfs)
+		for(var/datum/world_edit_building_layout_room_plan/route_room_plan as anything in context.selected_candidate.room_plans)
+			if(istype(route_room_plan) && route_room_plan.role == "route")
+				layout_route_budget += length(route_room_plan.turfs)
 		for(var/datum/world_edit_building_layout_route_opening_plan/opening_plan as anything in context.selected_candidate.opening_plans)
 			if(istype(opening_plan))
 				layout_route_budget += length(get_building_layout_opening_plan_turfs(opening_plan))
@@ -2547,7 +2656,9 @@
 	var/resolved_role = "[room_role]"
 	if(resolved_role in list("route", "entry") || round(text2num("[room_area]") || 0) <= 0)
 		return 0
-	return 1
+	if(resolved_role == "storage")
+		return 1
+	return round(text2num("[room_area]") || 0) >= 16 ? 2 : 1
 
 /datum/world_edit_generator/building_layout/proc/validate_building_layout_scene_placement_role(datum/world_edit_building_layout_state/state, list/placement)
 	if(!istype(state) || !islist(placement))

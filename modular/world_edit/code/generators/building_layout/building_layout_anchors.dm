@@ -66,10 +66,12 @@
 
 /datum/world_edit_generator/building_layout/proc/add_door_cone_anchors(datum/world_edit_building_layout_state/state)
 	var/list/door_cone_lateral_steps_by_depth = get_building_door_cone_profile(state)
+	if(!length(door_cone_lateral_steps_by_depth))
+		return
 	for(var/turf/door_turf as anything in state.geometry.door_turfs)
 		var/outward_dir = state.geometry.door_dirs[door_turf] || get_outward_dir(door_turf, state.geometry.footprint_lookup, (state.geometry.bounds["min_x"] + state.geometry.bounds["max_x"]) / 2, (state.geometry.bounds["min_y"] + state.geometry.bounds["max_y"]) / 2, state.placement_dir)
 		var/inward_dir = turn(outward_dir, 180)
-		for(var/depth_index in 0 to length(door_cone_lateral_steps_by_depth))
+		for(var/depth_index in 0 to length(door_cone_lateral_steps_by_depth) - 1)
 			var/lateral_steps = round(text2num("[door_cone_lateral_steps_by_depth[depth_index + 1]]") || 0)
 			var/turf/base_turf = door_turf
 			if(depth_index > 0)

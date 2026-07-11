@@ -117,7 +117,7 @@
 	var/average_room_area = max(round(usable_area / max(target_room_count, 1)), zone_spec.min_area)
 	var/min_area = max(zone_spec.min_area, (zone_spec.role in list("hub", "public", "public_med")) ? 9 : ((zone_spec.role in list("entry", "route", "choke")) ? 2 : 4))
 	min_area = max(min_area, get_building_layout_zone_scene_min_area(state, zone_spec, instance_index))
-	var/preferred_area = max(min_area, round(average_room_area * 0.45))
+	var/preferred_area = max(min_area, round(average_room_area * 0.75))
 	var/max_area = max(preferred_area, round(average_room_area * 1.05))
 	var/min_width = max(2, min(round(sqrt(min_area)), 5))
 	var/requires_controlled_route_access = zone_spec.privacy_class != "public"
@@ -219,10 +219,16 @@
 	for(var/datum/world_edit_building_layout_room_contract/room as anything in program.room_contracts)
 		if(!istype(room))
 			continue
+		if(room.role == "route")
+			room.allowed_scene_kinds = list()
+			room.required_scene_kinds = list()
+			continue
 		var/list/exact_module_specs = list()
 		var/list/fallback_module_specs = list()
 		for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan?.cluster_specs)
-			if(!istype(cluster_spec) || is_building_infrastructure_category(cluster_spec.category))
+			if(!istype(cluster_spec) || cluster_spec.compact_substitute_only || is_building_infrastructure_category(cluster_spec.category))
+				continue
+			if(!building_layout_cluster_owned_by_room(program, cluster_spec, room))
 				continue
 			if(building_layout_cluster_exactly_matches_room(cluster_spec, room))
 				exact_module_specs += cluster_spec
@@ -252,26 +258,66 @@
 			room.required_scene_kinds = list(scene_kind)
 		program.add_scene_contract(scene)
 
+/datum/world_edit_generator/building_layout/proc/building_layout_cluster_owned_by_room(datum/world_edit_building_layout_program_contract/program, datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_layout_room_contract/room)
+	if(!istype(program) || !istype(cluster_spec) || !istype(room) || room.instance_index > 1)
+		return FALSE
+	var/owner_room_id = ""
+	var/best_score = -999999999
+	for(var/datum/world_edit_building_layout_room_contract/candidate_room as anything in program.room_contracts)
+		if(!istype(candidate_room) || candidate_room.instance_index > 1 || !building_layout_cluster_matches_room(cluster_spec, candidate_room))
+			continue
+		var/score = candidate_room.preferred_area * 100 + candidate_room.min_area * 10
+		if(length(cluster_spec.optional_zone_id) && cluster_spec.optional_zone_id == candidate_room.zone_id)
+			score += 100000
+		score += get_building_layout_cluster_zone_anchor_score(cluster_spec, candidate_room.zone_id)
+		if(candidate_room.role in list("hub", "public", "public_med", "staging", "work"))
+			score += 500
+		if(!length(owner_room_id) || score > best_score)
+			owner_room_id = candidate_room.id
+			best_score = score
+	return owner_room_id == room.id
+
 /datum/world_edit_generator/building_layout/proc/building_layout_cluster_exactly_matches_room(datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_layout_room_contract/room)
 	if(!istype(cluster_spec) || !istype(room))
 		return FALSE
 	if(length(cluster_spec.optional_zone_id) && cluster_spec.optional_zone_id == room.zone_id)
 		return TRUE
-	return room.zone_id in cluster_spec.anchors
+	return building_layout_cluster_has_zone_anchor(cluster_spec, room.zone_id)
+
+/datum/world_edit_generator/building_layout/proc/building_layout_cluster_has_zone_anchor(datum/world_edit_building_cluster_spec/cluster_spec, zone_id)
+	return get_building_layout_cluster_zone_anchor_score(cluster_spec, zone_id) > 0
+
+/datum/world_edit_generator/building_layout/proc/get_building_layout_cluster_zone_anchor_score(datum/world_edit_building_cluster_spec/cluster_spec, zone_id)
+	if(!istype(cluster_spec) || !length("[zone_id]"))
+		return 0
+	var/zone_prefix = "[zone_id]_"
+	var/anchor_index = 0
+	for(var/anchor_id as anything in cluster_spec.anchors)
+		anchor_index++
+		var/anchor_key = "[anchor_id]"
+		if(anchor_key == "[zone_id]")
+			return max(60000 - anchor_index * 1000, 1)
+		if(findtext(anchor_key, zone_prefix) == 1)
+			return max(50000 - anchor_index * 1000, 1)
+	return 0
 
 /datum/world_edit_generator/building_layout/proc/building_layout_cluster_matches_room(datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_layout_room_contract/room)
 	if(!istype(cluster_spec) || !istype(room) || is_building_infrastructure_category(cluster_spec.category))
 		return FALSE
 	if(length(cluster_spec.optional_zone_id) && cluster_spec.optional_zone_id == room.zone_id)
 		return TRUE
+	if(building_layout_cluster_has_zone_anchor(cluster_spec, room.zone_id))
+		return TRUE
 	for(var/anchor_id as anything in cluster_spec.anchors)
-		if("[anchor_id]" == room.zone_id || "[anchor_id]" == room.role || "[anchor_id]" in room.anchor_tags)
+		if("[anchor_id]" == room.role || "[anchor_id]" in room.anchor_tags)
 			return TRUE
 	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/resolve_building_layout_scene_kind(datum/world_edit_building_layout_room_contract/room, list/module_specs)
 	if(!istype(room))
 		return "room_identity"
+	if(findtext(room.zone_id, "sleep") || ("sleeping" in room.anchor_tags))
+		return "bedroom"
 	var/has_social_module = FALSE
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in module_specs)
 		if(!istype(cluster_spec))
@@ -376,29 +422,32 @@
 	var/datum/world_edit_building_layout_region_candidate/region = new(vertical ? "adaptive_axis" : "adaptive_cross_axis", candidate_id, 500 - abs(offset) * 10)
 	if(vertical)
 		var/route_left = clamp(round(width / 2) + offset, 5, right - 4)
-		var/route_right = route_left
+		var/route_right = route_left + 1
 		var/left_room_right = route_left - 2
 		var/right_room_left = route_right + 2
 		if(left_room_right < 4 || right_room_left > right - 2)
 			return null
 		region.add_route_hint("primary_axis", "band", route_left, 2, route_right, bottom, list("side_a", "side_b"))
+		if(uppertext("[context.state?.config["footprint_family"]]") != "RECT")
+			var/cross_y = clamp(round(height / 2), 4, bottom - 3)
+			region.add_route_hint("hub_crossbar", "band", 2, cross_y, right, cross_y + 1, list("side_a", "side_b"))
 		region.add_influence_zone("side_a", "mixed", 2, 2, left_room_right, bottom, side_a, 80)
 		region.add_influence_zone("side_b", "mixed", right_room_left, 2, right, bottom, side_b, 80)
 	else
 		var/route_top = clamp(round(height / 2) + offset, 5, bottom - 4)
-		var/route_bottom = route_top
+		var/route_bottom = route_top + 1
 		var/top_room_bottom = route_top - 2
 		var/bottom_room_top = route_bottom + 2
 		if(top_room_bottom < 4 || bottom_room_top > bottom - 2)
 			return null
 		region.add_route_hint("primary_axis", "band", 2, route_top, right, route_bottom, list("side_a", "side_b"))
-		region.add_route_hint("entry_stem", "line", right, 2, right, route_top, list("side_a"))
+		if(uppertext("[context.state?.config["footprint_family"]]") != "RECT")
+			var/cross_x = clamp(round(width / 2), 4, right - 3)
+			region.add_route_hint("hub_crossbar", "band", cross_x, 2, cross_x + 1, bottom, list("side_a", "side_b"))
 		region.add_influence_zone("side_a", "mixed", 2, 2, right - 2, top_room_bottom, side_a, 80)
 		region.add_influence_zone("side_b", "mixed", 2, bottom_room_top, right - 2, bottom, side_b, 80)
 	for(var/datum/world_edit_building_layout_room_contract/room as anything in context.program_contract.room_contracts)
 		if(!istype(room))
-			continue
-		if(room.role == "route")
 			continue
 		var/datum/world_edit_building_layout_room_connection/connection = region.add_connection("[room.id]_to_route", room.id, "route", room.privacy_class, room.required, room.route_opening_kind)
 		connection.min_shared_wall_length = (room.route_opening_kind in list(WORLD_EDIT_BUILDING_OPENING_ARCH, WORLD_EDIT_BUILDING_OPENING_WIDE_ARCH)) ? 2 : 1

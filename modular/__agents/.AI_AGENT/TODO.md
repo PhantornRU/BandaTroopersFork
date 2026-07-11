@@ -4,17 +4,17 @@
 | --- | --- | --- | --- |
 | M1 | MUST | Preserve dirty baseline; refresh task contract before product edits. | DONE |
 | M2 | MUST | Self challenge maps entrypoints, old staged path, shared primitives and forbidden aliases. | DONE |
-| M3 | MUST | Canonical rename removes `v2` files/types/procs/defines/state/metadata/counters without aliases. | IN PROGRESS: final alias audit pending |
-| M4 | MUST | Compile one solver contract from the archetype catalog for all 15 programs. | IN PROGRESS: all-program compiler implemented; contract tests pending |
-| M5 | MUST | Generic bounded pattern/room/route solver replaces coordinate living recipes and reaches exact target count semantically. | IN PROGRESS: living passes; route-after-room integration is under verification for storage matrix |
-| M6 | MUST | Generic opening/window/partition solver owns wall materialization and physical doors. | IN PROGRESS |
-| M7 | MUST | Generic scene hierarchy and placement-module dispatch replaces scene-id switch and legacy fixture placement. | IN PROGRESS: generic module dispatch is active; legacy helper deletion pending |
-| M8 | MUST | Trial quality selection hard-fails structural, architectural and semantic placement defects. | PENDING |
-| M9 | MUST | Delete staged V1 orchestration and all production fallback/compat paths. | IN PROGRESS: stage files and entrypoint branch deleted; final old-path audit pending |
-| M10 | MUST | Update active docs, unit tests, reports and visual cases to canonical contract. | PENDING |
-| C1 | CHECK | Build plus focused/full unit verification. | PENDING |
-| C2 | CHECK | All 15 representative visual cases plus living direction/size matrix. | PENDING |
-| C3 | CHECK | Manual sprite review and old-path/diff audit. | PENDING |
+| M3 | MUST | Canonical rename removes `v2` files/types/procs/defines/state/metadata/counters without aliases. | DONE: production/test/case alias audit clean |
+| M4 | MUST | Compile one solver contract from the archetype catalog for all 15 programs. | DONE: compiler plus 15-program contract unit coverage |
+| M5 | MUST | Generic bounded pattern/room/route solver replaces coordinate living recipes and reaches exact target count semantically. | DONE: exact target matrix and structured side-run reservations pass |
+| M6 | MUST | Generic opening/window/partition solver owns wall materialization and physical doors. | DONE |
+| M7 | MUST | Generic scene hierarchy and placement-module dispatch replaces scene-id switch and legacy fixture placement. | DONE: generic module dispatch active; dead high-level fixture/room-fill helpers removed and callsite audit clean |
+| M8 | MUST | Trial quality selection hard-fails structural, architectural and semantic placement defects. | DONE: ordinary 15-program matrix has zero acceptance failures |
+| M9 | MUST | Delete staged V1 orchestration and all production fallback/compat paths. | DONE: stage files and entrypoint branch deleted; final production/test/case old-path audit clean |
+| M10 | MUST | Update active docs, unit tests, reports and visual cases to canonical contract. | DONE |
+| C1 | CHECK | Build plus focused/full unit verification. | DONE: compile clean and targeted canonical runtime tests pass; full suite timeout recorded |
+| C2 | CHECK | All 15 representative visual cases plus living direction/size matrix. | DONE: 15-program matrix plus living N/S/E/W, rectangle directions and compact/standard/spacious passed |
+| C3 | CHECK | Manual sprite review and old-path/diff audit. | DONE: all 15 semantic sprites reviewed; aliases/old entrypoints absent and `git diff --check` clean |
 
 ## Forbidden substitutions
 

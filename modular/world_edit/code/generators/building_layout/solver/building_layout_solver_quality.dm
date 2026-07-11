@@ -1,15 +1,28 @@
 /datum/world_edit_generator/building_layout/proc/get_layout_scene_room_solve_order(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate)
+	var/list/signature_rooms = list()
 	var/list/required_rooms = list()
 	var/list/optional_rooms = list()
 	if(!istype(context) || !istype(candidate))
 		return required_rooms
 	for(var/datum/world_edit_building_layout_room_plan/room_plan as anything in candidate.room_plans)
 		var/datum/world_edit_building_layout_room_contract/room_contract = context.program_contract?.get_room_contract(room_plan?.contract_id)
-		if(istype(room_contract) && room_contract.required)
+		if(building_layout_room_has_required_scene_module(context, room_plan))
+			signature_rooms += room_plan
+		else if(istype(room_contract) && room_contract.required)
 			required_rooms += room_plan
 		else
 			optional_rooms += room_plan
-	return required_rooms + optional_rooms
+	return signature_rooms + required_rooms + optional_rooms
+
+/datum/world_edit_generator/building_layout/proc/building_layout_room_has_required_scene_module(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_room_plan/room_plan)
+	if(!istype(context?.program_contract) || !istype(room_plan))
+		return FALSE
+	for(var/datum/world_edit_building_layout_scene_contract/scene_contract as anything in context.program_contract.scene_contracts)
+		if(!istype(scene_contract) || !(room_plan.contract_id in scene_contract.allowed_room_ids))
+			continue
+		if(length(scene_contract.required_modules))
+			return TRUE
+	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/building_layout_scene_budget_allows(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_scene_plan/scene_plan)
 	if(!istype(context?.scene_budget) || !istype(scene_plan))
@@ -172,6 +185,36 @@
 	var/list/path_y_first = build_building_layout_room_internal_path_order(room_plan, start_turf, focus_turf, FALSE)
 	if(!islist(occupied_lookup))
 		return length(path_x_first) <= length(path_y_first) ? path_x_first : path_y_first
+	if(istype(room_plan) && istype(start_turf) && istype(focus_turf))
+		var/list/open = list(start_turf)
+		var/list/seen = list()
+		seen[start_turf] = TRUE
+		var/list/previous = list()
+		var/turf/found = null
+		var/expansions = 0
+		while(length(open) && expansions < min(max(room_plan.area() * 4, 1), WORLD_EDIT_BUILDING_MAX_ROUTE_EXPANSIONS))
+			var/turf/current = open[1]
+			open.Cut(1, 2)
+			if(current == focus_turf)
+				found = current
+				break
+			for(var/check_dir in GLOB.cardinals)
+				var/turf/nearby = get_step(current, check_dir)
+				if(!istype(nearby) || seen[nearby] || !room_plan.has_turf(nearby) || (occupied_lookup[nearby] && nearby != focus_turf))
+					continue
+				seen[nearby] = TRUE
+				previous[nearby] = current
+				open += nearby
+			expansions++
+		if(istype(found))
+			var/list/bfs_path = list()
+			var/turf/path_turf = found
+			while(istype(path_turf))
+				bfs_path.Insert(1, path_turf)
+				if(path_turf == start_turf)
+					break
+				path_turf = previous[path_turf]
+			return bfs_path
 	var/x_blocks = count_building_layout_path_occupied(path_x_first, occupied_lookup, focus_turf)
 	var/y_blocks = count_building_layout_path_occupied(path_y_first, occupied_lookup, focus_turf)
 	return x_blocks <= y_blocks ? path_x_first : path_y_first
@@ -272,7 +315,7 @@
 		if(istype(room_contract) && room_contract.required && room_contract.must_touch_route && !building_layout_room_has_valid_route_connection(candidate, room_plan.id))
 			state.validation.layout_isolated_room_count++
 		var/scene_member_count = istype(room_plan.scene_plan) ? length(room_plan.scene_plan.members) : 0
-		if(room_plan.area() >= 16 && scene_member_count <= 1 && !(room_plan.contract_id in list("sanitation", "storage", "utility")))
+		if(room_plan.area() >= 16 && scene_member_count <= 1 && !(room_plan.role in list("storage", "route")) && !(room_plan.contract_id in list("sanitation", "utility")))
 			state.validation.layout_empty_large_room_count++
 		if(istype(room_contract) && length(room_contract.required_scene_kinds) && !building_layout_room_can_fit_required_scene(context, build_building_layout_rect(room_plan.x1, room_plan.y1, room_plan.x2, room_plan.y2), room_contract))
 			state.validation.layout_room_scene_capacity_failed_count++

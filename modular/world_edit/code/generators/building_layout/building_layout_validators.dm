@@ -1684,8 +1684,13 @@
 		if(!istype(room_turf) || state.geometry.wall_lookup[room_turf] || state.geometry.door_dirs[room_turf])
 			continue
 		relevant_floor++
-		if(state.fixtures.fixture_lookup[room_turf])
+		if(!state.fixtures.fixture_lookup[room_turf])
+			continue
+		for(var/list/object_placement as anything in state.fixtures.object_placements)
+			if(!islist(object_placement) || object_placement["turf"] != room_turf || !building_object_path_is_dense(object_placement["obj_path"]))
+				continue
 			occupied++
+			break
 	if(relevant_floor >= 4 && occupied * 100 / max(relevant_floor, 1) > 70)
 		state.validation.room_overfilled_count++
 

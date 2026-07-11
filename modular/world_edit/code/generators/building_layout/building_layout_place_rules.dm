@@ -125,6 +125,8 @@
 	if(!istype(state) || !istype(target_turf) || !istype(place_rule))
 		return TRUE
 	for(var/anchor_tag as anything in place_rule.forbidden_anchor_tags)
+		if("[anchor_tag]" == "primary_lane" && !state.geometry.corridor_lookup[target_turf] && !state.geometry.reserved_lookup[target_turf])
+			continue
 		if(state.has_anchor("[anchor_tag]", target_turf))
 			return TRUE
 	return FALSE
