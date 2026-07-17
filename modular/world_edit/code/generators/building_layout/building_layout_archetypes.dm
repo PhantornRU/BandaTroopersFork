@@ -1,3 +1,9 @@
+#define WORLD_EDIT_BUILDING_SPACE_FUNCTIONAL_ROOM "functional_room"
+#define WORLD_EDIT_BUILDING_SPACE_OPEN_BAY "open_bay"
+#define WORLD_EDIT_BUILDING_SPACE_CIRCULATION "circulation"
+#define WORLD_EDIT_BUILDING_SPACE_CHOKE "choke"
+#define WORLD_EDIT_BUILDING_SPACE_NESTED_ROOM "nested_room"
+
 /datum/world_edit_building_zone_spec
 	var/id = ""
 	var/label = ""
@@ -16,6 +22,10 @@
 	var/danger = 0
 	var/clutter_density = 0
 	var/list/anchor_tags = list()
+	var/spatial_kind = WORLD_EDIT_BUILDING_SPACE_FUNCTIONAL_ROOM
+	var/counts_toward_target = TRUE
+	var/min_capacity_units = 0
+	var/capacity_kind = ""
 
 /datum/world_edit_building_zone_spec/New(_id, _label, _role, _min_area = 1, _required = TRUE, _must_touch_route = TRUE, _privacy_sensitive = FALSE, list/_anchor_tags = null, _window_allowed = TRUE, _divider_mode = "none", _privacy_class = null, _optional = FALSE, _optional_weight = 60, _optional_min_footprint = 0)
 	. = ..()
@@ -42,9 +52,28 @@
 			privacy_class = "public"
 		else
 			privacy_class = "semi_private"
+	configure_spatial_contract()
+
+/datum/world_edit_building_zone_spec/proc/configure_spatial_contract()
+	switch(role)
+		if("entry", "route")
+			spatial_kind = WORLD_EDIT_BUILDING_SPACE_CIRCULATION
+			counts_toward_target = FALSE
+		if("choke")
+			spatial_kind = WORLD_EDIT_BUILDING_SPACE_CHOKE
+			counts_toward_target = FALSE
+		if("hub", "public", "public_med", "work", "staging")
+			spatial_kind = WORLD_EDIT_BUILDING_SPACE_OPEN_BAY
+			counts_toward_target = TRUE
+		if("nested")
+			spatial_kind = WORLD_EDIT_BUILDING_SPACE_NESTED_ROOM
+			counts_toward_target = TRUE
+		else
+			spatial_kind = WORLD_EDIT_BUILDING_SPACE_FUNCTIONAL_ROOM
+			counts_toward_target = TRUE
 
 /datum/world_edit_building_zone_spec/proc/clone()
-	return new /datum/world_edit_building_zone_spec(
+	var/datum/world_edit_building_zone_spec/copy = new /datum/world_edit_building_zone_spec(
 		id,
 		label,
 		role,
@@ -60,6 +89,11 @@
 		optional_weight,
 		optional_min_footprint
 	)
+	copy.spatial_kind = spatial_kind
+	copy.counts_toward_target = counts_toward_target
+	copy.min_capacity_units = min_capacity_units
+	copy.capacity_kind = capacity_kind
+	return copy
 
 /datum/world_edit_building_region_spec
 	var/id = ""
@@ -574,6 +608,7 @@
 	var/faction = "neutral"
 	var/danger = 0
 	var/list/footprint_families = list("RECT")
+	var/list/layout_families = list("hub_spoke", "split_wing", "axial_fallback")
 	var/primary_zone = "main"
 	var/entry_zone = "entry_buffer"
 	var/hub_zone = "main"
@@ -627,6 +662,7 @@
 	style_budget = list()
 	repeat_penalties = list()
 	nested_room_specs = list()
+	layout_families = layout_families.Copy()
 	build_definition()
 	finalize_declarative_definition()
 
@@ -795,6 +831,7 @@
 
 /datum/world_edit_building_archetype/living
 	id = "living"
+	layout_families = list("hub_spoke", "split_wing", "axial_fallback")
 	label = "Living module"
 	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "L", "U")
@@ -835,6 +872,7 @@
 
 /datum/world_edit_building_archetype/workshop
 	id = "workshop"
+	layout_families = list("open_bay_perimeter", "split_wing", "compound_cells", "axial_fallback")
 	label = "Workshop"
 	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "L", "T", "COMPOUND")
@@ -875,6 +913,7 @@
 
 /datum/world_edit_building_archetype/storage
 	id = "storage"
+	layout_families = list("open_bay_perimeter", "split_wing", "axial_fallback")
 	label = "Storage"
 	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "T")
@@ -898,7 +937,7 @@
 	add_adjacency("loading_axis", "rack_zone")
 	add_adjacency("loading_axis", "staging")
 	add_nested_room("loading_axis", "staging", 9, 9, 1)
-	add_signature_cluster("rack_aisles", "major", "signature_rack_aisles", "rack", "rack", list("rack_zone", "rack_aisle", "storage_wall"), 6, 8, TRUE, 0, 100, "rack_aisles", 45)
+	add_signature_cluster("rack_aisles", "major", "signature_rack_aisles", "rack", "rack", list("rack_zone", "rack_aisle", "storage_wall"), 6, 8, FALSE, 0, 100, "rack_aisles", 45)
 	add_signature_cluster("loading_crates", "major", "staging_group", "crate", "crate", list("staging", "loading_axis"), 2, 3, FALSE, 0, 80, "loading_staging", 20)
 	add_cluster("inspection_table", "secondary", "table_cluster", "table", "table", list("staging", "loading_axis"), 1, 1, FALSE, 1, 55, FALSE)
 	add_cluster("crate_stack", "detail", "run", "crate", "crate", list("staging", "rack_zone"), 2, 3, FALSE, 0, 45, FALSE)
@@ -907,6 +946,7 @@
 
 /datum/world_edit_building_archetype/checkpoint
 	id = "checkpoint"
+	layout_families = list("secure_core", "split_wing", "axial_fallback")
 	label = "Checkpoint"
 	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "WEDGE")
@@ -939,6 +979,7 @@
 
 /datum/world_edit_building_archetype/medbay
 	id = "medbay"
+	layout_families = list("hub_spoke", "nested_service", "split_wing", "axial_fallback")
 	label = "Medbay"
 	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "L", "U", "NESTED")
@@ -977,7 +1018,7 @@
 	add_nested_room("treatment", "surgery_core", 9, 9, 1)
 	add_signature_cluster("treatment_bay_signature", "major", "signature_treatment_bay", "medical_bed", "medical_bed", list("treatment_wall", "treatment_bay"), 3, 5, TRUE, 0, 100, "treatment_bay", 45)
 	add_signature_cluster("med_storage_wall", "major", "run", "medical_storage", "medical_storage", list("med_storage", "service_strip", "storage_wall", "treatment_wall"), 2, 3, TRUE, 0, 95, "medical_storage_wall", 25)
-	add_signature_cluster("triage_table", "major", "table_cluster", "table", "table", list("triage", "public_side", "focus_center"), 1, 1, FALSE, 1, 80, "triage_surface", 15)
+	add_signature_cluster("triage_table", "major", "table_cluster", "table", "table", list("triage", "public_side", "focus_center"), 1, 1, FALSE, 2, 80, "triage_surface", 15)
 	add_cluster("waiting_chairs", "secondary", "run", "chair", "chair", list("triage", "entry_buffer", "public_route"), 2, 2, FALSE, 0, 55, FALSE)
 	add_cluster("med_side_storage", "secondary", "wall_object", "cabinet", "cabinet", list("med_storage", "wall_anchor", "service_strip"), 1, 1, TRUE, 0, 50, FALSE)
 	add_cluster("surgery_bed", "detail", "object", "medical_bed", "medical_bed", list("surgery_core", "privacy_zone"), 1, 1, FALSE, 0, 45, FALSE, "surgery_core", "surgery_bed_chunk")

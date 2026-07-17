@@ -25,7 +25,9 @@
 #define WORLD_EDIT_BUILDING_DEFAULT_MAX_REPLACED_BLOCKERS 24
 #define WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS 96
 #define WORLD_EDIT_BUILDING_AUTO_SEED 0
-#define WORLD_EDIT_BUILDING_HASH_MOD 1000000007
+#define WORLD_EDIT_BUILDING_PRNG_MOD 131071
+#define WORLD_EDIT_BUILDING_HASH_A_MOD 4093
+#define WORLD_EDIT_BUILDING_HASH_B_MOD 4099
 #define WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED "SUPPORTED_AND_VALIDATED"
 #define WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED "UNSUPPORTED_WITH_CLEAR_ERROR"
 #define WORLD_EDIT_BUILDING_SUPPORT_DISABLED "DISABLED"
@@ -48,12 +50,16 @@ GLOBAL_VAR(world_edit_building_placement_module_catalog)
 
 /datum/world_edit_building_prng/New(seed)
 	. = ..()
-	state = max(round(text2num("[seed]") || 1), 1)
+	state = round(text2num("[seed]") || 1) % WORLD_EDIT_BUILDING_PRNG_MOD
+	if(state <= 0)
+		state += WORLD_EDIT_BUILDING_PRNG_MOD
 
 /datum/world_edit_building_prng/proc/next_value()
-	state = ((state * 110351) + 12345) % WORLD_EDIT_BUILDING_HASH_MOD
+	// The maximum intermediate is 16,658,235, below DM's exact integer
+	// ceiling.  Larger LCG constants silently discard low bits.
+	state = ((state * 127) + 12345) % WORLD_EDIT_BUILDING_PRNG_MOD
 	if(state <= 0)
-		state += WORLD_EDIT_BUILDING_HASH_MOD
+		state += WORLD_EDIT_BUILDING_PRNG_MOD
 	return state
 
 /datum/world_edit_building_prng/proc/next_between(min_value, max_value)
@@ -78,10 +84,13 @@ GLOBAL_VAR(world_edit_building_placement_module_catalog)
 
 /datum/world_edit_generator/building_layout/proc/build_seed_from_text(value)
 	var/text_value = "[value]"
-	var/hash = 17
+	var/hash_a = 17
+	var/hash_b = 29
 	for(var/index in 1 to length(text_value))
-		hash = ((hash * 33) + text2ascii(text_value, index)) % WORLD_EDIT_BUILDING_HASH_MOD
-	return max(hash, 1)
+		var/ascii_value = text2ascii(text_value, index)
+		hash_a = ((hash_a * 33) + ascii_value) % WORLD_EDIT_BUILDING_HASH_A_MOD
+		hash_b = ((hash_b * 131) + ascii_value) % WORLD_EDIT_BUILDING_HASH_B_MOD
+	return max((hash_a * WORLD_EDIT_BUILDING_HASH_B_MOD) + hash_b, 1)
 
 /datum/world_edit_generator/building_layout/proc/build_effective_building_seed(list/config, datum/world_edit_shape_contract/shape_contract, list/placement_context)
 	var/requested_seed = round(text2num("[config["building_seed"]]") || WORLD_EDIT_BUILDING_AUTO_SEED)
@@ -102,13 +111,15 @@ GLOBAL_VAR(world_edit_building_placement_module_catalog)
 	if(!islist(values) || !length(values))
 		return build_seed_from_text("")
 	var/list/sorted_values = sortList(values.Copy())
-	var/hash = 17
+	var/hash_a = 17
+	var/hash_b = 29
 	for(var/value as anything in sorted_values)
-		var/text_value = "[value]"
+		var/text_value = "[value]|"
 		for(var/index in 1 to length(text_value))
-			hash = ((hash * 33) + text2ascii(text_value, index)) % WORLD_EDIT_BUILDING_HASH_MOD
-		hash = ((hash * 33) + 124) % WORLD_EDIT_BUILDING_HASH_MOD
-	return max(hash, 1)
+			var/ascii_value = text2ascii(text_value, index)
+			hash_a = ((hash_a * 33) + ascii_value) % WORLD_EDIT_BUILDING_HASH_A_MOD
+			hash_b = ((hash_b * 131) + ascii_value) % WORLD_EDIT_BUILDING_HASH_B_MOD
+	return max((hash_a * WORLD_EDIT_BUILDING_HASH_B_MOD) + hash_b, 1)
 
 /datum/world_edit_generator/building_layout/proc/build_building_turf_list_hash(list/turfs)
 	var/list/values = list()

@@ -353,6 +353,7 @@
 	validate_building_signature_rules(state)
 	validate_building_nested_room_rules(state)
 	validate_building_divider_rules(state)
+	validate_building_layout_review_contract(state)
 	validate_building_acceptance_counters(state)
 
 /datum/world_edit_generator/building_layout/proc/validate_building_zone_requirements(datum/world_edit_building_layout_state/state)
@@ -1666,7 +1667,7 @@
 			if(zone_id != "sanitation")
 				state.validation.toilet_outside_sanitation_count++
 		if("medical_bed", "sleeper")
-			if(!(state.archetype?.id in list("medbay", "compound")))
+			if(!(state.archetype?.id in list("medbay", "compound_colony")))
 				state.validation.medical_bed_outside_medical_count++
 		if("hydro_tray")
 			if(state.archetype?.id != "hydroponics")

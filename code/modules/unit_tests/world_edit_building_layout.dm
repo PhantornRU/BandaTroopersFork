@@ -232,7 +232,7 @@
 		"respect_blockers" = FALSE,
 	))
 	assert_living_template_plan_contract(plan)
-	TEST_ASSERT(living_plan_has_slot(plan, "bed", "bed"), "Living template contract did not emit a bed.")
+	TEST_ASSERT(living_plan_has_slot(plan, "bed", "sleeping_bed"), "Living template contract did not emit a bed.")
 	TEST_ASSERT(living_plan_has_slot(plan, "table", "table"), "Living template contract did not emit a table.")
 	TEST_ASSERT(living_plan_has_slot(plan, "toilet", "sanitation"), "Living template contract did not emit a toilet.")
 
@@ -254,6 +254,23 @@
 	var/list/forbidden_ids = list("auto_size", "half_width", "half_depth", "target_room_count", "window_density", "detail_budget", "back_exit", "respect_blockers", "replace_blocked_turfs", "confirm_large_replacement")
 	for(var/forbidden_id as anything in forbidden_ids)
 		TEST_ASSERT(!(forbidden_id in seen_ids), "Building layout public UI still exposes internal solver field '[forbidden_id]'.")
+
+/datum/unit_test/world_edit_building_layout/visual_canvas_origin_lifecycle/Run()
+	var/obj/effect/landmark/world_edit_visual_canvas_origin/original_origin = GLOB.world_edit_visual_canvas_origin
+	TEST_ASSERT(istype(original_origin), "The compiled visual canvas origin must be registered before World Edit tests run.")
+
+	var/turf/anchor_turf = get_test_anchor_turf()
+	var/obj/effect/landmark/world_edit_visual_canvas_origin/duplicate_origin = new(anchor_turf)
+	TEST_ASSERT_EQUAL(GLOB.world_edit_visual_canvas_origin, original_origin, "A duplicate canvas landmark must not replace the compiled-map origin.")
+	qdel(duplicate_origin, force = TRUE)
+	TEST_ASSERT_EQUAL(GLOB.world_edit_visual_canvas_origin, original_origin, "Deleting a duplicate canvas landmark must preserve the compiled-map origin.")
+
+	GLOB.world_edit_visual_canvas_origin = null
+	var/obj/effect/landmark/world_edit_visual_canvas_origin/temporary_owner = new(anchor_turf)
+	TEST_ASSERT_EQUAL(GLOB.world_edit_visual_canvas_origin, temporary_owner, "A canvas landmark must register when no live owner exists.")
+	qdel(temporary_owner, force = TRUE)
+	TEST_ASSERT(isnull(GLOB.world_edit_visual_canvas_origin), "Deleting the registered canvas landmark must clear its global reference.")
+	GLOB.world_edit_visual_canvas_origin = original_origin
 
 /datum/unit_test/world_edit_building_layout/default_living_preview/Run()
 	var/datum/world_edit_generator/building_layout/generator = new
@@ -511,7 +528,9 @@
 		var/datum/world_edit_building_layout_program_contract/program = generator.build_building_layout_program_contract(state)
 		TEST_ASSERT_NOTNULL(program, "Program contract did not compile for [program_id].")
 		TEST_ASSERT_EQUAL(program.id, "[program_id]", "Program contract id mismatch for [program_id].")
-		TEST_ASSERT_EQUAL(length(program.room_contracts), program.target_room_count, "Program contract room count is not exact for [program_id].")
+		TEST_ASSERT_EQUAL(length(program.functional_room_contracts), program.target_functional_room_count, "Program contract functional room count is not exact for [program_id].")
+		for(var/datum/world_edit_building_layout_room_contract/circulation_contract as anything in program.circulation_contracts)
+			TEST_ASSERT(!circulation_contract.counts_toward_target, "Circulation contract [circulation_contract.id] counts toward target for [program_id].")
 		TEST_ASSERT(program.max_layout_candidates <= 24, "Program contract exceeded the 24 layout-candidate bound for [program_id].")
 
 /datum/unit_test/world_edit_building_layout/route_side_run_contract/Run()
@@ -533,6 +552,112 @@
 	TEST_ASSERT_EQUAL(length(reservation["wall_run"]), 3, "Controlled reservation lost wall-run width.")
 	TEST_ASSERT_EQUAL(length(reservation["route_run"]), 3, "Controlled reservation lost route-run width.")
 	TEST_ASSERT(!candidate.reserve_route_access("bad_room", wall_run, route_run.Copy(1, 3), list()), "Mismatched wall/route side runs must be rejected.")
+
+/datum/unit_test/world_edit_building_layout/standard_candidate_diversity_is_hard_contract/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/datum/world_edit_building_layout_state/state = new
+	state.config["layout_hard_valid_candidate_count"] = 2
+	state.config["layout_distinct_hard_valid_family_count"] = 1
+	generator.validate_building_layout_candidate_diversity(state)
+	TEST_ASSERT_EQUAL(state.validation.layout_hard_valid_candidate_shortage_count, 1, "Standard layouts must reject two hard-valid candidates from only one topology family.")
+
+/datum/unit_test/world_edit_building_layout/seeded_family_selection_preserves_quality_tier/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/datum/world_edit_building_layout_state/state = new
+	var/datum/world_edit_building_layout_context/context = new(generator, state, null)
+	var/datum/world_edit_building_layout_candidate/best_hub = new
+	best_hub.id = "hub_best"
+	best_hub.pattern_id = "hub_spoke"
+	best_hub.topology_family = "hub_spoke"
+	best_hub.score = 1000
+	var/datum/world_edit_building_layout_candidate/weaker_same_family = new
+	weaker_same_family.id = "hub_weaker"
+	weaker_same_family.pattern_id = "hub_spoke"
+	weaker_same_family.topology_family = "hub_spoke"
+	weaker_same_family.score = 990
+	var/datum/world_edit_building_layout_candidate/eligible_split = new
+	eligible_split.id = "split_best"
+	eligible_split.pattern_id = "split_wing"
+	eligible_split.topology_family = "split_wing"
+	eligible_split.score = 930
+	var/datum/world_edit_building_layout_candidate/outside_band = new
+	outside_band.id = "axial_low"
+	outside_band.pattern_id = "axial_fallback"
+	outside_band.topology_family = "axial_fallback"
+	outside_band.score = 700
+	var/list/candidates = list(best_hub, weaker_same_family, eligible_split, outside_band)
+	var/list/selected_ids = list()
+	for(var/seed_value in 1 to 32)
+		state.root_seed = seed_value
+		var/datum/world_edit_building_layout_candidate/selected = generator.select_seeded_building_layout_family_winner(context, candidates)
+		TEST_ASSERT_NOTNULL(selected, "Seeded family selection returned no candidate for seed [seed_value].")
+		TEST_ASSERT(selected == best_hub || selected == eligible_split, "Seeded family selection admitted a duplicate-family loser or a candidate below the quality floor.")
+		TEST_ASSERT(round(text2num("[state.config["layout_selected_candidate_score_gap"]]") || 0) <= 100, "Seeded family selection exceeded the bounded quality gap.")
+		selected_ids[selected.id] = TRUE
+		var/datum/world_edit_building_layout_candidate/replay = generator.select_seeded_building_layout_family_winner(context, candidates)
+		TEST_ASSERT_EQUAL(replay.id, selected.id, "Same-seed family selection replay changed candidate id.")
+	TEST_ASSERT_EQUAL(length(selected_ids), 2, "Cross-seed family selection did not exercise both quality-admissible topology families.")
+
+/datum/unit_test/world_edit_building_layout/synthetic_empty_large_room_rejected/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/datum/world_edit_building_layout_state/state = new
+	var/datum/world_edit_building_layout_program_contract/program = new
+	var/datum/world_edit_building_layout_context/context = new(generator, state, program)
+	var/datum/world_edit_building_layout_candidate/candidate = new
+	var/datum/world_edit_building_layout_room_plan/room = new("empty_room", "empty_room", "hub", "empty_room")
+	var/turf/anchor_turf = get_test_anchor_turf()
+	TEST_ASSERT_NOTNULL(anchor_turf, "Empty-room synthetic test could not resolve an anchor turf.")
+	room.x1 = anchor_turf.x
+	room.y1 = anchor_turf.y
+	room.x2 = anchor_turf.x + 3
+	room.y2 = anchor_turf.y + 3
+	for(var/turf/room_turf in block(anchor_turf, locate(room.x2, room.y2, anchor_turf.z)))
+		room.turfs += room_turf
+	candidate.room_plans += room
+	generator.validate_building_layout_room_quality(context, candidate)
+	TEST_ASSERT_EQUAL(state.validation.layout_empty_large_room_count, 1, "A large room without a composition must fail the canonical empty-room counter.")
+
+/datum/unit_test/world_edit_building_layout/synthetic_invalid_shared_wall_rejected/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/datum/world_edit_building_layout_state/state = new
+	var/datum/world_edit_building_layout_program_contract/program = new
+	var/datum/world_edit_building_layout_context/context = new(generator, state, program)
+	var/datum/world_edit_building_layout_candidate/candidate = new
+	var/turf/anchor_turf = get_test_anchor_turf()
+	TEST_ASSERT_NOTNULL(anchor_turf, "Invalid-shared-wall synthetic test could not resolve an anchor turf.")
+	candidate.add_door_plan(new /datum/world_edit_building_layout_route_opening_plan("invalid_door", "door", anchor_turf, NORTH, "missing_room", "route"))
+	generator.validate_building_layout_opening_quality(context, candidate)
+	TEST_ASSERT(state.validation.layout_door_no_shared_wall_count > 0, "A door without a shared-wall segment must fail layout_door_no_shared_wall_count.")
+	TEST_ASSERT(state.validation.layout_door_not_on_shared_wall_count > 0, "A door outside the partition graph must fail layout_door_not_on_shared_wall_count.")
+
+/datum/unit_test/world_edit_building_layout/synthetic_blocked_negative_space_rejected/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/datum/world_edit_building_layout_state/state = new
+	var/datum/world_edit_building_layout_program_contract/program = new
+	var/datum/world_edit_building_layout_context/context = new(generator, state, program)
+	var/datum/world_edit_building_layout_candidate/candidate = new
+	var/turf/focus_turf = get_test_anchor_turf()
+	TEST_ASSERT_NOTNULL(focus_turf, "Negative-space synthetic test could not resolve an anchor turf.")
+	var/turf/blocked_turf = get_step(focus_turf, EAST)
+	var/datum/world_edit_building_layout_room_plan/room = new("blocked_room", "blocked_room", "hub", "blocked_room")
+	room.turfs = list(focus_turf, blocked_turf)
+	room.x1 = min(focus_turf.x, blocked_turf.x)
+	room.x2 = max(focus_turf.x, blocked_turf.x)
+	room.y1 = focus_turf.y
+	room.y2 = focus_turf.y
+	var/datum/world_edit_building_layout_scene_plan/scene = new
+	scene.scene_contract_id = "blocked_scene"
+	scene.primary_anchors["focus"] = focus_turf
+	scene.add_member("table", "table", focus_turf, SOUTH, "primary", FALSE, TRUE)
+	scene.add_member("chair", "chair", blocked_turf, NORTH, "secondary", FALSE, FALSE)
+	scene.negative_space_turfs += blocked_turf
+	scene.no_furniture_lookup[blocked_turf] = TRUE
+	room.scene_plan = scene
+	candidate.room_plans += room
+	var/datum/world_edit_building_layout_scene_contract/scene_contract = new("blocked_scene", "room_identity")
+	program.add_scene_contract(scene_contract)
+	generator.validate_building_layout_scene_quality(context, candidate)
+	TEST_ASSERT_EQUAL(state.validation.layout_scene_blocks_negative_space_count, 1, "A scene member inside reserved negative space must fail the canonical counter.")
 
 
 /datum/unit_test/world_edit_building_layout/living_sanitation_connected/Run()
@@ -686,7 +811,7 @@
 	var/turf/changed_turf = drift_turf.ChangeTurf(/turf/closed/wall)
 	TEST_ASSERT(istype(changed_turf, /turf/closed/wall), "Atomic apply test failed to mutate the target turf after preview.")
 	var/current_target_hash = round(text2num("[generator.build_building_target_state_hash(plan)]") || 0)
-	TEST_ASSERT(current_target_hash != expected_target_hash, "Target-state hash did not change after live target mutation.")
+	TEST_ASSERT(current_target_hash != expected_target_hash, "Target-state hash did not change after live target mutation: expected=[expected_target_hash], current=[current_target_hash], turf=[changed_turf.type] at [changed_turf.x],[changed_turf.y],[changed_turf.z].")
 
 	var/datum/world_edit_apply_result/apply_result = generator.apply_plan(null, params, plan)
 	TEST_ASSERT_NOTNULL(apply_result, "Stale target apply did not return an apply result.")
@@ -737,7 +862,7 @@
 	TEST_ASSERT(WORLD_EDIT_SHAPE_RECTANGLE in supported_shapes, "Building layout must advertise rectangle placement.")
 	TEST_ASSERT(WORLD_EDIT_SHAPE_FILLED_RECTANGLE in supported_shapes, "Building layout must advertise filled rectangle placement.")
 	for(var/shape_id as anything in generator.get_supported_placement_shapes())
-		var/list/shape_params = generator.build_building_quality_shape_params(shape_id, 12345, 4, 4)
+		var/list/shape_params = generator.build_building_quality_shape_params(shape_id, 12345, 8, 8)
 		var/list/shape_context = generator.build_building_quality_shape_context(anchor_turf, shape_id, shape_params)
 		TEST_ASSERT(islist(shape_context), "Shape context was not created for [shape_id].")
 		var/datum/world_edit_shape_contract/shape_contract = shape_context["shape_contract"]
@@ -746,8 +871,8 @@
 			"archetype_id" = "living",
 			"faction_preset" = "colony",
 			"auto_size" = FALSE,
-			"half_width" = 4,
-			"half_depth" = 4,
+			"half_width" = 8,
+			"half_depth" = 8,
 			"detail_budget" = 20,
 			"replace_blocked_turfs" = TRUE,
 			"respect_blockers" = FALSE,

@@ -540,10 +540,10 @@
 	plan.metadata["user_facing_failure_reason"] = state.validation.user_facing_failure_reason
 	plan.metadata["support_status_report"] = state.validation.support_status_report.Copy()
 	var/detailed_reports = should_emit_detailed_building_reports(state.config)
+	var/datum/world_edit_building_layout_context/active_layout_context = state.layout_context
 	if(building_layout_solver_enabled(state))
-		var/datum/world_edit_building_layout_context/layout_context = state.layout_context
-		if(istype(layout_context?.selected_candidate))
-			sync_building_layout_physical_door_state(state, layout_context.selected_candidate)
+		if(istype(active_layout_context?.selected_candidate))
+			sync_building_layout_physical_door_state(state, active_layout_context.selected_candidate)
 	plan.metadata["stage_reports"] = detailed_reports ? state.validation.stage_reports.Copy() : list()
 	plan.metadata["stage_report_count"] = length(state.validation.stage_reports)
 	plan.metadata["room_reports"] = detailed_reports ? state.validation.room_reports.Copy() : list()
@@ -604,6 +604,27 @@
 	plan.metadata["layout_candidate_id"] = state.config["layout_candidate_id"] || ""
 	plan.metadata["layout_candidate_count"] = state.config["layout_candidate_count"] || 0
 	plan.metadata["layout_hard_valid_candidate_count"] = state.config["layout_hard_valid_candidate_count"] || 0
+	plan.metadata["layout_distinct_hard_valid_family_count"] = state.config["layout_distinct_hard_valid_family_count"] || state.validation.layout_distinct_hard_valid_family_count
+	plan.metadata["layout_selected_topology_family"] = active_layout_context?.selected_candidate?.topology_family || state.config["layout_pattern_id"] || ""
+	plan.metadata["layout_best_hard_valid_candidate_score"] = state.config["layout_best_hard_valid_candidate_score"] || state.config["layout_candidate_score"] || 0
+	plan.metadata["layout_family_winner_count"] = state.config["layout_family_winner_count"] || 0
+	plan.metadata["layout_family_winner_scores"] = islist(state.config["layout_family_winner_scores"]) ? state.config["layout_family_winner_scores"].Copy() : list()
+	plan.metadata["layout_seed_quality_margin"] = state.config["layout_seed_quality_margin"] || 0
+	plan.metadata["layout_seed_quality_floor"] = state.config["layout_seed_quality_floor"] || state.config["layout_candidate_score"] || 0
+	plan.metadata["layout_seed_eligible_family_count"] = state.config["layout_seed_eligible_family_count"] || 0
+	plan.metadata["layout_seed_selection_index"] = state.config["layout_seed_selection_index"] || 0
+	plan.metadata["layout_seed_selection_key"] = state.config["layout_seed_selection_key"] || ""
+	plan.metadata["layout_selected_candidate_score_gap"] = state.config["layout_selected_candidate_score_gap"] || 0
+	plan.metadata["layout_functional_room_count"] = state.validation.layout_functional_room_count
+	plan.metadata["layout_target_functional_room_count"] = state.validation.layout_target_functional_room_count
+	plan.metadata["layout_functional_room_count_gap"] = state.validation.layout_functional_room_count_gap
+	plan.metadata["layout_circulation_region_count"] = state.validation.layout_circulation_region_count
+	plan.metadata["layout_candidate_metric_mismatch_count"] = state.validation.layout_candidate_metric_mismatch_count
+	plan.metadata["layout_wall_cleanup_removed_count"] = state.validation.layout_wall_cleanup_removed_count
+	plan.metadata["layout_wall_cleanup_ratio_percent"] = state.validation.layout_wall_cleanup_ratio_percent
+	plan.metadata["layout_optional_template_attempt_count"] = state.validation.layout_optional_template_attempt_count
+	plan.metadata["layout_optional_template_reject_count"] = state.validation.layout_optional_template_reject_count
+	plan.metadata["layout_template_reject_ratio_percent"] = state.validation.layout_template_reject_ratio_percent
 	plan.metadata["layout_scene_count"] = state.config["layout_scene_count"] || 0
 	plan.metadata["semantic_region_claim_count"] = state.validation.region_claim_count
 	plan.metadata["semantic_region_claim_reports"] = detailed_reports ? state.validation.region_claim_reports.Copy() : list()
@@ -670,6 +691,12 @@
 	plan.metadata["layout_template_geometry_reject_count"] = state.validation.layout_template_geometry_reject_count
 	plan.metadata["layout_missing_wall_context_reject_count"] = state.validation.layout_missing_wall_context_reject_count
 	plan.metadata["layout_hard_valid_candidate_shortage_count"] = state.validation.layout_hard_valid_candidate_shortage_count
+	plan.metadata["layout_distinct_hard_valid_family_count"] = state.config["layout_distinct_hard_valid_family_count"] || state.validation.layout_distinct_hard_valid_family_count
+	plan.metadata["layout_functional_room_count"] = state.validation.layout_functional_room_count
+	plan.metadata["layout_target_functional_room_count"] = state.validation.layout_target_functional_room_count
+	plan.metadata["layout_functional_room_count_gap"] = state.validation.layout_functional_room_count_gap
+	plan.metadata["layout_circulation_region_count"] = state.validation.layout_circulation_region_count
+	plan.metadata["layout_candidate_metric_mismatch_count"] = state.validation.layout_candidate_metric_mismatch_count
 	plan.metadata["semantic_distribution_noise_score"] = state.validation.semantic_distribution_noise_score
 	plan.metadata["semantic_functional_coverage_percent"] = state.validation.semantic_functional_coverage_percent
 	plan.metadata["semantic_route_clearance_percent"] = state.validation.semantic_route_clearance_percent

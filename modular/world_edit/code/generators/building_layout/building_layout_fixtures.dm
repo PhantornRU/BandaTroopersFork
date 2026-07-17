@@ -399,6 +399,8 @@
 	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
 	var/effective_needs_wall = get_cluster_effective_needs_wall(state, cluster_spec, place_rule)
 	for(var/turf/floor_turf as anything in get_fixture_candidate_turfs_for_anchors(state, cluster_spec.anchors))
+		if(!building_fixture_candidate_has_entry_access(state, floor_turf, cluster_spec))
+			continue
 		if(!state.can_place_fixture(floor_turf))
 			continue
 		if(effective_needs_wall && !length(get_adjacent_wall_dirs_for_state(state, floor_turf)))
@@ -433,11 +435,26 @@
 /datum/world_edit_generator/building_layout/proc/is_building_infrastructure_category(category)
 	return "[category]" in list("light", "apc", "air_alarm", "fire_alarm", "light_switch")
 
+/datum/world_edit_generator/building_layout/proc/building_fixture_candidate_has_entry_access(datum/world_edit_building_layout_state/state, turf/target_turf, datum/world_edit_building_cluster_spec/cluster_spec)
+	if(!istype(state) || !istype(target_turf) || !istype(cluster_spec) || !is_building_infrastructure_category(cluster_spec.category))
+		return TRUE
+	var/list/reachable = get_building_validation_reachable_floor_lookup(state)
+	if(reachable[target_turf])
+		return TRUE
+	for(var/check_dir in GLOB.cardinals)
+		if(reachable[get_step(target_turf, check_dir)])
+			return TRUE
+	return FALSE
+
 /datum/world_edit_generator/building_layout/proc/is_building_compact_or_micro_state(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
 		return FALSE
 	var/degrade_level = "[state.config["size_degrade_level"] || WORLD_EDIT_BUILDING_DEGRADE_NONE]"
-	return GLOB.world_edit_helpers.parse_bool(state.config["program_shedding"]) || GLOB.world_edit_helpers.parse_bool(state.config["micro_layout"]) || degrade_level in list(WORLD_EDIT_BUILDING_DEGRADE_COMPACT, WORLD_EDIT_BUILDING_DEGRADE_MICRO)
+	var/size_profile = "[state.config["size_profile"] || WORLD_EDIT_BUILDING_SIZE_PROFILE_STANDARD]"
+	var/geometry_width = round(text2num("[state.geometry?.bounds?["width"]]") || 0)
+	var/geometry_height = round(text2num("[state.geometry?.bounds?["height"]]") || 0)
+	var/compact_geometry = geometry_width > 0 && geometry_height > 0 && geometry_width <= 13 && geometry_height <= 13
+	return size_profile == WORLD_EDIT_BUILDING_SIZE_PROFILE_COMPACT || compact_geometry || GLOB.world_edit_helpers.parse_bool(state.config["program_shedding"]) || GLOB.world_edit_helpers.parse_bool(state.config["micro_layout"]) || (degrade_level in list(WORLD_EDIT_BUILDING_DEGRADE_COMPACT, WORLD_EDIT_BUILDING_DEGRADE_MICRO))
 
 /datum/world_edit_generator/building_layout/proc/can_building_cluster_use_broad_fallback_anchors(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec)
 	if(!istype(cluster_spec) || !cluster_spec.required)
@@ -598,6 +615,8 @@
 	var/datum/world_edit_building_place_rule/place_rule = resolve_building_place_rule(cluster_spec.slot, cluster_spec.category)
 	var/effective_needs_wall = get_cluster_effective_needs_wall(state, cluster_spec, place_rule)
 	for(var/turf/floor_turf as anything in get_fixture_candidate_turfs_for_anchors(state, anchor_ids))
+		if(!building_fixture_candidate_has_entry_access(state, floor_turf, cluster_spec))
+			continue
 		var/owner = state.get_semantic_slot_owner(floor_turf)
 		if(length(owner) && owner != requirement_id)
 			continue
@@ -713,6 +732,8 @@
 		var/best_score = -999999999
 		for(var/turf/candidate_turf as anything in candidates)
 			if(!istype(candidate_turf) || planned_lookup[candidate_turf])
+				continue
+			if(!building_fixture_candidate_has_entry_access(state, candidate_turf, cluster_spec))
 				continue
 			var/owner = state.get_semantic_slot_owner(candidate_turf)
 			if(length(owner) && owner != requirement_id)
@@ -1227,6 +1248,8 @@
 		var/list/best_turfs = list()
 		var/best_score = -999999999
 		for(var/turf/floor_turf as anything in get_fixture_candidate_turfs_for_anchors(state, effective_anchor_ids))
+			if(!building_fixture_candidate_has_entry_access(state, floor_turf, cluster_spec))
+				continue
 			var/owner = state.get_semantic_slot_owner(floor_turf)
 			if(length(owner) && owner != requirement_id)
 				continue
@@ -1323,11 +1346,12 @@
 	return (projected_percent - soft_percent) * max(penalty, 1)
 
 /datum/world_edit_generator/building_layout/proc/place_fixture_at(datum/world_edit_building_layout_state/state, turf/target_turf, slot, dir_to_use, category, major = FALSE, wall_mounted = FALSE, datum/world_edit_building_place_rule/place_rule = null, wall_dir = null, datum/world_edit_building_cluster_spec/cluster_spec = null, template_chunk_id = null, template_chunk_instance_id = null, dir_source = null, allow_reserved = FALSE, module_id = null, module_instance_id = null, module_expected_member_count = 0, module_repeat_group = null, module_room_id = null, module_requires_table_pairing = FALSE, module_seating_group_ok = FALSE)
+	var/layout_scene_owner = findtext("[module_id]", "layout_scene_") == 1
 	if(!state.can_place_fixture(target_turf, allow_reserved))
 		return FALSE
 	var/reservation_owner = state.get_semantic_slot_owner(target_turf)
 	if(length(reservation_owner))
-		if(!istype(cluster_spec) || reservation_owner != get_building_cluster_requirement_id(cluster_spec))
+		if(!layout_scene_owner && (!istype(cluster_spec) || reservation_owner != get_building_cluster_requirement_id(cluster_spec)))
 			return FALSE
 	if(state.fixtures.fixture_count >= WORLD_EDIT_BUILDING_MAX_FIXTURE_OBJECTS)
 		return FALSE
@@ -1347,12 +1371,12 @@
 		return FALSE
 	var/is_required_cluster = istype(cluster_spec) && cluster_spec.required
 	var/budget = state.get_category_budget(category)
-	if(!is_required_cluster && !major && isnum(budget) && budget > 0 && (state.fixtures.category_counts["[category]"] || 0) >= budget)
+	if(!layout_scene_owner && !is_required_cluster && !major && isnum(budget) && budget > 0 && (state.fixtures.category_counts["[category]"] || 0) >= budget)
 		return FALSE
 	var/list/repeat_penalties = state.semantic_plan?.repeat_penalties
 	var/list/repeat_rule = islist(repeat_penalties) && islist(repeat_penalties["[category]"]) ? repeat_penalties["[category]"] : list()
 	var/hard_percent = round(text2num("[repeat_rule["hard_percent"]]") || 0)
-	if(!is_required_cluster && !major && hard_percent > 0 && state.fixtures.fixture_count >= 4)
+	if(!layout_scene_owner && !is_required_cluster && !major && hard_percent > 0 && state.fixtures.fixture_count >= 4)
 		var/projected_percent = round(((state.fixtures.category_counts["[category]"] || 0) + 1) * 100 / max(state.fixtures.fixture_count + 1, 1))
 		if(projected_percent > hard_percent)
 			return FALSE

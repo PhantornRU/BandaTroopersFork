@@ -136,6 +136,22 @@ Render complete canvases instead of cropped review artifacts:
 py -3 tools\world_edit_visual\scripts\render_workflow.py --full-canvas
 ```
 
+Run the canonical 10-seed acceptance matrix for the six target-room Building
+Layout programs. The runner derives temporary cases from the committed target
+cases, executes ordinary workflow batches in bounded shards, requires
+same-seed replay and the shared hard gates, and writes one aggregate JSON report
+under the generated `out/` directory:
+
+```bat
+py -3 tools\world_edit_visual\scripts\run_building_layout_seed_matrix.py
+```
+
+Use `--prepare-only` to inspect the 60 derived inputs without starting
+DreamDaemon. `--program`, `--seed`, `--shard-size`, and `--timeout-seconds`
+support focused diagnosis. `--resume-passed` keeps already passing reports after
+an interrupted long run; the unfiltered command is the fresh acceptance
+contract.
+
 Render the committed appearance smoke fixture:
 
 ```bat

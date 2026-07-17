@@ -9,6 +9,12 @@
 #define WORLD_EDIT_BUILDING_OPENING_DOOR "door"
 #define WORLD_EDIT_BUILDING_OPENING_SECURE_DOOR "secure_door"
 
+#define WORLD_EDIT_BUILDING_EDGE_SHARED "shared"
+#define WORLD_EDIT_BUILDING_EDGE_ROUTE "route"
+#define WORLD_EDIT_BUILDING_EDGE_OPEN_MERGE "open_merge"
+#define WORLD_EDIT_BUILDING_EDGE_SECURE "secure"
+#define WORLD_EDIT_BUILDING_EDGE_NESTED "nested"
+
 /datum/world_edit_building_layout_context
 	var/datum/world_edit_generator/building_layout/generator
 	var/datum/world_edit_building_layout_state/state
@@ -117,6 +123,8 @@
 	var/id = ""
 	var/list/room_contracts = list()
 	var/list/room_contracts_by_id = list()
+	var/list/functional_room_contracts = list()
+	var/list/circulation_contracts = list()
 	var/list/connection_contracts = list()
 	var/list/scene_contracts = list()
 	var/list/scene_contracts_by_id = list()
@@ -127,6 +135,9 @@
 	var/min_total_area = 0
 	var/preferred_total_area = 0
 	var/target_room_count = 0
+	var/target_functional_room_count = 0
+	var/min_circulation_area = 0
+	var/datum/world_edit_building_layout_topology_graph/topology_graph = null
 	var/max_layout_candidates = 24
 
 /datum/world_edit_building_layout_program_contract/proc/add_room_contract(datum/world_edit_building_layout_room_contract/room_contract)
@@ -134,6 +145,10 @@
 		return
 	room_contracts += room_contract
 	room_contracts_by_id[room_contract.id] = room_contract
+	if(room_contract.counts_toward_target)
+		functional_room_contracts += room_contract
+	else
+		circulation_contracts += room_contract
 
 /datum/world_edit_building_layout_program_contract/proc/get_room_contract(contract_id)
 	return room_contracts_by_id["[contract_id]"]
@@ -182,6 +197,10 @@
 	var/list/anchor_tags = list()
 	var/instance_index = 1
 	var/split_priority = 0
+	var/spatial_kind = WORLD_EDIT_BUILDING_SPACE_FUNCTIONAL_ROOM
+	var/counts_toward_target = TRUE
+	var/min_capacity_units = 0
+	var/capacity_kind = ""
 
 /datum/world_edit_building_layout_room_contract/New(_id = "", _role = "", _zone_id = "", _required = TRUE, _min_area = 1, _preferred_area = 1, _max_area = 999, _min_width = 1, _min_height = 1, _max_width = 999, _max_height = 999)
 	. = ..()
@@ -212,6 +231,66 @@
 	required = _required ? TRUE : FALSE
 	kind = length("[_kind]") ? "[_kind]" : "route"
 	door_required = _door_required ? TRUE : FALSE
+
+/datum/world_edit_building_layout_topology_graph
+	var/list/nodes = list()
+	var/list/nodes_by_id = list()
+	var/list/edges = list()
+	var/root_node_id = ""
+
+/datum/world_edit_building_layout_topology_graph/proc/add_node(datum/world_edit_building_layout_topology_node/node)
+	if(!istype(node) || !length(node.id) || nodes_by_id[node.id])
+		return
+	nodes += node
+	nodes_by_id[node.id] = node
+
+/datum/world_edit_building_layout_topology_graph/proc/add_edge(datum/world_edit_building_layout_topology_edge/edge)
+	if(!istype(edge) || !length(edge.from_id) || !length(edge.to_id) || edge.from_id == edge.to_id)
+		return FALSE
+	for(var/datum/world_edit_building_layout_topology_edge/existing as anything in edges)
+		if((existing.from_id == edge.from_id && existing.to_id == edge.to_id) || (existing.from_id == edge.to_id && existing.to_id == edge.from_id))
+			return FALSE
+	edges += edge
+	return TRUE
+
+/datum/world_edit_building_layout_topology_graph/proc/get_node(node_id)
+	return nodes_by_id["[node_id]"]
+
+/datum/world_edit_building_layout_topology_graph/proc/get_edges_for(node_id)
+	var/list/result = list()
+	for(var/datum/world_edit_building_layout_topology_edge/edge as anything in edges)
+		if(istype(edge) && (edge.from_id == node_id || edge.to_id == node_id))
+			result += edge
+	return result
+
+/datum/world_edit_building_layout_topology_node
+	var/id = ""
+	var/datum/world_edit_building_layout_room_contract/room_contract = null
+	var/depth = 0
+	var/parent_id = ""
+	var/placement_group = ""
+	var/centrality_score = 0
+
+/datum/world_edit_building_layout_topology_node/New(datum/world_edit_building_layout_room_contract/_room_contract)
+	. = ..()
+	room_contract = _room_contract
+	id = "[_room_contract?.id || ""]"
+	placement_group = "[_room_contract?.zone_id || ""]"
+
+/datum/world_edit_building_layout_topology_edge
+	var/from_id = ""
+	var/to_id = ""
+	var/kind = WORLD_EDIT_BUILDING_EDGE_SHARED
+	var/required = TRUE
+	var/min_shared_wall = 0
+	var/privacy_transition = ""
+
+/datum/world_edit_building_layout_topology_edge/New(_from_id = "", _to_id = "", _kind = WORLD_EDIT_BUILDING_EDGE_SHARED, _required = TRUE)
+	. = ..()
+	from_id = "[_from_id]"
+	to_id = "[_to_id]"
+	kind = "[_kind]"
+	required = _required ? TRUE : FALSE
 
 /datum/world_edit_building_layout_pattern
 	var/id = ""
@@ -249,6 +328,7 @@
 	var/list/route_lookup = list()
 	var/list/access_reserved_lookup = list()
 	var/list/access_reservations_by_room = list()
+	var/list/reserved_partition_wall_lookup = list()
 	var/list/wall_turfs = list()
 	var/list/wall_lookup = list()
 	var/list/floor_lookup = list()
@@ -261,6 +341,11 @@
 	var/list/errors = list()
 	var/list/warnings = list()
 	var/score = 0
+	var/datum/world_edit_building_layout_topology_graph/topology_graph = null
+	var/topology_family = ""
+	var/list/route_overlay_turfs = list()
+	var/list/route_overlay_lookup = list()
+	var/list/route_zone_by_turf = list()
 
 /datum/world_edit_building_layout_candidate/proc/add_room_allocation_request(datum/world_edit_building_layout_room_allocation_request/allocation_request)
 	if(istype(allocation_request))
@@ -354,6 +439,10 @@
 	var/list/window_candidates = list()
 	var/scene_kind = ""
 	var/datum/world_edit_building_layout_scene_plan/scene_plan = null
+	var/spatial_kind = WORLD_EDIT_BUILDING_SPACE_FUNCTIONAL_ROOM
+	var/counts_toward_target = TRUE
+	var/topology_parent = ""
+	var/graph_depth = 0
 
 /datum/world_edit_building_layout_room_plan/New(_id = "", _contract_id = "", _role = "", _zone_id = "")
 	. = ..()
@@ -504,6 +593,8 @@
 	var/list/influence_zones = list()
 	var/list/route_hints = list()
 	var/list/room_connections = list()
+	var/datum/world_edit_building_layout_topology_graph/topology_graph = null
+	var/topology_family = ""
 
 /datum/world_edit_building_layout_region_candidate/New(_pattern_id = "", _id = "", _score = 0)
 	. = ..()

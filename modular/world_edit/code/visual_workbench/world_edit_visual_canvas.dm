@@ -32,7 +32,14 @@ GLOBAL_VAR(world_edit_visual_canvas_origin)
 
 /obj/effect/landmark/world_edit_visual_canvas_origin/New()
 	. = ..()
-	GLOB.world_edit_visual_canvas_origin = src
+	var/obj/effect/landmark/world_edit_visual_canvas_origin/registered_origin = GLOB.world_edit_visual_canvas_origin
+	if(!istype(registered_origin) || QDELETED(registered_origin))
+		GLOB.world_edit_visual_canvas_origin = src
+
+/obj/effect/landmark/world_edit_visual_canvas_origin/Destroy()
+	if(GLOB.world_edit_visual_canvas_origin == src)
+		GLOB.world_edit_visual_canvas_origin = null
+	return ..()
 
 /datum/world_edit_visual_canvas/proc/setup(list/config)
 	preset = "[islist(config) && config["preset"] ? config["preset"] : "blank_64"]"

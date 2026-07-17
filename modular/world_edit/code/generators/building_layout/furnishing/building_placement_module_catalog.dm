@@ -63,7 +63,7 @@
 	var/list/seen = list()
 	if(!istype(cluster_spec))
 		return result
-	for(var/source_list as anything in list(modules_by_cluster_id["[cluster_spec.id]"], modules_by_signature_id["[cluster_spec.signature_id]"], modules_by_macro_id["[cluster_spec.macro_id]"]))
+	for(var/source_list as anything in list(modules_by_cluster_id["[cluster_spec.id]"], modules_by_cluster_id["[cluster_spec.count_cluster_id]"], modules_by_signature_id["[cluster_spec.signature_id]"], modules_by_macro_id["[cluster_spec.macro_id]"]))
 		if(!islist(source_list))
 			continue
 		for(var/datum/world_edit_building_placement_module/module as anything in source_list)
@@ -113,12 +113,12 @@
 		list("workshop", "operator_console", list("wall_single", "service_single")),
 		list("workshop", "tool_storage", list("wall_pair", "wall_single")),
 		list("workshop", "parts_crate_stack", list("staging_pair", "staging_corner")),
-		list("storage", "rack_aisles", list("aisle_line", "wide_line", "wall_line")),
-		list("storage", "loading_crates", list("staging_pair", "staging_corner", "staging_line")),
+		list("storage", "rack_aisles", list("aisle_line", "wide_line", "wall_line", "compact_single")),
+		list("storage", "loading_crates", list("staging_pair", "staging_corner", "staging_line", "compact_single")),
 		list("storage", "inspection_table", list("desk_suite", "table_pair")),
 		list("storage", "crate_stack", list("staging_pair", "staging_line")),
-		list("medbay", "treatment_bay_signature", list("wall_line", "wide_line", "service_line")),
-		list("medbay", "med_storage_wall", list("wall_pair", "wall_line", "service_line")),
+		list("medbay", "treatment_bay_signature", list("wall_line", "wide_line", "service_line", "wall_single", "compact_single")),
+		list("medbay", "med_storage_wall", list("wall_single")),
 		list("medbay", "triage_table", list("desk_suite", "table_pair", "compact_table")),
 		list("medbay", "waiting_chairs", list("seating_row", "seating_corner")),
 		list("medbay", "med_side_storage", list("wall_single", "service_single")),
@@ -126,7 +126,7 @@
 		list("medbay", "cryo_sleeper", list("wall_single", "service_single")),
 		list("medbay", "chem_storage", list("wall_single", "service_single")),
 		list("medbay", "morgue_storage", list("wall_pair", "service_line")),
-		list("hydroponics", "hydro_tray_rows", list("row_line", "wide_line", "grid_line")),
+		list("hydroponics", "hydro_tray_rows", list("grow_grid_6", "row_line", "wide_line", "grid_line", "compact_single")),
 		list("hydroponics", "service_counter", list("wall_pair", "service_line", "compact_single")),
 		list("hydroponics", "seed_cabinets", list("wall_pair", "service_line", "compact_single")),
 		list("hydroponics", "seed_cabinets_compact", list("wall_single", "service_single")),
@@ -135,19 +135,19 @@
 		list("hydroponics", "grower_chair", list("seating_single", "seating_corner")),
 		list("kitchen", "serving_counter", list("counter_line", "wide_line", "service_line")),
 		list("kitchen", "prep_tables", list("table_pair", "desk_suite", "compact_table")),
-		list("kitchen", "cooking_run", list("wall_line", "service_line", "wide_line")),
+		list("kitchen", "cooking_run", list("wall_line", "service_line", "wide_line", "wall_single", "service_single", "compact_single")),
 		list("kitchen", "cold_storage_wall", list("wall_pair", "wall_line", "compact_single")),
 		list("kitchen", "dining_tables", list("table_pair", "table_corner", "compact_table")),
 		list("kitchen", "pantry_rack", list("wall_single", "service_single")),
 		list("kitchen", "supply_crates", list("staging_pair", "staging_corner")),
-		list("dormitory", "bed_wall_runs", list("wall_line", "wide_line", "long_pair")),
+		list("dormitory", "bed_wall_runs", list("wall_line", "wide_line", "long_pair", "wall_single")),
 		list("dormitory", "locker_wall", list("wall_line", "wall_pair", "service_line")),
-		list("dormitory", "locker_wall_compact", list("wall_pair", "compact_single")),
+		list("dormitory", "locker_wall_compact", list("wall_pair", "wall_single", "service_single", "compact_single")),
 		list("dormitory", "ready_table", list("table_pair", "table_corner", "desk_suite")),
 		list("dormitory", "personal_rack", list("wall_single", "service_single")),
 		list("dormitory", "footlocker_crates", list("staging_pair", "staging_corner")),
 		list("office", "primary_desk_suite", list("desk_suite", "table_pair", "table_corner")),
-		list("office", "filing_cabinets", list("wall_line", "wall_pair", "service_line")),
+		list("office", "filing_cabinets", list("wall_line", "wall_pair", "service_line", "compact_single")),
 		list("office", "office_console", list("wall_single", "service_single")),
 		list("office", "visitor_chairs", list("seating_row", "seating_corner")),
 		list("office", "side_storage", list("wall_single", "service_single")),
@@ -158,12 +158,17 @@
 		list("security", "evidence_rack", list("wall_single", "service_single")),
 		list("security", "armory_rack", list("wall_pair", "wall_single")),
 		list("security", "evidence_storage", list("wall_pair", "wall_single")),
-		list("security", "visitor_chair", list("seating_single", "seating_corner")),
+		list("security", "visitor_chair", list("seating_row", "seating_corner")),
 		list("checkpoint", "checkpoint_control", list("counter_line", "wide_line", "service_line")),
 		list("checkpoint", "operator_console", list("wall_single", "service_single")),
 		list("checkpoint", "security_storage", list("wall_single", "service_single")),
 		list("checkpoint", "visitor_chair", list("seating_single", "seating_corner")),
-		list("checkpoint", "barricade_line", list("staging_pair", "staging_line"))
+		list("checkpoint", "barricade_line", list("staging_pair", "staging_line")),
+		list("engineering", "engineering_service_wall", list("aisle_line", "compact_single")),
+		list("engineering", "power_console_wall", list("wall_single")),
+		list("engineering", "parts_racks", list("aisle_line", "compact_single")),
+		list("engineering", "generator_unit", list("wall_single")),
+		list("engineering", "cable_crates", list("staging_pair", "staging_line"))
 	)
 	for(var/list/family as anything in families)
 		if(!islist(family) || length(family) < 3)
@@ -209,7 +214,8 @@
 	module.max_per_building = max(cluster_spec.max_count, 1)
 	module.max_repeat_group_per_room = max(cluster_spec.max_count, 1)
 	module.priority = cluster_spec.priority + 25
-	module.wall_required = (cluster_spec.slot == "toilet" && cluster_spec.category == "sanitation") ? FALSE : cluster_spec.wall_required
+	var/wall_recipe = (clean_recipe_id in list("wall_single", "wall_pair", "wall_line", "service_line", "long_pair", "nook_pair", "counter_line")) ? TRUE : FALSE
+	module.wall_required = (cluster_spec.slot == "toilet" && cluster_spec.category == "sanitation") ? FALSE : (cluster_spec.wall_required || wall_recipe)
 	module.pattern = "curated_[clean_recipe_id]"
 	module.curated = TRUE
 	module.curated_recipe_id = clean_recipe_id
@@ -246,14 +252,19 @@
 			add_building_module_member(module, cluster_spec.slot, cluster_spec.category, dx, dy, index == 1)
 	else
 		var/member_count = 1
-		if(recipe_id in list("wall_pair", "service_line", "staging_pair", "staging_corner", "long_pair", "nook_pair"))
+		if(recipe_id == "grow_grid_6")
+			member_count = min(max(cluster_spec.max_count, 1), 6)
+		else if(recipe_id in list("wall_pair", "service_line", "staging_pair", "staging_corner", "long_pair", "nook_pair"))
 			member_count = min(max(cluster_spec.max_count, 1), 2)
 		else if(recipe_id in list("wall_line", "wide_line", "aisle_line", "row_line", "grid_line", "counter_line", "staging_line"))
 			member_count = min(max(cluster_spec.max_count, 1), 3)
 		for(var/index in 1 to member_count)
 			var/dx = index - 1
 			var/dy = 0
-			if(recipe_id in list("staging_corner", "nook_pair") && index == 2)
+			if(recipe_id == "grow_grid_6")
+				dx = (index - 1) % 3
+				dy = floor((index - 1) / 3)
+			else if(recipe_id in list("staging_corner", "nook_pair") && index == 2)
 				dx = 0
 				dy = 1
 			else if(recipe_id == "wide_line" && index > 1)
@@ -262,11 +273,20 @@
 				dx = 0
 				dy = 1
 			add_building_module_member(module, cluster_spec.slot, cluster_spec.category, dx, dy, index == 1)
-	for(var/list/member as anything in module.member_specs)
-		var/dx = round(text2num("[member["dx"]]") || 0)
-		var/dy = round(text2num("[member["dy"]]") || 0)
-		for(var/list/nearby in list(list(dx + 1, dy), list(dx - 1, dy), list(dx, dy + 1), list(dx, dy - 1)))
-			add_building_module_clearance(module, nearby[1], nearby[2])
+	if(recipe_id == "grow_grid_6")
+		for(var/dx in 0 to 2)
+			add_building_module_clearance(module, dx, 2)
+	else if(recipe_id in list("compact_single", "service_single", "seating_single", "centerpiece_single"))
+		add_building_module_clearance(module, 0, 1)
+	else if(recipe_id in list("aisle_line", "row_line", "grid_line", "staging_pair", "staging_corner", "staging_line", "wide_line"))
+		for(var/list/member as anything in module.member_specs)
+			add_building_module_clearance(module, member["dx"], round(text2num("[member["dy"]]") || 0) + 1)
+	else
+		for(var/list/member as anything in module.member_specs)
+			var/dx = round(text2num("[member["dx"]]") || 0)
+			var/dy = round(text2num("[member["dy"]]") || 0)
+			for(var/list/nearby in list(list(dx + 1, dy), list(dx - 1, dy), list(dx, dy + 1), list(dx, dy - 1)))
+				add_building_module_clearance(module, nearby[1], nearby[2])
 
 /datum/world_edit_generator/building_layout/proc/register_building_modules_for_cluster(datum/world_edit_building_placement_module_catalog/catalog, datum/world_edit_building_archetype/archetype, datum/world_edit_building_cluster_spec/cluster_spec)
 	var/list/variants = list("base")

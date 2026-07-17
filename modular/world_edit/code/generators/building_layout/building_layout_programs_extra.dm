@@ -1,5 +1,6 @@
 /datum/world_edit_building_archetype/hydroponics
 	id = "hydroponics"
+	layout_families = list("open_bay_perimeter", "split_wing", "axial_fallback")
 	label = "Hydroponics"
 	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "L", "T", "U")
@@ -40,6 +41,7 @@
 
 /datum/world_edit_building_archetype/kitchen
 	id = "kitchen"
+	layout_families = list("nested_service", "split_wing", "hub_spoke", "axial_fallback")
 	label = "Kitchen"
 	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "L", "T", "U")
@@ -80,6 +82,7 @@
 
 /datum/world_edit_building_archetype/dormitory
 	id = "dormitory"
+	layout_families = list("open_bay_perimeter", "split_wing", "hub_spoke", "axial_fallback")
 	label = "Dormitory"
 	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "L", "T", "U")
@@ -119,6 +122,7 @@
 
 /datum/world_edit_building_archetype/office
 	id = "office"
+	layout_families = list("hub_spoke", "split_wing", "nested_service", "axial_fallback")
 	label = "Office"
 	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "L")
@@ -158,6 +162,7 @@
 
 /datum/world_edit_building_archetype/security
 	id = "security"
+	layout_families = list("secure_core", "hub_spoke", "split_wing", "axial_fallback")
 	label = "Security"
 	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "L", "WEDGE")
@@ -195,13 +200,14 @@
 	add_cluster("evidence_rack", "secondary", "wall_object", "rack", "rack", list("locker_storage", "wall_anchor"), 1, 1, TRUE, 0, 65, FALSE)
 	add_cluster("armory_rack", "secondary", "wall_object", "weapon_rack", "weapon_rack", list("armory_nook", "secure_storage", "wall_anchor"), 1, 2, TRUE, 0, 65, FALSE, "armory_nook", "armory_rack_chunk")
 	add_cluster("evidence_storage", "secondary", "wall_object", "cabinet", "cabinet", list("evidence_nook", "storage_wall", "wall_anchor"), 1, 2, TRUE, 0, 55, FALSE, "evidence_nook", "evidence_storage_chunk")
-	add_cluster("visitor_chair", "secondary", "object", "chair", "chair", list("public_lobby", "public_route"), 1, 1, FALSE, 0, 50, FALSE)
+	add_signature_cluster("visitor_chair", "major", "run", "chair", "chair", list("public_lobby", "public_route"), 3, 3, FALSE, 0, 50, "visitor_seating", 10)
 	add_cluster("barrier_line", "detail", "run", "barrier", "barrier", list("public_lobby", "barrier_line"), 2, 3, FALSE, 0, 35, FALSE)
 	object_budgets = list("table" = 4, "chair" = 3, "cabinet" = 5, "rack" = 2, "console" = 1, "barrier" = 3, "bed" = 1, "weapon_rack" = 2)
 	category_minimums = list("table" = 2, "console" = 1, "cabinet" = 2)
 
 /datum/world_edit_building_archetype/chapel
 	id = "chapel"
+	layout_families = list("hub_spoke", "split_wing", "axial_fallback")
 	label = "Chapel"
 	suggested_shell_preset = "neutral"
 	footprint_families = list("RECT", "T", "RING", "NESTED")
@@ -239,6 +245,7 @@
 
 /datum/world_edit_building_archetype/ritual_chamber
 	id = "ritual_chamber"
+	layout_families = list("secure_core", "nested_service", "hub_spoke", "axial_fallback")
 	label = "Ritual chamber"
 	suggested_shell_preset = "covenant"
 	footprint_families = list("RECT", "WEDGE", "RING", "NESTED")
@@ -281,6 +288,7 @@
 
 /datum/world_edit_building_archetype/compound_colony
 	id = "compound_colony"
+	layout_families = list("compound_cells", "hub_spoke", "split_wing", "axial_fallback")
 	label = "Compound complex"
 	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "L", "T", "U", "RING", "NESTED", "COMPOUND")
@@ -331,6 +339,7 @@
 
 /datum/world_edit_building_archetype/engineering
 	id = "engineering"
+	layout_families = list("compound_cells", "open_bay_perimeter", "split_wing", "axial_fallback")
 	label = "Engineering"
 	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "L", "T", "U", "COMPOUND")
@@ -359,16 +368,18 @@
 	add_adjacency("machine_bay", "parts_storage")
 	add_adjacency("machine_bay", "generator_nook", FALSE)
 	add_nested_room("machine_bay", "generator_nook", 9, 9, 1)
-	add_signature_cluster("engineering_service_wall", "major", "signature_engineering_bay", "engineering_machine", "engineering_machine", list("machine_bay", "engineering_bay", "engineering_wall", "machine_wall"), 4, 6, TRUE, 0, 100, "engineering_service_wall", 45, TRUE, null, "engineering_service_chunk")
+	add_signature_cluster("engineering_service_wall", "major", "signature_engineering_bay", "engineering_machine", "engineering_machine", list("machine_bay", "engineering_bay", "engineering_wall", "machine_wall"), 4, 6, FALSE, 0, 100, "engineering_service_wall", 45, TRUE, null, "engineering_service_chunk")
 	add_signature_cluster("power_console_wall", "major", "run", "power_console", "console", list("power_control", "engineering_wall", "service_strip", "wall_anchor"), 2, 3, TRUE, 0, 95, "engineering_controls", 25)
-	add_signature_cluster("parts_racks", "major", "signature_rack_aisles", "rack", "rack", list("parts_storage", "rack_aisle", "storage_wall"), 3, 5, TRUE, 0, 90, "engineering_parts_racks", 25)
+	add_signature_cluster("parts_racks", "major", "signature_rack_aisles", "rack", "rack", list("parts_storage", "rack_aisle", "storage_wall"), 3, 5, FALSE, 0, 90, "engineering_parts_racks", 25)
+	add_signature_cluster("generator_unit", "major", "run", "engineering_machine", "engineering_machine", list("generator_nook", "engineering_wall", "wall_anchor"), 2, 2, TRUE, 0, 88, "engineering_generator_unit", 20)
 	add_cluster("cable_crates", "secondary", "staging_group", "crate", "crate", list("parts_storage", "service_spine"), 2, 3, FALSE, 0, 65, FALSE)
 	add_cluster("operator_chair", "detail", "object", "chair", "chair", list("power_control", "service_spine"), 1, 1, FALSE, 0, 35, FALSE)
-	object_budgets = list("engineering_machine" = 5, "console" = 3, "table" = 3, "rack" = 5, "crate" = 4, "chair" = 2, "cabinet" = 2)
+	object_budgets = list("engineering_machine" = 7, "console" = 3, "table" = 3, "rack" = 5, "crate" = 4, "chair" = 2, "cabinet" = 2)
 	category_minimums = list("engineering_machine" = 2, "console" = 1, "rack" = 2)
 
 /datum/world_edit_building_archetype/laboratory
 	id = "laboratory"
+	layout_families = list("secure_core", "nested_service", "split_wing", "axial_fallback")
 	label = "Laboratory"
 	suggested_shell_preset = "colony"
 	footprint_families = list("RECT", "L", "T", "NESTED")

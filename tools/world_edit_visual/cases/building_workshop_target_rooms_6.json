@@ -37,7 +37,14 @@
     "semantic_credit_without_emitted_slots_count": 0,
     "reserved_walk_blocked_count": 0,
     "mandatory_pattern_failure_count": 0,
-    "forbidden_fallback_count": 0
+    "forbidden_fallback_count": 0,
+    "layout_functional_room_count_gap": 0,
+    "layout_required_adjacency_missing_count": 0,
+    "layout_room_composition_missing_count": 0,
+    "layout_room_capacity_shortfall_count": 0,
+    "layout_wall_cleanup_unmapped_count": 0,
+    "layout_wall_cleanup_spur_count": 0,
+    "layout_corridor_wall_canyon_count": 0
   },
   "render": {
     "semantic_png": true,

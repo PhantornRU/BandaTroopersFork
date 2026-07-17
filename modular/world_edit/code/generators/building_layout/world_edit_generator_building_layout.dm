@@ -1658,6 +1658,15 @@
 		"large_sparse_room_count",
 		"corridor_ribbon_count",
 		"layout_underfurnished_room_count",
+		"layout_room_composition_missing_count",
+		"layout_room_capacity_shortfall_count",
+		"layout_required_adjacency_missing_count",
+		"layout_required_module_fallback_count",
+		"layout_required_template_reject_count",
+		"layout_wall_cleanup_unmapped_count",
+		"layout_wall_cleanup_spur_count",
+		"layout_functional_room_count_gap",
+		"layout_candidate_metric_mismatch_count",
 		"layout_required_connection_missing_count",
 		"layout_door_not_shared_wall_count",
 		"layout_room_without_door_count",
@@ -1781,6 +1790,15 @@
 		if("large_sparse_room_count") return state.validation.large_sparse_room_count
 		if("corridor_ribbon_count") return state.validation.corridor_ribbon_count
 		if("layout_underfurnished_room_count") return state.validation.layout_underfurnished_room_count
+		if("layout_room_composition_missing_count") return state.validation.layout_room_composition_missing_count
+		if("layout_room_capacity_shortfall_count") return state.validation.layout_room_capacity_shortfall_count
+		if("layout_required_adjacency_missing_count") return state.validation.layout_required_adjacency_missing_count
+		if("layout_required_module_fallback_count") return state.validation.layout_required_module_fallback_count
+		if("layout_required_template_reject_count") return state.validation.layout_required_template_reject_count
+		if("layout_wall_cleanup_unmapped_count") return state.validation.layout_wall_cleanup_unmapped_count
+		if("layout_wall_cleanup_spur_count") return state.validation.layout_wall_cleanup_spur_count
+		if("layout_functional_room_count_gap") return state.validation.layout_functional_room_count_gap
+		if("layout_candidate_metric_mismatch_count") return state.validation.layout_candidate_metric_mismatch_count
 		if("layout_required_connection_missing_count") return state.validation.layout_required_connection_missing_count
 		if("layout_door_not_shared_wall_count") return state.validation.layout_door_not_shared_wall_count
 		if("layout_room_without_door_count") return state.validation.layout_room_without_door_count
@@ -1906,6 +1924,16 @@
 	verdict.set_metric("layout_candidate_count", state.config["layout_candidate_count"] || 0)
 	verdict.set_metric("layout_hard_valid_candidate_count", state.config["layout_hard_valid_candidate_count"] || 0)
 	verdict.set_metric("layout_scene_count", state.config["layout_scene_count"] || 0)
+	verdict.set_metric("layout_functional_room_count", state.validation.layout_functional_room_count)
+	verdict.set_metric("layout_target_functional_room_count", state.validation.layout_target_functional_room_count)
+	verdict.set_metric("layout_functional_room_count_gap", state.validation.layout_functional_room_count_gap)
+	verdict.set_metric("layout_circulation_region_count", state.validation.layout_circulation_region_count)
+	verdict.set_metric("layout_wall_cleanup_removed_count", state.validation.layout_wall_cleanup_removed_count)
+	verdict.set_metric("layout_wall_cleanup_ratio_percent", state.validation.layout_wall_cleanup_ratio_percent)
+	verdict.set_metric("layout_optional_template_attempt_count", state.validation.layout_optional_template_attempt_count)
+	verdict.set_metric("layout_optional_template_reject_count", state.validation.layout_optional_template_reject_count)
+	verdict.set_metric("layout_template_reject_ratio_percent", state.validation.layout_template_reject_ratio_percent)
+	verdict.set_metric("layout_distinct_hard_valid_family_count", state.validation.layout_distinct_hard_valid_family_count)
 	verdict.set_metric("semantic_distribution_noise_score", state.validation.semantic_distribution_noise_score)
 	verdict.set_metric("semantic_functional_coverage_percent", state.validation.semantic_functional_coverage_percent)
 	verdict.set_metric("semantic_route_clearance_percent", state.validation.semantic_route_clearance_percent)
@@ -2078,7 +2106,8 @@
 		report["mandatory_room_count"] = state.validation.mandatory_room_count
 		report["mandatory_zone_count"] = state.validation.mandatory_zone_count
 		report["forbidden_fallback_count"] = state.validation.forbidden_fallback_count
-		var/list/hard_counters = build_building_state_hard_counter_report(state)
+		var/list/failed_trial_hard_counters = state.config["layout_failed_trial_hard_counters"]
+		var/list/hard_counters = islist(failed_trial_hard_counters) && length(failed_trial_hard_counters) ? failed_trial_hard_counters.Copy() : build_building_state_hard_counter_report(state)
 		report["hard_counters"] = hard_counters
 		for(var/counter_name as anything in hard_counters)
 			report[counter_name] = hard_counters[counter_name]
@@ -2091,6 +2120,8 @@
 		report["layout_template_geometry_reject_count"] = state.validation.layout_template_geometry_reject_count
 		report["layout_missing_wall_context_reject_count"] = state.validation.layout_missing_wall_context_reject_count
 		report["layout_hard_valid_candidate_shortage_count"] = state.validation.layout_hard_valid_candidate_shortage_count
+		for(var/counter_name as anything in hard_counters)
+			report[counter_name] = hard_counters[counter_name]
 		report["semantic_distribution_noise_score"] = state.validation.semantic_distribution_noise_score
 		report["semantic_functional_coverage_percent"] = state.validation.semantic_functional_coverage_percent
 		report["semantic_route_clearance_percent"] = state.validation.semantic_route_clearance_percent
@@ -2099,8 +2130,12 @@
 		report["structured_primary_scene_count"] = state.fixtures.structured_primary_scene_count
 		report["semantic_interiors_scene_count"] = state.fixtures.semantic_interiors_scene_count
 		report["semantic_interiors_primary_scene_count"] = state.fixtures.semantic_interiors_primary_scene_count
-		var/datum/world_edit_validation_verdict/validation_verdict = build_building_generation_validation_verdict(state)
-		report["generation_validation_verdict"] = validation_verdict.as_payload()
+		var/list/failed_trial_validation_verdict = state.config["layout_failed_trial_validation_verdict"]
+		if(islist(failed_trial_validation_verdict) && length(failed_trial_validation_verdict))
+			report["generation_validation_verdict"] = failed_trial_validation_verdict.Copy()
+		else
+			var/datum/world_edit_validation_verdict/validation_verdict = build_building_generation_validation_verdict(state)
+			report["generation_validation_verdict"] = validation_verdict.as_payload()
 		report["validation_verdict"] = report["generation_validation_verdict"]
 		report["requested_direction"] = state.geometry.requested_direction
 		report["actual_entry_direction"] = state.geometry.actual_entry_direction
@@ -2294,6 +2329,18 @@
 	var/shape_id = "[shape_contract?.shape_id || (islist(placement_context) ? placement_context["shape"] : null) || WORLD_EDIT_SHAPE_POINT]"
 	var/list/support_result = build_building_context_support_result(shape_id, request.config, placement_context)
 	apply_building_support_result_to_config(request.config, support_result)
+	// Locked/unsupported plans return before the normal building emitter. Keep
+	// the public size contract observable on that path as well, especially for
+	// explicit impossible footprints.
+	plan.metadata["half_width"] = request.config["half_width"]
+	plan.metadata["half_depth"] = request.config["half_depth"]
+	plan.metadata["requested_half_width"] = request.config["requested_half_width"]
+	plan.metadata["requested_half_depth"] = request.config["requested_half_depth"]
+	plan.metadata["final_half_width"] = request.config["final_half_width"] || request.config["half_width"]
+	plan.metadata["final_half_depth"] = request.config["final_half_depth"] || request.config["half_depth"]
+	plan.metadata["size_profile"] = request.config["size_profile"]
+	plan.metadata["size_auto_adjusted"] = request.config["size_auto_adjusted"]
+	plan.metadata["program_shedding"] = request.config["program_shedding"]
 	plan.metadata["current_request_support_status"] = support_result["status"]
 	plan.metadata["user_facing_failure_reason"] = support_result["reason"]
 	plan.metadata["support_status_report"] = support_result
@@ -2372,7 +2419,7 @@
 		plan.metadata["current_request_support_status"] = WORLD_EDIT_BUILDING_SUPPORT_FAILED
 		plan.metadata["user_facing_failure_reason"] = "[final_candidate_error]"
 		plan.metadata["layout_candidate_reports"] = candidate_reports
-		plan.metadata["layout_candidate_count"] = length(candidate_reports)
+		plan.metadata["footprint_candidate_count"] = length(candidate_reports)
 		var/list/failed_candidate_report = null
 		if(istype(best_failed_state))
 			failed_candidate_report = build_building_layout_candidate_report(best_failed_state, best_failed_family, best_failed_attempt, best_failed_score, final_candidate_error, TRUE)
@@ -2390,7 +2437,7 @@
 	else
 		best_state.config["layout_candidate_reports"] = list()
 		best_state.config["selected_candidate_report"] = build_building_layout_candidate_report(best_state, best_state.config["footprint_family"], best_state.config["layout_candidate_index"] || 1, best_score, null, FALSE)
-	best_state.config["layout_candidate_count"] = length(candidate_reports)
+	best_state.config["footprint_candidate_count"] = length(candidate_reports)
 	best_state.config["layout_candidate_score"] = best_score
 	var/datum/world_edit_plan/final_plan = emit_building_layout_plan(best_state, shape_contract, placement_context)
 	stamp_building_target_state_metadata(final_plan)
@@ -2642,9 +2689,9 @@
 		var/kind = "[placement["kind"]]"
 		if(!(kind in list("floor", "wall", "door", "window", "interior", "microvariation")))
 			continue
-		var/turf/target_turf = placement["turf"]
-		if(!istype(target_turf))
-			target_turf = runtime_target_turf(placement)
+		// A cached turf reference becomes stale after ChangeTurf().  The target
+		// state contract must always hash the live turf at the placement coords.
+		var/turf/target_turf = runtime_target_turf(placement)
 		if(!istype(target_turf))
 			continue
 		var/key = "[target_turf.x],[target_turf.y],[target_turf.z]"
@@ -2958,7 +3005,9 @@
 #undef WORLD_EDIT_BUILDING_DEFAULT_MAX_REPLACED_BLOCKERS
 #undef WORLD_EDIT_BUILDING_HARD_MAX_REPLACED_BLOCKERS
 #undef WORLD_EDIT_BUILDING_AUTO_SEED
-#undef WORLD_EDIT_BUILDING_HASH_MOD
+#undef WORLD_EDIT_BUILDING_PRNG_MOD
+#undef WORLD_EDIT_BUILDING_HASH_A_MOD
+#undef WORLD_EDIT_BUILDING_HASH_B_MOD
 #undef WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED
 #undef WORLD_EDIT_BUILDING_SUPPORT_UNSUPPORTED
 #undef WORLD_EDIT_BUILDING_SUPPORT_DISABLED

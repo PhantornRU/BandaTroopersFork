@@ -226,7 +226,14 @@
 		degraded_tiny_layout = length(state.geometry.floor_turfs) < get_building_program_required_compact_area(state.archetype)
 	var/allow_reserved_template = degraded_tiny_layout && findtext(chunk.id, "micro")
 	var/max_layout_candidates = building_layout_solver_enabled(state) ? max(8, cluster_spec.max_count * 4) : 0
+	var/max_evaluated_candidates = building_layout_solver_enabled(state) ? 14 : 0
+	var/evaluated_candidates = 0
 	for(var/turf/floor_turf as anything in get_fixture_candidate_turfs_for_anchors(state, anchor_ids))
+		if(max_evaluated_candidates > 0 && evaluated_candidates >= max_evaluated_candidates)
+			break
+		evaluated_candidates++
+		if(!building_fixture_candidate_has_entry_access(state, floor_turf, cluster_spec))
+			continue
 		var/owner = state.get_semantic_slot_owner(floor_turf)
 		if(length(owner) && owner != requirement_id)
 			state.add_template_reject_reason("semantic_reservation_conflict", list(
