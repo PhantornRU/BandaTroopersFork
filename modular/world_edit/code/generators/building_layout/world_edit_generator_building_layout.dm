@@ -1661,6 +1661,15 @@
 		"layout_room_composition_missing_count",
 		"layout_room_capacity_shortfall_count",
 		"layout_required_adjacency_missing_count",
+		"layout_required_adjacency_geometry_missing_count",
+		"layout_unassigned_interior_excess_count",
+		"layout_ownerless_open_bay_count",
+		"layout_route_component_error_count",
+		"layout_wall_stub_count",
+		"layout_wall_notch_count",
+		"layout_wall_stair_step_count",
+		"layout_wall_misaligned_join_count",
+		"layout_atomic_module_fragmentation_count",
 		"layout_required_module_fallback_count",
 		"layout_required_template_reject_count",
 		"layout_wall_cleanup_unmapped_count",
@@ -1793,6 +1802,15 @@
 		if("layout_room_composition_missing_count") return state.validation.layout_room_composition_missing_count
 		if("layout_room_capacity_shortfall_count") return state.validation.layout_room_capacity_shortfall_count
 		if("layout_required_adjacency_missing_count") return state.validation.layout_required_adjacency_missing_count
+		if("layout_required_adjacency_geometry_missing_count") return state.validation.layout_required_adjacency_geometry_missing_count
+		if("layout_unassigned_interior_excess_count") return state.validation.layout_unassigned_interior_excess_count
+		if("layout_ownerless_open_bay_count") return state.validation.layout_ownerless_open_bay_count
+		if("layout_route_component_error_count") return state.validation.layout_route_component_error_count
+		if("layout_wall_stub_count") return state.validation.layout_wall_stub_count
+		if("layout_wall_notch_count") return state.validation.layout_wall_notch_count
+		if("layout_wall_stair_step_count") return state.validation.layout_wall_stair_step_count
+		if("layout_wall_misaligned_join_count") return state.validation.layout_wall_misaligned_join_count
+		if("layout_atomic_module_fragmentation_count") return state.validation.layout_atomic_module_fragmentation_count
 		if("layout_required_module_fallback_count") return state.validation.layout_required_module_fallback_count
 		if("layout_required_template_reject_count") return state.validation.layout_required_template_reject_count
 		if("layout_wall_cleanup_unmapped_count") return state.validation.layout_wall_cleanup_unmapped_count

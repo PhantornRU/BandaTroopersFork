@@ -345,7 +345,6 @@
 	validate_building_major_clusters(state)
 	validate_building_furnishing_quality(state)
 	validate_building_layout_scenes(state)
-	validate_building_semantic_scene_contracts(state)
 	validate_building_infrastructure_rules(state)
 	validate_building_direction_contract(state)
 	validate_building_counter_facing(state)
@@ -354,6 +353,10 @@
 	validate_building_nested_room_rules(state)
 	validate_building_divider_rules(state)
 	validate_building_layout_review_contract(state)
+	// The canonical review contract normalizes scene underfill against authored
+	// composition groups. Semantic aggregation must consume those final values,
+	// not the superseded legacy member-count heuristic.
+	validate_building_semantic_scene_contracts(state)
 	validate_building_acceptance_counters(state)
 
 /datum/world_edit_generator/building_layout/proc/validate_building_zone_requirements(datum/world_edit_building_layout_state/state)
@@ -1102,7 +1105,7 @@
 			state.validation.wall_outside_footprint_count++
 			state.add_error("Wall geometry contains a wall outside the footprint at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
 			continue
-		if(!state.geometry.boundary_lookup[wall_turf] && !state.geometry.door_dirs[wall_turf] && !building_wall_touches_floor_or_opening(state, wall_turf))
+		if(!state.geometry.boundary_lookup[wall_turf] && !state.geometry.door_dirs[wall_turf] && !building_wall_touches_floor_or_opening(state, wall_turf) && !building_wall_is_canonical_partition_corner_join(state, wall_turf))
 			state.validation.wall_unmapped_interior_count++
 			state.add_error("Wall geometry contains an internal wall not mapped to any adjacent room or route at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
 		else if(!state.geometry.boundary_lookup[wall_turf] && !state.geometry.door_dirs[wall_turf] && count_building_wall_adjacent_mapped_domains(state, wall_turf) <= 1 && !building_wall_has_opposite_mapped_domains(state, wall_turf) && count_building_wall_cardinal_neighbors(state, wall_turf) <= 1 && !building_wall_supports_wall_fixture(state, wall_turf))
@@ -1178,6 +1181,16 @@
 		state.add_stage_report("layout_wall_validator_spur_repair", "ok", null, list(
 			"removed_single_sided_wall_tile_count" = repaired_single_sided_wall_count,
 		))
+
+/datum/world_edit_generator/building_layout/proc/building_wall_is_canonical_partition_corner_join(datum/world_edit_building_layout_state/state, turf/wall_turf)
+	var/datum/world_edit_building_layout_context/context = state?.layout_context
+	var/datum/world_edit_building_layout_candidate/candidate = context?.selected_candidate
+	if(!istype(candidate) || !istype(wall_turf))
+		return FALSE
+	for(var/list/partition_edge as anything in candidate.partition_edges)
+		if(islist(partition_edge) && partition_edge["wall_turf"] == wall_turf && partition_edge["owner_b"] == "corner_join")
+			return TRUE
+	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/validate_building_wall_diagonal_pair(datum/world_edit_building_layout_state/state, turf/wall_turf, diagonal_dir, ortho_a, ortho_b)
 	var/turf/diagonal_turf = get_step(wall_turf, diagonal_dir)

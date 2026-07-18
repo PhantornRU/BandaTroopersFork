@@ -1,45 +1,46 @@
-# DECISIONS - Graph-first Building Layout Solver
+# DECISIONS - Canonical Building Layout Solver rewrite
 
-## D-001: Reopen acceptance
-- Prior `15/15` status was false-green; task returns to IN PROGRESS until the review Definition of Done is met.
+## D-001: The 17.07.06 review supersedes prior green status
 
-## D-002: Rewrite inside the canonical solver
-- Keep the single current entrypoint and replace axial route-first internals. Do not create a new version, flag or fallback.
+The current `11.07.26` closeout is false-green under the new review. Task status returns to IN PROGRESS; prior generated reports are diagnostic baselines, not acceptance evidence.
 
-## D-003: Functional target semantics
-- Public `target_room_count` counts functional/open-bay/nested spaces. Circulation is compiled and budgeted separately.
+## D-002: Rewrite only inside the canonical pipeline
 
-## D-004: Graph-first families
-- Semantic adjacency/nested rules own topology. Archetypes declare family preferences; solver families stay program-agnostic.
+Keep `build_building_layout_candidate_state() -> solve_building_layout() -> emit_building_layout_plan()`. Replace internals in-place and split them by responsibility; do not introduce a version, flag, fallback or parallel solver.
 
-## D-005: Atomic authored compositions
-- Reuse the curated placement-module catalog. Required identity is an atomic module or explicit compact substitute; singleton fallback is optional-only.
+## D-003: Stage 0 regressions are living and hydroponics
 
-## D-006: Cleanup is failure evidence
-- RECT candidates requiring wall cleanup are invalid. Irregular cleanup is capped by the review contract and never hides spurs.
+Because no different screenshot pair was supplied, use `building_living_target_rooms_6` and `building_hydroponics_target_rooms_7` exactly as stated in the approved plan. Their new expectations are immutable after Stage 0.
 
-## D-007: Stage A precedes repair
-- Wire honest hard counters/expectations first so the four known layouts turn red before graph-first fixes make them green.
+## D-004: Required topology is authored, not repaired
 
-## D-008: Seed expansion is an acceptance harness
-- Build the remaining 10-seed coverage by deriving temporary cases from the six committed target-room cases and running the ordinary visual workflow in bounded shards.
-- Keep `tools/world_edit_visual` reporting-only: it may compose inputs and aggregate reports, but it cannot repair layouts or weaken expectations.
-- Do not create the full seed x direction x size Cartesian product: direction and size axes are already independently verified, while the explicit residual is the 10-seed key-program axis.
+A required disconnected graph is a compile error. Edge-kind precedence is nested, circulation endpoint, secure endpoint, public/open-bay pair, then shared functional adjacency.
 
-## D-009: Cross-seed structural uniqueness is diagnostic
-- The review requires same-seed replay equality and multiple hard-valid topology families, but does not require a different selected structural layout for every seed.
-- Record unique structural hashes in the aggregate. Five key programs selected one structural winner across the sampled seeds and office selected two; this is a future scoring/diversity calibration signal, not permission to fail or weaken the current correctness gates.
+## D-005: Family policies own geometry
 
-## D-010: Seed chooses within a quality-admissible family tier
-- Keep hard validity and the existing soft quality score authoritative. Seed never repairs, validates or increases a candidate score.
-- Reduce the hard-valid shortlist to one best winner per topology family, compute a 10% best-score band clamped to 50..250 points, and exclude all winners below it.
-- Apply the seed only to the stable ordered list of eligible family winners. This preserves exact replay and gives the public seed structural meaning without accepting materially worse layouts.
+Family-specific constraints and seed regions live in DM canonical solver policy datums. Axial is a gated fallback considered only after non-axial hard-valid exhaustion.
 
-## D-011: Closeout separates product acceptance from repository-suite health
-- Revalidate all 15 public programs after the selection change with the ordinary visual workflow, not isolated sprite-only rendering.
-- A stalled or aborted repository-wide unit run is diagnostic evidence only. Solver acceptance requires completed focused unit and runtime matrices; unrelated full-suite failures are recorded without weakening Building Layout gates.
+## D-006: Ownership precedes materialization
 
-## D-012: Canvas origin owns a guarded singleton reference
-- The `create_and_destroy` failure is a real lifecycle defect: a temporary landmark overwrites the compiled-map global and remains referenced during GC.
-- Register only when no live origin exists. In `Destroy()`, clear the global only when it still points to `src`.
-- Reject two alternatives: ignoring the type in the GC test would hide the leak, while replacing the landmark with repeated coordinate lookup would weaken the compiled-canvas contract without need.
+Room/open-bay/route ownership and partition edges are solved before walls/openings. RECT defects reject the candidate; irregular diagnostics may be at most 1% and never mutate a candidate.
+
+## D-007: Composition is atomic per declared instance policy
+
+Required composition groups use `GLOBAL_ONCE`, `PRIMARY_ONLY`, `PER_INSTANCE` or `DISTRIBUTE_TOTAL`. A complete module instance is the budget unit; negative space, interaction lanes and clearances are reserved before solving.
+
+## D-008: Selection is lexicographic and signature-aware
+
+Trial-emission evaluates every bounded candidate. Deduplicate by actual room/topology geometry signature. Seed is allowed only after all earlier quality layers tie and only within `max(1, 0.5% of best score)`.
+
+## D-009: Visual tooling remains an acceptance harness
+
+The matrix runner may create temporary case inputs, shard/resume execution and aggregate reports. It may not generate, repair or reinterpret layout geometry.
+
+## D-010: Legacy removal follows migration proof
+
+Move the reusable scene credit/validation helpers into canonical composition/quality first. Remove semantic, room-graph, BSP and divider includes/state only after exact zero-callsite audits.
+
+## D-011: Self challenge is required in the main agent
+
+No subagents are used because current collaboration instructions prohibit delegation unless explicitly requested. The primary agent performs and records the plan-mapping challenge.
+

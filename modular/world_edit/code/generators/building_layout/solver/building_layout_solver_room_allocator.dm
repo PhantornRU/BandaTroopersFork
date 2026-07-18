@@ -8,25 +8,21 @@
 	candidate.region_candidate = region_candidate
 	candidate.topology_graph = region_candidate.topology_graph
 	candidate.topology_family = region_candidate.topology_family
+	candidate.family_policy_id = region_candidate.family_policy_id
+	candidate.family_constraints = region_candidate.family_constraints.Copy()
+	candidate.composition_contracts = islist(context.program_contract?.composition_contracts) ? context.program_contract.composition_contracts.Copy() : list()
+	candidate.orientation_variant = region_candidate.orientation_variant
 	for(var/datum/world_edit_building_layout_room_connection/connection as anything in region_candidate.room_connections)
 		candidate.add_room_connection(connection)
-	for(var/datum/world_edit_building_layout_influence_zone/zone as anything in region_candidate.influence_zones)
-		if(!allocate_building_layout_zone_rooms(context, candidate, zone, allocation_variant))
-			candidate.errors += "room.alloc_zone_failed:[zone?.id]"
+	if(!allocate_building_layout_rooms_bounded(context, candidate, allocation_variant))
+		candidate.errors += "room.alloc_bounded_failed:[region_candidate.id]"
 	if(length(candidate.errors))
 		return candidate
-	if(!solve_building_layout_route_after_rooms(context, candidate))
+	if(!solve_building_layout_terminal_route_network(context, candidate))
 		candidate.errors += "route.alloc_failed:[region_candidate.id]"
 		return candidate
-	if(!connect_building_layout_route_to_rooms(context, candidate))
-		candidate.errors += "route.room_connect_failed:[region_candidate.id]"
-	materialize_building_layout_circulation_overlay(context, candidate)
-	for(var/datum/world_edit_building_layout_room_plan/room_plan as anything in candidate.room_plans)
-		if(!istype(room_plan))
-			continue
-		var/datum/world_edit_building_layout_room_contract/room_contract = context.program_contract?.get_room_contract(room_plan.contract_id)
-		var/datum/world_edit_building_layout_room_connection/route_connection = add_building_layout_connection(candidate, "[room_plan.id]_to_route", room_plan.id, "route", room_contract?.privacy_class || "public", TRUE, room_contract?.route_opening_kind || WORLD_EDIT_BUILDING_OPENING_DOOR)
-		route_connection.min_shared_wall_length = (room_contract?.route_opening_kind in list(WORLD_EDIT_BUILDING_OPENING_ARCH, WORLD_EDIT_BUILDING_OPENING_WIDE_ARCH)) ? 2 : 3
+	if(!build_building_layout_ownership_partition_graph(context, candidate))
+		candidate.errors += "partition.graph_failed:[region_candidate.id]"
 	if(!validate_layout_room_allocation(context, candidate))
 		return candidate
 	refresh_building_layout_candidate_lookups(candidate)
@@ -244,6 +240,10 @@
 	var/list/pending = islist(contracts) ? contracts.Copy() : list()
 	var/list/ordered = list()
 	while(length(pending))
+		var/list/pending_ids = list()
+		for(var/datum/world_edit_building_layout_room_contract/pending_contract as anything in pending)
+			if(istype(pending_contract))
+				pending_ids[pending_contract.id] = TRUE
 		var/best_index = 0
 		var/best_score = -999999999
 		for(var/index in 1 to length(pending))
@@ -251,9 +251,13 @@
 			if(!istype(room_contract))
 				continue
 			var/datum/world_edit_building_layout_topology_node/node = candidate.topology_graph.get_node(room_contract.id)
-			var/score = (room_contract.required ? 100000 : 0) - (node?.depth || 0) * 10000 + room_contract.preferred_area
-			if(node?.id == candidate.topology_graph.root_node_id)
+			if(length(node?.parent_id) && pending_ids[node.parent_id])
+				continue
+			var/score = (room_contract.required ? 100000 : 0) + room_contract.preferred_area * 10 + room_contract.min_area
+			if(room_contract.instance_index <= 1)
 				score += 1000000
+			if(node?.id == candidate.topology_graph.root_node_id)
+				score += 10000000
 			if(allocation_variant % 2)
 				score -= index
 			else

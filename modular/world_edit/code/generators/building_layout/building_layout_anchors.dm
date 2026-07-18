@@ -65,10 +65,10 @@
 	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/add_door_cone_anchors(datum/world_edit_building_layout_state/state)
-	var/list/door_cone_lateral_steps_by_depth = get_building_door_cone_profile(state)
-	if(!length(door_cone_lateral_steps_by_depth))
-		return
 	for(var/turf/door_turf as anything in state.geometry.door_turfs)
+		var/list/door_cone_lateral_steps_by_depth = state.geometry.boundary_lookup[door_turf] ? get_building_door_cone_profile(state) : get_building_internal_door_cone_profile(state)
+		if(!length(door_cone_lateral_steps_by_depth))
+			continue
 		var/outward_dir = state.geometry.door_dirs[door_turf] || get_outward_dir(door_turf, state.geometry.footprint_lookup, (state.geometry.bounds["min_x"] + state.geometry.bounds["max_x"]) / 2, (state.geometry.bounds["min_y"] + state.geometry.bounds["max_y"]) / 2, state.placement_dir)
 		var/inward_dir = turn(outward_dir, 180)
 		for(var/depth_index in 0 to length(door_cone_lateral_steps_by_depth) - 1)
@@ -109,6 +109,11 @@
 	if(degrade_level == WORLD_EDIT_BUILDING_DEGRADE_COMPACT)
 		return list(1, 1, 0)
 	return list(1, 2, 2, 1, 0)
+
+/datum/world_edit_generator/building_layout/proc/get_building_internal_door_cone_profile(datum/world_edit_building_layout_state/state)
+	// Internal partitions need a real interaction lane but not the deep
+	// approach envelope used by the building's exterior entry.
+	return list(1, 1, 0)
 
 /datum/world_edit_generator/building_layout/proc/add_window_band_anchors(datum/world_edit_building_layout_state/state)
 	for(var/turf/window_turf as anything in state.geometry.window_turfs)

@@ -40,45 +40,66 @@
 	var/list/candidates = list()
 	if(!istype(context) || !istype(context.program_contract))
 		return candidates
+	var/list/family_order = list()
+	var/list/work_by_family = list()
 	for(var/pattern_id as anything in context.program_contract.allowed_layout_patterns)
 		var/datum/world_edit_building_layout_pattern/pattern = get_building_layout_pattern(pattern_id)
 		if(!istype(pattern) || !pattern.can_solve(context))
 			continue
+		var/list/family_work = list()
 		for(var/datum/world_edit_building_layout_region_candidate/region_candidate as anything in pattern.build_region_candidates(context))
 			if(!istype(region_candidate))
 				continue
-			// Every topology receives the same four deterministic ranked-rectangle
-			// variants. Compact four-room contracts need the later alternatives as
-			// much as high room-count contracts do; the global 24-candidate cap is
-			// the actual search bound.
-			var/max_allocation_variant = 3
-			for(var/allocation_variant in 0 to max_allocation_variant)
-				if(length(candidates) >= context.program_contract.max_layout_candidates)
-					break
-				var/datum/world_edit_building_layout_candidate/candidate = allocate_building_layout_rooms(context, region_candidate, allocation_variant)
-				if(!istype(candidate))
-					if(istype(context?.state))
-						context.state.add_stage_report("layout_candidate_room_allocation_reject", "failed", "region allocation returned no candidate", list("candidate_id" = region_candidate.id, "pattern_id" = region_candidate.pattern_id))
-					continue
-				candidate.id = "[region_candidate.id]_order_[allocation_variant]"
-				if(length(candidate.errors))
-					if(istype(context?.state))
-						context.state.add_stage_report("layout_candidate_room_allocation_reject", "failed", format_building_messages(candidate.errors), list("candidate_id" = candidate.id, "pattern_id" = candidate.pattern_id, "errors" = candidate.errors.Copy()))
-					continue
-				if(!solve_building_layout_openings(context, candidate))
-					if(istype(context?.state))
-						context.state.add_stage_report("layout_candidate_opening_reject", "failed", format_building_messages(candidate.errors), list("candidate_id" = candidate.id, "pattern_id" = candidate.pattern_id, "errors" = candidate.errors.Copy(), "rooms" = build_building_layout_candidate_room_report(candidate), "routes" = build_building_layout_candidate_route_report(candidate)))
-					continue
-				if(!validate_building_layout_topology(context, candidate))
-					if(istype(context?.state))
-						context.state.add_stage_report("layout_candidate_topology_reject", "failed", format_building_messages(candidate.errors), list("candidate_id" = candidate.id, "pattern_id" = candidate.pattern_id, "errors" = candidate.errors.Copy(), "rooms" = build_building_layout_candidate_room_report(candidate), "routes" = build_building_layout_candidate_route_report(candidate)))
-					continue
-				if(!ensure_building_layout_candidate_wall_model(context, candidate))
-					if(istype(context?.state))
-						context.state.add_stage_report("layout_candidate_wall_model_reject", "failed", format_building_messages(candidate.errors), list("candidate_id" = candidate.id, "pattern_id" = candidate.pattern_id, "errors" = candidate.errors.Copy(), "rooms" = build_building_layout_candidate_room_report(candidate), "routes" = build_building_layout_candidate_route_report(candidate)))
-					continue
-				candidate.score += score_building_layout_solver_candidate(context, candidate)
-				candidates += candidate
+			for(var/allocation_variant in 0 to 3)
+				family_work += list(list("region" = region_candidate, "allocation_variant" = allocation_variant))
+		if(length(family_work))
+			family_order += pattern_id
+			work_by_family[pattern_id] = family_work
+	context.state.add_stage_report("layout_candidate_schedule", length(family_order) ? "ok" : "failed", length(family_order) ? null : "no eligible family/orientation work", list(
+		"family_count" = length(family_order),
+		"families" = family_order.Copy(),
+		"candidate_cap" = context.program_contract.max_layout_candidates,
+	))
+	var/round_robin_progress = TRUE
+	while(round_robin_progress && length(candidates) < context.program_contract.max_layout_candidates)
+		round_robin_progress = FALSE
+		for(var/family_id as anything in family_order)
+			var/list/family_work = work_by_family[family_id]
+			if(!islist(family_work) || !length(family_work) || length(candidates) >= context.program_contract.max_layout_candidates)
+				continue
+			round_robin_progress = TRUE
+			var/list/work = family_work[1]
+			family_work.Cut(1, 2)
+			var/datum/world_edit_building_layout_region_candidate/region_candidate = work["region"]
+			var/allocation_variant = work["allocation_variant"]
+			var/datum/world_edit_building_layout_candidate/candidate = allocate_building_layout_rooms(context, region_candidate, allocation_variant)
+			if(!istype(candidate))
+				context.state.add_stage_report("layout_candidate_room_allocation_reject", "failed", "region allocation returned no candidate", list("candidate_id" = region_candidate.id, "pattern_id" = region_candidate.pattern_id))
+				continue
+			candidate.id = "[region_candidate.id]_order_[allocation_variant]"
+			if(length(candidate.errors))
+				context.state.add_stage_report("layout_candidate_room_allocation_reject", "failed", format_building_messages(candidate.errors), list("candidate_id" = candidate.id, "pattern_id" = candidate.pattern_id, "errors" = candidate.errors.Copy()))
+				continue
+			if(!ensure_building_layout_candidate_wall_model(context, candidate))
+				context.state.add_stage_report("layout_candidate_wall_model_reject", "failed", format_building_messages(candidate.errors), list("candidate_id" = candidate.id, "pattern_id" = candidate.pattern_id, "errors" = candidate.errors.Copy(), "rooms" = build_building_layout_candidate_room_report(candidate), "routes" = build_building_layout_candidate_route_report(candidate)))
+				continue
+			if(!solve_building_layout_openings(context, candidate))
+				context.state.add_stage_report("layout_candidate_opening_reject", "failed", format_building_messages(candidate.errors), list("candidate_id" = candidate.id, "pattern_id" = candidate.pattern_id, "errors" = candidate.errors.Copy(), "rooms" = build_building_layout_candidate_room_report(candidate), "routes" = build_building_layout_candidate_route_report(candidate)))
+				continue
+			candidate.wall_model_ready = FALSE
+			if(!ensure_building_layout_candidate_wall_model(context, candidate))
+				context.state.add_stage_report("layout_candidate_wall_model_reject", "failed", format_building_messages(candidate.errors), list("candidate_id" = candidate.id, "pattern_id" = candidate.pattern_id, "errors" = candidate.errors.Copy(), "rooms" = build_building_layout_candidate_room_report(candidate), "routes" = build_building_layout_candidate_route_report(candidate)))
+				continue
+			if(!validate_building_layout_topology(context, candidate))
+				context.state.add_stage_report("layout_candidate_topology_reject", "failed", format_building_messages(candidate.errors), list("candidate_id" = candidate.id, "pattern_id" = candidate.pattern_id, "errors" = candidate.errors.Copy(), "rooms" = build_building_layout_candidate_room_report(candidate), "routes" = build_building_layout_candidate_route_report(candidate)))
+				continue
+			var/datum/world_edit_building_layout_family_policy/policy = get_building_layout_family_policy(candidate.family_policy_id)
+			if(!istype(policy) || !policy.hard_validate(context, candidate))
+				candidate.errors += "family.hard_constraint_failed:[candidate.family_policy_id]"
+				continue
+			candidate.score += score_building_layout_solver_candidate(context, candidate)
+			candidate.topology_signature = build_building_layout_topology_signature(candidate)
+			candidates += candidate
 	return candidates
 
 /datum/world_edit_generator/building_layout/proc/select_best_building_layout_candidate(datum/world_edit_building_layout_context/context, list/candidates)
@@ -102,20 +123,27 @@
 	var/list/remaining = candidates.Copy()
 	var/hard_valid_count = 0
 	var/list/hard_valid_family_lookup = list()
-	var/is_compact = is_building_compact_or_micro_state(context.state)
-	var/required_hard_valid_count = is_compact ? 1 : 2
-	var/required_distinct_family_count = is_compact ? 1 : 2
+	var/list/hard_valid_signature_lookup = list()
 	var/list/hard_valid_candidates = list()
 	var/scene_solved_candidate_count = 0
 	var/list/best_rejected_hard_counters = null
 	var/list/best_rejected_validation_verdict = null
 	while(length(remaining))
+		var/non_axial_remaining = FALSE
+		for(var/datum/world_edit_building_layout_candidate/pending_candidate as anything in remaining)
+			if(istype(pending_candidate) && pending_candidate.topology_family != "axial_fallback")
+				non_axial_remaining = TRUE
+				break
+		if(!non_axial_remaining && length(hard_valid_candidates))
+			break
 		var/datum/world_edit_building_layout_candidate/candidate = null
 		var/best_score = -999999999
 		var/best_index = 0
 		for(var/index in 1 to length(remaining))
 			var/datum/world_edit_building_layout_candidate/indexed_candidate = remaining[index]
 			if(!istype(indexed_candidate) || length(indexed_candidate.errors))
+				continue
+			if(non_axial_remaining && indexed_candidate.topology_family == "axial_fallback")
 				continue
 			if(!istype(candidate) || indexed_candidate.score > best_score)
 				candidate = indexed_candidate
@@ -124,7 +152,7 @@
 		if(!istype(candidate))
 			break
 		remaining.Cut(best_index, best_index + 1)
-		if(!solve_building_layout_scenes(context, candidate))
+		if(!solve_building_layout_compositions(context, candidate))
 			context.state.add_stage_report("layout_candidate_scene_reject", "failed", format_building_messages(candidate.errors), list(
 				"candidate_id" = candidate.id,
 				"pattern_id" = candidate.pattern_id,
@@ -149,9 +177,9 @@
 		if(run_building_layout_candidate_emission_pipeline(trial_context, candidate))
 			hard_valid_count++
 			hard_valid_family_lookup[candidate.topology_family || candidate.pattern_id] = TRUE
+			hard_valid_signature_lookup[candidate.topology_signature || build_building_layout_topology_signature(candidate)] = TRUE
+			candidate.quality_vector = build_building_layout_quality_vector(trial_state, candidate)
 			hard_valid_candidates += candidate
-			if(hard_valid_count >= required_hard_valid_count && length(hard_valid_family_lookup) >= required_distinct_family_count)
-				break
 			continue
 		var/list/hard_counters = build_building_state_hard_counter_report(trial_state)
 		if(!islist(best_rejected_hard_counters))
@@ -168,12 +196,15 @@
 			"corridor_turf_count" = length(trial_state.geometry.corridor_turfs),
 			"rooms" = build_building_layout_candidate_room_report(candidate),
 			"routes" = build_building_layout_candidate_route_report(candidate),
+			"openings" = build_building_layout_candidate_opening_report(candidate),
+			"walls" = build_building_layout_candidate_wall_report(candidate),
+			"partitions" = candidate.partition_edges.Copy(),
 			"stage_reports" = trial_state.validation.stage_reports.Copy(),
 		))
 	context.state.config["layout_hard_valid_candidate_count"] = hard_valid_count
 	context.state.config["layout_candidate_count"] = scene_solved_candidate_count
-	context.state.config["layout_distinct_hard_valid_family_count"] = length(hard_valid_family_lookup)
-	context.state.validation.layout_distinct_hard_valid_family_count = length(hard_valid_family_lookup)
+	context.state.config["layout_distinct_hard_valid_family_count"] = length(hard_valid_signature_lookup)
+	context.state.validation.layout_distinct_hard_valid_family_count = length(hard_valid_signature_lookup)
 	var/datum/world_edit_building_layout_candidate/selected_candidate = select_seeded_building_layout_family_winner(context, hard_valid_candidates)
 	if(istype(selected_candidate))
 		stamp_building_layout_selected_candidate(context.state, selected_candidate)
@@ -181,6 +212,54 @@
 		context.state.config["layout_failed_trial_hard_counters"] = islist(best_rejected_hard_counters) ? best_rejected_hard_counters : list()
 		context.state.config["layout_failed_trial_validation_verdict"] = islist(best_rejected_validation_verdict) ? best_rejected_validation_verdict : list()
 	return selected_candidate
+
+/datum/world_edit_generator/building_layout/proc/build_building_layout_topology_signature(datum/world_edit_building_layout_candidate/candidate)
+	if(!istype(candidate))
+		return ""
+	var/list/parts = list()
+	for(var/datum/world_edit_building_layout_room_plan/room_plan as anything in candidate.room_plans)
+		if(istype(room_plan))
+			parts += "room|[room_plan.contract_id]|[room_plan.x1],[room_plan.y1],[room_plan.x2],[room_plan.y2]|parent=[room_plan.topology_parent]"
+	for(var/datum/world_edit_building_layout_topology_edge/edge as anything in candidate.topology_graph?.edges)
+		if(istype(edge))
+			var/list/endpoints = sortList(list(edge.from_id, edge.to_id))
+			parts += "edge|[edge.kind]|[endpoints[1]]|[endpoints[2]]"
+	for(var/turf/route_turf as anything in candidate.route_turfs)
+		if(istype(route_turf))
+			parts += "route|[route_turf.x],[route_turf.y],[route_turf.z]"
+	return "[build_building_hash_from_strings(parts)]"
+
+/datum/world_edit_generator/building_layout/proc/build_building_layout_quality_vector(datum/world_edit_building_layout_state/state, datum/world_edit_building_layout_candidate/candidate)
+	if(!istype(state) || !istype(candidate))
+		return list(1, 999999, 999999, 999999, 999999, 999999, -999999)
+	var/mapping_defects = state.validation.layout_required_adjacency_geometry_missing_count + state.validation.layout_candidate_metric_mismatch_count + state.validation.layout_required_connection_missing_count
+	var/composition_deficits = state.validation.layout_room_composition_missing_count + state.validation.layout_room_capacity_shortfall_count + state.validation.layout_atomic_module_fragmentation_count + state.validation.layout_required_template_reject_count
+	var/residual_cleanup = state.validation.layout_unassigned_interior_excess_count + state.validation.layout_wall_cleanup_unmapped_count + state.validation.layout_wall_cleanup_spur_count + state.validation.layout_wall_stub_count + state.validation.layout_wall_notch_count + state.validation.layout_wall_stair_step_count + state.validation.layout_wall_misaligned_join_count
+	var/topology_defects = state.validation.layout_required_adjacency_missing_count + state.validation.layout_ownerless_open_bay_count + state.validation.layout_route_component_error_count
+	var/route_cost = length(candidate.route_turfs) + state.validation.layout_corridor_wall_canyon_count * 100
+	return list(0, mapping_defects, composition_deficits, residual_cleanup, topology_defects, route_cost, candidate.score)
+
+/datum/world_edit_generator/building_layout/proc/building_layout_quality_vector_better(list/candidate_vector, list/reference_vector)
+	if(!islist(candidate_vector))
+		return FALSE
+	if(!islist(reference_vector))
+		return TRUE
+	for(var/index in 1 to 6)
+		var/candidate_value = text2num("[candidate_vector[index]]") || 0
+		var/reference_value = text2num("[reference_vector[index]]") || 0
+		if(candidate_value < reference_value)
+			return TRUE
+		if(candidate_value > reference_value)
+			return FALSE
+	return (text2num("[candidate_vector[7]]") || 0) > (text2num("[reference_vector[7]]") || 0)
+
+/datum/world_edit_generator/building_layout/proc/building_layout_quality_vector_prefix_equal(list/a, list/b)
+	if(!islist(a) || !islist(b))
+		return FALSE
+	for(var/index in 1 to 6)
+		if((text2num("[a[index]]") || 0) != (text2num("[b[index]]") || 0))
+			return FALSE
+	return TRUE
 
 /datum/world_edit_generator/building_layout/proc/select_seeded_building_layout_family_winner(datum/world_edit_building_layout_context/context, list/hard_valid_candidates)
 	if(!istype(context) || !istype(context.state) || !islist(hard_valid_candidates) || !length(hard_valid_candidates))
@@ -190,32 +269,34 @@
 	for(var/datum/world_edit_building_layout_candidate/candidate as anything in hard_valid_candidates)
 		if(!istype(candidate) || length(candidate.errors))
 			continue
-		var/family_id = "[candidate.topology_family || candidate.pattern_id || candidate.id]"
+		var/family_id = "[candidate.topology_signature || build_building_layout_topology_signature(candidate)]"
 		var/datum/world_edit_building_layout_candidate/existing_winner = family_winner_by_id[family_id]
 		if(!istype(existing_winner))
 			family_ids += family_id
 			family_winner_by_id[family_id] = candidate
-		else if(candidate.score > existing_winner.score)
+		else if(building_layout_quality_vector_better(candidate.quality_vector, existing_winner.quality_vector))
 			family_winner_by_id[family_id] = candidate
 	if(!length(family_ids))
 		return null
 
 	var/best_score = -999999999
+	var/datum/world_edit_building_layout_candidate/lexicographic_best = null
 	var/list/family_winner_scores = list()
 	for(var/family_id as anything in family_ids)
 		var/datum/world_edit_building_layout_candidate/family_winner = family_winner_by_id[family_id]
 		if(!istype(family_winner))
 			continue
 		family_winner_scores[family_id] = family_winner.score
-		if(family_winner.score > best_score)
+		if(!istype(lexicographic_best) || building_layout_quality_vector_better(family_winner.quality_vector, lexicographic_best.quality_vector))
+			lexicographic_best = family_winner
 			best_score = family_winner.score
-	var/quality_margin = clamp(round(max(abs(best_score), 100) * 0.10), 50, 250)
+	var/quality_margin = max(1, round(abs(best_score) * 0.005))
 	var/quality_floor = best_score - quality_margin
 	var/list/eligible_by_key = list()
 	var/list/eligible_keys = list()
 	for(var/family_id as anything in family_ids)
 		var/datum/world_edit_building_layout_candidate/family_winner = family_winner_by_id[family_id]
-		if(!istype(family_winner) || family_winner.score < quality_floor)
+		if(!istype(family_winner) || !building_layout_quality_vector_prefix_equal(family_winner.quality_vector, lexicographic_best.quality_vector) || family_winner.score < quality_floor)
 			continue
 		var/selection_key = "[family_id]|[family_winner.id]"
 		eligible_keys += selection_key
@@ -239,7 +320,7 @@
 	context.state.config["layout_seed_selection_index"] = selection_index
 	context.state.config["layout_seed_selection_key"] = selected_key
 	context.state.config["layout_selected_candidate_score_gap"] = best_score - selected_candidate.score
-	context.state.add_stage_report("layout_seeded_family_selection", "ok", null, list(
+	context.state.add_stage_report("layout_lexicographic_selection", "ok", null, list(
 		"root_seed" = root_seed,
 		"best_score" = best_score,
 		"quality_margin" = quality_margin,
@@ -252,6 +333,8 @@
 		"selected_key" = selected_key,
 		"selected_score" = selected_candidate.score,
 		"selected_score_gap" = best_score - selected_candidate.score,
+		"selected_quality_vector" = selected_candidate.quality_vector.Copy(),
+		"selected_topology_signature" = selected_candidate.topology_signature,
 	))
 	return selected_candidate
 
@@ -299,6 +382,7 @@
 	stamp_building_layout_selected_candidate(trial_state, candidate)
 	trial_state.config["layout_candidate_count"] = source_state.config["layout_candidate_count"] || 0
 	trial_state.config["layout_enabled"] = TRUE
+	trial_state.config["layout_trial_emission"] = TRUE
 	var/datum/world_edit_building_layout_context/trial_context = new(src, trial_state, context.program_contract)
 	trial_context.selected_candidate = candidate
 	trial_state.layout_context = trial_context
@@ -315,6 +399,9 @@
 			"id" = room_plan.id,
 			"contract_id" = room_plan.contract_id,
 			"role" = room_plan.role,
+			"spatial_kind" = room_plan.spatial_kind,
+			"topology_parent" = room_plan.topology_parent,
+			"topology_depth" = room_plan.graph_depth,
 			"area" = room_plan.area(),
 			"width" = room_plan.width(),
 			"height" = room_plan.height(),
@@ -337,6 +424,41 @@
 			"x" = route_turf.x,
 			"y" = route_turf.y,
 			"z" = route_turf.z,
+		))
+	return report
+
+/datum/world_edit_generator/building_layout/proc/build_building_layout_candidate_wall_report(datum/world_edit_building_layout_candidate/candidate)
+	var/list/report = list()
+	if(!istype(candidate))
+		return report
+	var/index = 0
+	for(var/turf/wall_turf as anything in candidate.solved_internal_wall_turfs)
+		if(!istype(wall_turf))
+			continue
+		index++
+		if(index > 192)
+			break
+		report += "[wall_turf.x],[wall_turf.y],[wall_turf.z]"
+	return report
+
+/datum/world_edit_generator/building_layout/proc/build_building_layout_candidate_opening_report(datum/world_edit_building_layout_candidate/candidate)
+	var/list/report = list()
+	if(!istype(candidate))
+		return report
+	for(var/datum/world_edit_building_layout_route_opening_plan/opening_plan as anything in candidate.opening_plans)
+		if(!istype(opening_plan))
+			continue
+		var/list/coords = list()
+		for(var/turf/opening_turf as anything in get_building_layout_opening_plan_turfs(opening_plan))
+			if(istype(opening_turf))
+				coords += "[opening_turf.x],[opening_turf.y],[opening_turf.z]"
+		report += list(list(
+			"id" = opening_plan.id,
+			"kind" = opening_plan.kind,
+			"from" = opening_plan.from_room,
+			"to" = opening_plan.to_room,
+			"dir" = opening_plan.dir,
+			"coords" = coords,
 		))
 	return report
 
@@ -727,7 +849,7 @@
 				candidate.errors += "door.connection_region_missing:[connection.id]"
 			continue
 		var/datum/world_edit_building_layout_room_contract/room_contract = get_building_layout_connection_room_contract(context, connection)
-		var/opening_kind = get_building_layout_connection_opening_kind(context, connection, room_contract)
+		var/opening_kind = get_building_layout_connection_opening_kind(context, connection, room_contract, candidate)
 		var/list/opening_candidates = collect_building_layout_opening_candidates(context, candidate, connection, room_contract)
 		if(!length(opening_candidates))
 			if(connection.required)
@@ -737,10 +859,22 @@
 		if(!istype(best))
 			if(connection.required)
 				var/list/reject_counts = list()
+				var/list/reject_details = list()
 				for(var/datum/world_edit_building_layout_opening_candidate/opening_candidate as anything in opening_candidates)
 					for(var/reject_reason as anything in opening_candidate.reject_reasons)
 						reject_counts[reject_reason] = (reject_counts[reject_reason] || 0) + 1
+					reject_details += list(list("id" = opening_candidate.id, "x" = opening_candidate.opening_turf?.x, "y" = opening_candidate.opening_turf?.y, "dir" = opening_candidate.dir, "segment_len" = opening_candidate.segment_len, "opening_width" = length(opening_candidate.opening_turfs), "rejects" = opening_candidate.reject_reasons.Copy()))
 				candidate.errors += "door.no_valid_candidate:[connection.id]:[json_encode(reject_counts)]"
+				var/connection_room_id = connection.from_room_id == "route" ? connection.to_room_id : connection.from_room_id
+				var/list/reservation = candidate.get_route_access_reservation(connection_room_id)
+				var/list/reservation_report = list()
+				for(var/reservation_key as anything in list("wall_run", "route_run"))
+					var/list/coord_report = list()
+					for(var/turf/reserved_turf as anything in reservation?[reservation_key])
+						if(istype(reserved_turf))
+							coord_report += "[reserved_turf.x],[reserved_turf.y],[reserved_turf.z]:route=[candidate.route_lookup[reserved_turf] ? 1 : 0]"
+					reservation_report[reservation_key] = coord_report
+				context.state.add_stage_report("layout_opening_candidate_reject", "failed", "required connection has no valid opening", list("candidate_id" = candidate.id, "connection_id" = connection.id, "opening_kind" = opening_kind, "candidates" = reject_details, "reservation" = reservation_report))
 			continue
 		var/datum/world_edit_building_layout_route_opening_plan/opening_plan = new(connection.id, opening_kind, best.opening_turf, best.dir, connection.from_room_id, connection.to_room_id)
 		configure_building_layout_opening_plan(opening_plan, best.opening_turfs, opening_kind)
@@ -1215,11 +1349,6 @@
 		if(istype(anchor_turf))
 			local_occupied[anchor_turf] = TRUE
 		placed++
-		if(placed == 1 && target_count > 1 && istype(anchor_turf))
-			var/list/protected_path_lookup = build_building_layout_room_focus_path_lookup(candidate, room_plan, anchor_turf)
-			for(var/turf/protected_turf as anything in protected_path_lookup)
-				if(istype(protected_turf))
-					local_occupied[protected_turf] = TRUE
 	return placed
 
 /datum/world_edit_generator/building_layout/proc/get_building_layout_curated_scene_modules(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_room_plan/room_plan, datum/world_edit_building_cluster_spec/cluster_spec)
@@ -1296,9 +1425,6 @@
 			scene_member["placement_module_repeat_group"] = module.repeat_group
 			occupied_lookup[member_turf] = TRUE
 			placed++
-		for(var/turf/path_turf as anything in module_candidate["protected_path"])
-			if(istype(path_turf))
-				occupied_lookup[path_turf] = TRUE
 		placed_credit += module_credit
 	return placed
 
@@ -1429,15 +1555,27 @@
 	if(!istype(focus_turf) && length(member_plans))
 		focus_turf = member_plans[1]["turf"]
 	var/list/protected_path = list()
+	var/list/path_blocked_lookup = islist(occupied_lookup) ? occupied_lookup.Copy() : list()
+	for(var/turf/member_turf as anything in member_lookup)
+		path_blocked_lookup[member_turf] = TRUE
+	var/focus_path_available = FALSE
 	for(var/turf/door_turf as anything in get_building_layout_room_door_turfs(candidate, room_plan.id))
 		var/turf/start_turf = get_building_layout_room_door_inside_turf(candidate, room_plan, door_turf)
-		var/list/door_path = build_building_layout_room_internal_path(room_plan, start_turf, focus_turf, member_lookup)
+		var/list/door_path = build_building_layout_room_internal_path(room_plan, start_turf, focus_turf, path_blocked_lookup)
+		if(!islist(door_path) || (!length(door_path) && start_turf != focus_turf))
+			continue
+		// The bounded room BFS already excludes blocked intermediate cells. Its
+		// start is deliberately reserved as interaction-lane negative space, so
+		// rechecking the returned path against the same lookup would reject every
+		// otherwise valid module at the doorway itself.
 		for(var/turf/path_turf as anything in door_path)
-			if(member_lookup[path_turf] && path_turf != focus_turf)
-				record_building_layout_curated_candidate_reject(context, "focus_path_blocked")
-				return null
 			if(istype(path_turf) && path_turf != focus_turf)
 				protected_path[path_turf] = TRUE
+		focus_path_available = TRUE
+		break
+	if(!focus_path_available)
+		record_building_layout_curated_candidate_reject(context, "focus_path_blocked")
+		return null
 	var/score = module.priority + length(member_plans) * 30 + score_building_layout_scene_turf(context, candidate, room_plan, origin, room_plan.scene_kind || room_plan.role)
 	return list("module" = module, "members" = member_plans, "protected_path" = protected_path, "score" = score)
 
@@ -1593,6 +1731,12 @@
 	var/list/domain_lookup = list()
 	if(!istype(candidate))
 		return domain_lookup
+	var/route_domain = "route"
+	if(candidate.family_policy_id == "open_bay_perimeter")
+		var/root_room_id = candidate.topology_graph?.root_node_id
+		var/datum/world_edit_building_layout_room_plan/root_room = candidate.get_room_plan(root_room_id)
+		if(istype(root_room) && root_room.spatial_kind == WORLD_EDIT_BUILDING_SPACE_OPEN_BAY)
+			route_domain = "room:[root_room.id]"
 	for(var/datum/world_edit_building_layout_room_plan/room_plan as anything in candidate.room_plans)
 		if(!istype(room_plan))
 			continue
@@ -1601,7 +1745,7 @@
 				domain_lookup[room_turf] = "room:[room_plan.id]"
 	for(var/turf/route_turf as anything in candidate.route_turfs)
 		if(istype(route_turf))
-			domain_lookup[route_turf] = "route"
+			domain_lookup[route_turf] = route_domain
 	for(var/turf/overlay_turf as anything in candidate.route_overlay_turfs)
 		if(istype(overlay_turf))
 			domain_lookup[overlay_turf] = "circulation_open_bay"
@@ -1695,7 +1839,7 @@
 			add_building_layout_scene_blocked_turf(blocked_lookup, get_step(opening_turf, door_plan.dir))
 			add_building_layout_scene_blocked_turf(blocked_lookup, get_step(opening_turf, turn(door_plan.dir, 180)))
 			var/inward_dir = turn(door_plan.dir, 180)
-			var/list/door_cone_profile = get_building_door_cone_profile(context.state)
+			var/list/door_cone_profile = (door_plan.kind == "main_exit" || context.state.geometry.boundary_lookup[opening_turf]) ? get_building_door_cone_profile(context.state) : get_building_internal_door_cone_profile(context.state)
 			if(!length(door_cone_profile))
 				continue
 			for(var/depth_index in 0 to length(door_cone_profile) - 1)
@@ -2680,11 +2824,16 @@
 
 /datum/world_edit_generator/building_layout/proc/build_building_layout_room_reports(datum/world_edit_building_layout_state/state)
 	state.validation.room_reports.Cut()
-	for(var/datum/world_edit_building_room/room as anything in state.geometry.solved_rooms)
-		var/room_key = "layout_[room.id]"
+	var/datum/world_edit_building_layout_context/context = state.layout_context
+	var/datum/world_edit_building_layout_candidate/candidate = context?.selected_candidate
+	for(var/datum/world_edit_building_layout_room_plan/room_plan as anything in candidate?.room_plans)
+		if(!istype(room_plan))
+			continue
+		var/room_key = "layout_[room_plan.id]"
 		var/list/module_ids = list()
 		var/list/module_lookup = list()
 		var/list/functional_units = list()
+		var/list/module_bounds = list()
 		var/occupied_count = 0
 		for(var/list/placement as anything in state.fixtures.object_placements)
 			if(!islist(placement) || "[placement["module_room_id"]]" != room_key || !GLOB.world_edit_helpers.parse_bool(placement["layout_scene"]))
@@ -2696,23 +2845,44 @@
 				module_ids += module_id
 			var/unit_id = "[placement["requested_slot"] || placement["slot"] || placement["category"] || "object"]"
 			functional_units[unit_id] = (functional_units[unit_id] || 0) + 1
+			var/turf/module_turf = placement["turf"]
+			if(istype(module_turf))
+				module_bounds += list(list("x1" = module_turf.x, "y1" = module_turf.y, "x2" = module_turf.x, "y2" = module_turf.y))
 		var/access_count = 0
 		for(var/list/door_report as anything in state.validation.door_reports)
-			if(islist(door_report) && ("[door_report["from_room"]]" == room.id || "[door_report["to_room"]]" == room.id))
+			if(islist(door_report) && ("[door_report["from_room"]]" in list(room_plan.id, room_key) || "[door_report["to_room"]]" in list(room_plan.id, room_key)))
 				access_count++
+		var/list/topology_edges = list()
+		for(var/datum/world_edit_building_layout_topology_edge/edge as anything in candidate.topology_graph?.get_edges_for(room_plan.contract_id))
+			if(istype(edge))
+				topology_edges += list(list("from" = edge.from_id, "to" = edge.to_id, "kind" = edge.kind, "required" = edge.required ? TRUE : FALSE))
+		var/negative_space_count = length(room_plan.scene_plan?.negative_space_turfs)
 		state.validation.room_reports += list(list(
-			"id" = room.id,
-			"zone_id" = room.zone_id,
-			"role" = room.role,
-			"area" = room.area,
-			"useful_area" = length(room.turfs),
-			"bounds" = list("x1" = room.x1, "y1" = room.y1, "x2" = room.x2, "y2" = room.y2),
-			"focus" = room.focus_turf,
+			"id" = room_plan.id,
+			"normalized_id" = room_key,
+			"contract_id" = room_plan.contract_id,
+			"zone_id" = room_plan.zone_id,
+			"role" = room_plan.role,
+			"spatial_kind" = room_plan.spatial_kind,
+			"topology_parent" = room_plan.topology_parent,
+			"topology_depth" = room_plan.graph_depth,
+			"topology_edges" = topology_edges,
+			"area" = room_plan.area(),
+			"useful_area" = length(room_plan.turfs),
+			"bounds" = list("x1" = room_plan.x1, "y1" = room_plan.y1, "x2" = room_plan.x2, "y2" = room_plan.y2),
+			"focus" = select_building_layout_room_focus(room_plan),
 			"composition_id" = state.fixtures.scene_kind_by_room[room_key],
 			"module_ids" = module_ids,
+			"module_count" = length(module_ids),
+			"module_bounds" = module_bounds,
 			"functional_units" = functional_units,
 			"occupied_turf_count" = occupied_count,
-			"occupied_ratio_percent" = round(occupied_count * 100 / max(room.area, 1)),
+			"occupied_ratio_percent" = round(occupied_count * 100 / max(room_plan.area(), 1)),
+			"density_percent" = round(occupied_count * 100 / max(room_plan.area(), 1)),
+			"ownership_turf_count" = length(room_plan.turfs),
+			"aisle_turf_count" = negative_space_count,
+			"negative_space_count" = negative_space_count,
+			"clearance_turf_count" = length(room_plan.scene_plan?.clearance_turfs),
 			"access_count" = access_count,
 			"primary_scene_count" = state.fixtures.scene_primary_counts_by_room[room_key] || 0,
 			"layout_scene" = TRUE,

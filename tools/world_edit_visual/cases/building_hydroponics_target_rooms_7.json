@@ -37,7 +37,19 @@
     "semantic_credit_without_emitted_slots_count": 0,
     "reserved_walk_blocked_count": 0,
     "mandatory_pattern_failure_count": 0,
-    "forbidden_fallback_count": 0
+		"forbidden_fallback_count": 0
+		,"layout_unassigned_interior_excess_count": 0
+		,"layout_ownerless_open_bay_count": 0
+		,"layout_route_component_count": 1
+		,"layout_route_component_error_count": 0
+		,"layout_required_adjacency_geometry_missing_count": 0
+		,"layout_room_composition_missing_count": 0
+		,"layout_room_capacity_shortfall_count": 0
+		,"layout_wall_stub_count": 0
+		,"layout_wall_notch_count": 0
+		,"layout_wall_stair_step_count": 0
+		,"layout_wall_misaligned_join_count": 0
+		,"layout_atomic_module_fragmentation_count": 0
   },
   "render": {
     "semantic_png": true,

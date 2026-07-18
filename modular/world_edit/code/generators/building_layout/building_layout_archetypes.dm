@@ -300,6 +300,7 @@
 	var/compact_substitute_id = ""
 	var/compact_substitute_only = FALSE
 	var/force_placement = FALSE
+	var/instance_policy = "global_once"
 
 /datum/world_edit_building_cluster_spec/New(_id, _phase, _pattern, _slot, _category, list/_anchors, _min_count = 1, _max_count = 1, _wall_required = FALSE, _chair_count = 0, _priority = 50, _required = TRUE, _optional_zone_id = null, _macro_id = null)
 	. = ..()
@@ -349,6 +350,7 @@
 	copy.compact_substitute_id = compact_substitute_id
 	copy.compact_substitute_only = compact_substitute_only
 	copy.force_placement = force_placement
+	copy.instance_policy = instance_policy
 	return copy
 
 /datum/world_edit_building_semantic_plan

@@ -682,6 +682,9 @@
 	plan.metadata["hard_counters"] = build_building_state_hard_counter_report(state)
 	for(var/counter_name as anything in plan.metadata["hard_counters"])
 		plan.metadata["[counter_name]"] = plan.metadata["hard_counters"][counter_name]
+	plan.metadata["layout_unassigned_interior_turf_count"] = state.validation.layout_unassigned_interior_turf_count
+	plan.metadata["layout_unassigned_interior_ratio_percent"] = state.validation.layout_unassigned_interior_ratio_percent
+	plan.metadata["layout_route_component_count"] = state.validation.layout_route_component_count
 	plan.metadata["layout_public_room_hard_closed_count"] = state.validation.layout_public_room_hard_closed_count
 	plan.metadata["layout_public_opening_missing_count"] = state.validation.layout_public_opening_missing_count
 	plan.metadata["layout_opposing_route_door_pair_count"] = state.validation.layout_opposing_route_door_pair_count
@@ -909,6 +912,9 @@
 	plan.metadata["hard_counters"] = build_building_state_hard_counter_report(state)
 	for(var/counter_name as anything in plan.metadata["hard_counters"])
 		plan.metadata["[counter_name]"] = plan.metadata["hard_counters"][counter_name]
+	plan.metadata["layout_unassigned_interior_turf_count"] = state.validation.layout_unassigned_interior_turf_count
+	plan.metadata["layout_unassigned_interior_ratio_percent"] = state.validation.layout_unassigned_interior_ratio_percent
+	plan.metadata["layout_route_component_count"] = state.validation.layout_route_component_count
 	plan.metadata["layout_public_room_hard_closed_count"] = state.validation.layout_public_room_hard_closed_count
 	plan.metadata["layout_public_opening_missing_count"] = state.validation.layout_public_opening_missing_count
 	plan.metadata["layout_opposing_route_door_pair_count"] = state.validation.layout_opposing_route_door_pair_count

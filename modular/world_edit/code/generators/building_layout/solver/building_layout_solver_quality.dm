@@ -337,13 +337,25 @@
 /datum/world_edit_generator/building_layout/proc/building_layout_room_has_valid_route_connection(datum/world_edit_building_layout_candidate/candidate, room_id)
 	if(!istype(candidate))
 		return FALSE
-	for(var/datum/world_edit_building_layout_route_opening_plan/door_plan as anything in candidate.opening_plans)
-		if(!istype(door_plan) || door_plan.kind == "main_exit")
-			continue
-		if(door_plan.from_room == room_id && door_plan.to_room == "route")
+	var/list/open = list("route")
+	var/list/seen = list("route" = TRUE)
+	while(length(open))
+		var/current_id = open[1]
+		open.Cut(1, 2)
+		if(current_id == "[room_id]")
 			return TRUE
-		if(door_plan.to_room == room_id && door_plan.from_room == "route")
-			return TRUE
+		for(var/datum/world_edit_building_layout_route_opening_plan/door_plan as anything in candidate.opening_plans)
+			if(!istype(door_plan) || door_plan.kind == "main_exit")
+				continue
+			var/next_id = ""
+			if(door_plan.from_room == current_id)
+				next_id = door_plan.to_room
+			else if(door_plan.to_room == current_id)
+				next_id = door_plan.from_room
+			if(!length(next_id) || seen[next_id])
+				continue
+			seen[next_id] = TRUE
+			open += next_id
 	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/validate_building_layout_opening_quality(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate)
@@ -363,8 +375,9 @@
 		if(segment_length > 0 && segment_length < min_opening_width)
 			state.validation.layout_door_short_segment_count++
 		var/emits_door_object = building_layout_opening_plan_emits_door_object(context, door_plan)
-		if(emits_door_object && building_layout_door_plan_at_segment_end(context, candidate, door_plan))
+		if(emits_door_object && building_layout_door_plan_at_segment_end(context, candidate, door_plan) && !building_layout_opening_has_wall_shoulders(candidate, door_plan.opening_turf, door_plan.dir))
 			state.validation.layout_door_corner_count++
+			state.add_stage_report("layout_door_corner", "failed", "controlled opening lacks an intact wall shoulder", list("opening_id" = door_plan.id, "x" = door_plan.opening_turf.x, "y" = door_plan.opening_turf.y, "z" = door_plan.opening_turf.z, "dir" = door_plan.dir))
 		if(emits_door_object && building_layout_opening_near_other_door_excluding(candidate, door_plan, 1))
 			state.validation.layout_door_near_other_door_count++
 		if(!building_layout_door_clearance_ok(candidate, door_plan))
@@ -556,7 +569,7 @@
 	state.validation.layout_missing_wall_context_reject_count = round(text2num("[state.validation.template_reject_reason_counts["missing_wall_context"]]") || 0)
 
 /datum/world_edit_generator/building_layout/proc/validate_building_layout_candidate_diversity(datum/world_edit_building_layout_state/state)
-	if(!istype(state) || isnull(state.config["layout_hard_valid_candidate_count"]))
+	if(!istype(state) || GLOB.world_edit_helpers.parse_bool(state.config["layout_trial_emission"]) || isnull(state.config["layout_hard_valid_candidate_count"]))
 		return
 	var/is_compact = is_building_compact_or_micro_state(state)
 	var/min_hard_valid_candidates = is_compact ? 1 : 2
@@ -640,6 +653,24 @@
 		return TRUE
 	if(validation.layout_required_adjacency_missing_count > 0)
 		return TRUE
+	if(validation.layout_required_adjacency_geometry_missing_count > 0)
+		return TRUE
+	if(validation.layout_unassigned_interior_excess_count > 0)
+		return TRUE
+	if(validation.layout_ownerless_open_bay_count > 0)
+		return TRUE
+	if(validation.layout_route_component_error_count > 0)
+		return TRUE
+	if(validation.layout_wall_stub_count > 0)
+		return TRUE
+	if(validation.layout_wall_notch_count > 0)
+		return TRUE
+	if(validation.layout_wall_stair_step_count > 0)
+		return TRUE
+	if(validation.layout_wall_misaligned_join_count > 0)
+		return TRUE
+	if(validation.layout_atomic_module_fragmentation_count > 0)
+		return TRUE
 	if(validation.layout_required_module_fallback_count > 0)
 		return TRUE
 	if(validation.layout_required_template_reject_count > 0)
@@ -667,6 +698,18 @@
 	state.validation.layout_room_composition_missing_count = 0
 	state.validation.layout_room_capacity_shortfall_count = 0
 	state.validation.layout_required_adjacency_missing_count = 0
+	state.validation.layout_required_adjacency_geometry_missing_count = 0
+	state.validation.layout_unassigned_interior_turf_count = 0
+	state.validation.layout_unassigned_interior_ratio_percent = 0
+	state.validation.layout_unassigned_interior_excess_count = 0
+	state.validation.layout_ownerless_open_bay_count = 0
+	state.validation.layout_route_component_count = 0
+	state.validation.layout_route_component_error_count = 0
+	state.validation.layout_wall_stub_count = 0
+	state.validation.layout_wall_notch_count = 0
+	state.validation.layout_wall_stair_step_count = 0
+	state.validation.layout_wall_misaligned_join_count = 0
+	state.validation.layout_atomic_module_fragmentation_count = 0
 	state.validation.layout_scene_underfill_count = 0
 	state.validation.layout_underfurnished_room_count = 0
 	state.validation.layout_candidate_metric_mismatch_count = 0
@@ -692,11 +735,6 @@
 				member_count++
 				if("[member["slot"]]" == "bed")
 					bed_capacity++
-		var/min_occupied_ratio = building_layout_review_min_occupied_ratio(room_plan.role)
-		var/occupied_ratio = round(length(occupied_lookup) * 100 / max(room_plan.area(), 1))
-		if(min_occupied_ratio > 0 && occupied_ratio < min_occupied_ratio)
-			state.validation.layout_scene_underfill_count++
-			state.validation.layout_underfurnished_room_count++
 		if(!istype(scene_plan) || member_count <= 0)
 			state.validation.layout_room_composition_missing_count++
 			state.add_stage_report("layout_room_composition_missing", "failed", "functional room has no authored scene", list(
@@ -707,17 +745,21 @@
 				"width" = room_plan.width(),
 				"height" = room_plan.height(),
 			))
-		else if(istype(room_contract) && room_contract.instance_index > 1 && member_count < 2)
-			state.validation.layout_room_composition_missing_count++
-			state.add_stage_report("layout_room_composition_missing", "failed", "repeated functional room has an incomplete authored scene", list(
-				"room_id" = room_plan.id,
-				"contract_id" = room_plan.contract_id,
-				"role" = room_plan.role,
-				"member_count" = member_count,
-				"area" = room_plan.area(),
-				"width" = room_plan.width(),
-				"height" = room_plan.height(),
-			))
+		else
+			var/datum/world_edit_building_layout_composition_contract/composition = program.get_composition_contract(room_plan.contract_id)
+			var/missing_required_group_count = 0
+			for(var/datum/world_edit_building_cluster_spec/required_group as anything in composition?.required_groups)
+				if(!building_layout_scene_contains_required_group(scene_plan, required_group))
+					missing_required_group_count++
+			if(missing_required_group_count > 0)
+				state.validation.layout_scene_underfill_count += missing_required_group_count
+				state.validation.layout_underfurnished_room_count += missing_required_group_count
+				state.add_stage_report("layout_room_composition_underfill", "failed", "authored required composition group is missing", list(
+					"room_id" = room_plan.id,
+					"contract_id" = room_plan.contract_id,
+					"missing_group_count" = missing_required_group_count,
+					"member_count" = member_count,
+				))
 		if(room_plan.role == "private" && room_plan.scene_kind == "bedroom" && istype(room_contract) && room_contract.instance_index > 1 && bed_capacity < 2)
 			state.validation.layout_room_capacity_shortfall_count++
 	var/list/circulation_zone_lookup = list()
@@ -735,8 +777,36 @@
 	for(var/datum/world_edit_building_layout_connection_contract/connection_contract as anything in program.connection_contracts)
 		if(!istype(connection_contract) || !connection_contract.required)
 			continue
-		if(!building_layout_candidate_has_required_topology_edge(candidate, connection_contract.from_room, connection_contract.to_room))
+		var/from_endpoint = normalize_building_layout_topology_endpoint(program, connection_contract.from_room)
+		var/to_endpoint = normalize_building_layout_topology_endpoint(program, connection_contract.to_room)
+		var/circulation_edge = from_endpoint == "route" && to_endpoint == "route"
+		if(!(circulation_edge ? building_layout_candidate_has_circulation_edge(candidate, program, connection_contract) : building_layout_candidate_has_required_topology_edge(candidate, from_endpoint, to_endpoint)))
 			state.validation.layout_required_adjacency_missing_count++
+			state.add_stage_report("layout_required_adjacency", "failed", "candidate topology edge is missing", list("from" = connection_contract.from_room, "to" = connection_contract.to_room, "normalized_from" = from_endpoint, "normalized_to" = to_endpoint, "kind" = connection_contract.kind))
+		if(!building_layout_candidate_has_required_topology_geometry(context, candidate, program, connection_contract))
+			state.validation.layout_required_adjacency_geometry_missing_count++
+			state.add_stage_report("layout_required_adjacency_geometry", "failed", "required edge has no matching physical opening", list("from" = connection_contract.from_room, "to" = connection_contract.to_room, "normalized_from" = from_endpoint, "normalized_to" = to_endpoint, "kind" = connection_contract.kind))
+	var/list/unassigned_lookup = list()
+	for(var/turf/interior_turf as anything in state.geometry.interior)
+		if(!istype(interior_turf))
+			continue
+		if(candidate.route_zone_by_turf[interior_turf] == "circulation_open_bay")
+			unassigned_lookup[interior_turf] = TRUE
+	state.validation.layout_unassigned_interior_turf_count = length(unassigned_lookup)
+	state.validation.layout_unassigned_interior_ratio_percent = round(length(unassigned_lookup) * 100 / max(length(state.geometry.interior), 1))
+	var/unassigned_limit_percent = state.config["footprint_family"] == WORLD_EDIT_BUILDING_FOOTPRINT_FAMILY_RECT ? 3 : 5
+	var/allowed_unassigned_count = round(length(state.geometry.interior) * unassigned_limit_percent / 100)
+	state.validation.layout_unassigned_interior_excess_count = max(length(unassigned_lookup) - allowed_unassigned_count, 0)
+	state.validation.layout_ownerless_open_bay_count = count_building_layout_lookup_components(unassigned_lookup)
+	state.validation.layout_route_component_count = count_building_layout_lookup_components(candidate.route_lookup)
+	state.validation.layout_route_component_error_count = state.validation.layout_route_component_count == 1 ? 0 : abs(state.validation.layout_route_component_count - 1)
+	var/list/wall_defects = count_building_layout_wall_geometry_defects(candidate)
+	state.validation.layout_wall_stub_count = wall_defects["stub_count"] || 0
+	state.validation.layout_wall_notch_count = wall_defects["notch_count"] || 0
+	state.validation.layout_wall_stair_step_count = wall_defects["stair_step_count"] || 0
+	state.validation.layout_wall_misaligned_join_count = wall_defects["misaligned_join_count"] || 0
+	if(state.validation.layout_wall_stub_count || state.validation.layout_wall_notch_count || state.validation.layout_wall_stair_step_count || state.validation.layout_wall_misaligned_join_count)
+		state.add_stage_report("layout_wall_geometry_defects", "failed", "candidate wall graph contains prohibited geometry", wall_defects)
 	var/list/wall_cleanup_report = candidate.wall_cleanup_report
 	var/removed_unmapped = round(text2num("[wall_cleanup_report?["removed_unmapped_wall_tile_count"]]") || 0)
 	var/removed_spurs = round(text2num("[wall_cleanup_report?["removed_single_sided_wall_tile_count"]]") || 0)
@@ -749,17 +819,19 @@
 	state.validation.layout_route_wall_canyon_length = canyon_report["slice_count"] || 0
 	state.validation.layout_corridor_wall_canyon_count = canyon_report["failure_count"] || 0
 
-/datum/world_edit_generator/building_layout/proc/building_layout_review_min_occupied_ratio(room_role)
-	switch("[room_role]")
-		if("public", "public_med")
-			return 8
-		if("hub", "work", "staging")
-			return 10
-		if("private")
-			return 8
-		if("storage", "service", "secure", "support")
-			return 14
-	return 8
+/datum/world_edit_generator/building_layout/proc/building_layout_scene_contains_required_group(datum/world_edit_building_layout_scene_plan/scene_plan, datum/world_edit_building_cluster_spec/required_group)
+	if(!istype(scene_plan) || !istype(required_group))
+		return FALSE
+	var/credit = 0
+	for(var/list/member as anything in scene_plan.members)
+		var/datum/world_edit_building_cluster_spec/member_group = member?["cluster_spec"]
+		if(!istype(member_group))
+			continue
+		var/group_match = member_group == required_group || member_group.id == required_group.id || (length(member_group.count_cluster_id) && member_group.count_cluster_id == required_group.id) || (length(required_group.count_cluster_id) && required_group.count_cluster_id == member_group.id)
+		if(!group_match)
+			continue
+		credit += get_building_fixture_count_credit(required_group, member["slot"], member["category"])
+	return credit >= max(required_group.min_count, 1)
 
 /datum/world_edit_generator/building_layout/proc/building_layout_candidate_has_required_topology_edge(datum/world_edit_building_layout_candidate/candidate, from_room, to_room)
 	if(!istype(candidate))
@@ -770,6 +842,133 @@
 		if((connection.from_room_id == from_room && connection.to_room_id == to_room) || (connection.from_room_id == to_room && connection.to_room_id == from_room))
 			return TRUE
 	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/normalize_building_layout_topology_endpoint(datum/world_edit_building_layout_program_contract/program, endpoint_id)
+	var/datum/world_edit_building_layout_room_contract/room_contract = program?.get_room_contract(endpoint_id)
+	return istype(room_contract) && room_contract.counts_toward_target ? "[endpoint_id]" : "route"
+
+/datum/world_edit_generator/building_layout/proc/building_layout_candidate_has_required_topology_geometry(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate, datum/world_edit_building_layout_program_contract/program, datum/world_edit_building_layout_connection_contract/connection_contract)
+	if(!istype(context) || !istype(candidate) || !istype(program) || !istype(connection_contract))
+		return FALSE
+	var/from_endpoint = normalize_building_layout_topology_endpoint(program, connection_contract.from_room)
+	var/to_endpoint = normalize_building_layout_topology_endpoint(program, connection_contract.to_room)
+	if(from_endpoint == "route" && to_endpoint == "route")
+		return building_layout_candidate_has_circulation_edge(candidate, program, connection_contract)
+	for(var/datum/world_edit_building_layout_route_opening_plan/opening_plan as anything in candidate.opening_plans)
+		if(!istype(opening_plan))
+			continue
+		var/endpoint_match = (opening_plan.from_room == from_endpoint && opening_plan.to_room == to_endpoint) || (opening_plan.from_room == to_endpoint && opening_plan.to_room == from_endpoint)
+		if(!endpoint_match)
+			continue
+		if(from_endpoint == "route" || to_endpoint == "route")
+			if(building_layout_door_plan_has_valid_shared_wall(context, candidate, opening_plan))
+				return TRUE
+			continue
+		var/datum/world_edit_building_layout_room_plan/from_plan = candidate.get_room_plan(opening_plan.from_room)
+		var/datum/world_edit_building_layout_room_plan/to_plan = candidate.get_room_plan(opening_plan.to_room)
+		if(!istype(from_plan) || !istype(to_plan))
+			continue
+		var/forward_match = from_plan.contract_id == connection_contract.from_room && to_plan.contract_id == connection_contract.to_room
+		var/reverse_match = from_plan.contract_id == connection_contract.to_room && to_plan.contract_id == connection_contract.from_room
+		if(!forward_match && !reverse_match)
+			continue
+		for(var/turf/opening_turf as anything in get_building_layout_opening_plan_turfs(opening_plan))
+			if(building_layout_opening_bridges_room_plans(opening_turf, from_plan, to_plan))
+				return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/building_layout_candidate_has_circulation_edge(datum/world_edit_building_layout_candidate/candidate, datum/world_edit_building_layout_program_contract/program, datum/world_edit_building_layout_connection_contract/connection_contract)
+	if(!istype(candidate) || !istype(program) || !istype(connection_contract) || !building_layout_route_turfs_are_connected(candidate))
+		return FALSE
+	var/datum/world_edit_building_layout_room_contract/from_contract = program.get_room_contract(connection_contract.from_room)
+	var/datum/world_edit_building_layout_room_contract/to_contract = program.get_room_contract(connection_contract.to_room)
+	if(!istype(from_contract) || !istype(to_contract))
+		return FALSE
+	for(var/turf/from_turf as anything in candidate.route_zone_by_turf)
+		if(candidate.route_zone_by_turf[from_turf] != from_contract.zone_id)
+			continue
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/to_turf = get_step(from_turf, check_dir)
+			if(candidate.route_zone_by_turf[to_turf] == to_contract.zone_id)
+				return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/building_layout_opening_bridges_room_plans(turf/opening_turf, datum/world_edit_building_layout_room_plan/from_plan, datum/world_edit_building_layout_room_plan/to_plan)
+	if(!istype(opening_turf) || !istype(from_plan) || !istype(to_plan))
+		return FALSE
+	for(var/check_dir in GLOB.cardinals)
+		var/turf/near_turf = get_step(opening_turf, check_dir)
+		var/turf/far_turf = get_step(opening_turf, turn(check_dir, 180))
+		if((from_plan.turf_lookup[near_turf] && to_plan.turf_lookup[far_turf]) || (to_plan.turf_lookup[near_turf] && from_plan.turf_lookup[far_turf]))
+			return TRUE
+	return FALSE
+
+/datum/world_edit_generator/building_layout/proc/count_building_layout_lookup_components(list/turf_lookup)
+	if(!islist(turf_lookup) || !length(turf_lookup))
+		return 0
+	var/list/visited = list()
+	var/component_count = 0
+	for(var/turf/seed as anything in turf_lookup)
+		if(!istype(seed) || visited[seed])
+			continue
+		component_count++
+		var/list/open = list(seed)
+		visited[seed] = TRUE
+		while(length(open))
+			var/turf/current = open[1]
+			open.Cut(1, 2)
+			for(var/check_dir in GLOB.cardinals)
+				var/turf/nearby = get_step(current, check_dir)
+				if(!istype(nearby) || !turf_lookup[nearby] || visited[nearby])
+					continue
+				visited[nearby] = TRUE
+				open += nearby
+	return component_count
+
+/datum/world_edit_generator/building_layout/proc/count_building_layout_wall_geometry_defects(datum/world_edit_building_layout_candidate/candidate)
+	var/list/report = list("stub_count" = 0, "notch_count" = 0, "stair_step_count" = 0, "misaligned_join_count" = 0, "stub_turfs" = list(), "notch_turfs" = list(), "stair_step_turfs" = list(), "misaligned_join_turfs" = list())
+	if(!istype(candidate) || !length(candidate.wall_lookup))
+		return report
+	var/list/opening_lookup = list()
+	for(var/datum/world_edit_building_layout_route_opening_plan/opening_plan as anything in candidate.opening_plans)
+		for(var/turf/opening_turf as anything in get_building_layout_opening_plan_turfs(opening_plan))
+			if(istype(opening_turf))
+				opening_lookup[opening_turf] = TRUE
+	for(var/turf/wall_turf as anything in candidate.wall_lookup)
+		if(!istype(wall_turf))
+			continue
+		var/neighbor_count = 0
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/nearby = get_step(wall_turf, check_dir)
+			if(candidate.wall_lookup[nearby] || opening_lookup[nearby])
+				neighbor_count++
+		if(neighbor_count <= 1)
+			report["stub_count"]++
+			report["stub_turfs"] += "[wall_turf.x],[wall_turf.y],[wall_turf.z]"
+		else if(neighbor_count >= 3)
+			var/opposite_axis = (candidate.wall_lookup[get_step(wall_turf, NORTH)] || opening_lookup[get_step(wall_turf, NORTH)]) && (candidate.wall_lookup[get_step(wall_turf, SOUTH)] || opening_lookup[get_step(wall_turf, SOUTH)])
+			var/other_axis = (candidate.wall_lookup[get_step(wall_turf, EAST)] || opening_lookup[get_step(wall_turf, EAST)]) && (candidate.wall_lookup[get_step(wall_turf, WEST)] || opening_lookup[get_step(wall_turf, WEST)])
+			if(!opposite_axis && !other_axis)
+				report["misaligned_join_count"]++
+				report["misaligned_join_turfs"] += "[wall_turf.x],[wall_turf.y],[wall_turf.z]"
+	for(var/turf/floor_turf as anything in candidate.floor_lookup)
+		if(!istype(floor_turf) || candidate.wall_lookup[floor_turf] || opening_lookup[floor_turf])
+			continue
+		var/cardinal_walls = 0
+		for(var/check_dir in GLOB.cardinals)
+			if(candidate.wall_lookup[get_step(floor_turf, check_dir)])
+				cardinal_walls++
+		if(cardinal_walls >= 3)
+			report["notch_count"]++
+			report["notch_turfs"] += "[floor_turf.x],[floor_turf.y],[floor_turf.z]"
+		var/ne = candidate.wall_lookup[get_step(get_step(floor_turf, NORTH), EAST)]
+		var/nw = candidate.wall_lookup[get_step(get_step(floor_turf, NORTH), WEST)]
+		var/se = candidate.wall_lookup[get_step(get_step(floor_turf, SOUTH), EAST)]
+		var/sw = candidate.wall_lookup[get_step(get_step(floor_turf, SOUTH), WEST)]
+		if((ne && sw && !nw && !se) || (nw && se && !ne && !sw))
+			report["stair_step_count"]++
+			report["stair_step_turfs"] += "[floor_turf.x],[floor_turf.y],[floor_turf.z]"
+	return report
 
 /datum/world_edit_generator/building_layout/proc/count_building_layout_route_band_canyon_slices(datum/world_edit_building_layout_candidate/candidate, list/wall_lookup)
 	var/list/report = list("slice_count" = 0, "failure_count" = 0, "share_percent" = 0)

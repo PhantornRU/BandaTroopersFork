@@ -15,6 +15,15 @@
 #define WORLD_EDIT_BUILDING_EDGE_SECURE "secure"
 #define WORLD_EDIT_BUILDING_EDGE_NESTED "nested"
 
+#define WORLD_EDIT_BUILDING_TOPOLOGY_FUNCTIONAL "functional"
+#define WORLD_EDIT_BUILDING_TOPOLOGY_CIRCULATION_TERMINAL "circulation_terminal"
+#define WORLD_EDIT_BUILDING_TOPOLOGY_TRANSITION "transition"
+
+#define WORLD_EDIT_BUILDING_CLUSTER_GLOBAL_ONCE "global_once"
+#define WORLD_EDIT_BUILDING_CLUSTER_PRIMARY_ONLY "primary_only"
+#define WORLD_EDIT_BUILDING_CLUSTER_PER_INSTANCE "per_instance"
+#define WORLD_EDIT_BUILDING_CLUSTER_DISTRIBUTE_TOTAL "distribute_total"
+
 /datum/world_edit_building_layout_context
 	var/datum/world_edit_generator/building_layout/generator
 	var/datum/world_edit_building_layout_state/state
@@ -128,6 +137,8 @@
 	var/list/connection_contracts = list()
 	var/list/scene_contracts = list()
 	var/list/scene_contracts_by_id = list()
+	var/list/composition_contracts = list()
+	var/list/composition_contracts_by_room = list()
 	var/list/allowed_layout_patterns = list()
 	var/list/global_scene_kind_limits = list()
 	var/list/global_scene_slot_limits = list()
@@ -165,6 +176,15 @@
 
 /datum/world_edit_building_layout_program_contract/proc/get_scene_contract(scene_id)
 	return scene_contracts_by_id["[scene_id]"]
+
+/datum/world_edit_building_layout_program_contract/proc/add_composition_contract(datum/world_edit_building_layout_composition_contract/composition)
+	if(!istype(composition) || !length(composition.room_id))
+		return
+	composition_contracts += composition
+	composition_contracts_by_room[composition.room_id] = composition
+
+/datum/world_edit_building_layout_program_contract/proc/get_composition_contract(room_id)
+	return composition_contracts_by_room["[room_id]"]
 
 /datum/world_edit_building_layout_room_contract
 	var/id = ""
@@ -237,6 +257,8 @@
 	var/list/nodes_by_id = list()
 	var/list/edges = list()
 	var/root_node_id = ""
+	var/list/compile_errors = list()
+	var/required_connected = FALSE
 
 /datum/world_edit_building_layout_topology_graph/proc/add_node(datum/world_edit_building_layout_topology_node/node)
 	if(!istype(node) || !length(node.id) || nodes_by_id[node.id])
@@ -270,12 +292,17 @@
 	var/parent_id = ""
 	var/placement_group = ""
 	var/centrality_score = 0
+	var/node_kind = WORLD_EDIT_BUILDING_TOPOLOGY_FUNCTIONAL
+	var/required = TRUE
 
 /datum/world_edit_building_layout_topology_node/New(datum/world_edit_building_layout_room_contract/_room_contract)
 	. = ..()
 	room_contract = _room_contract
 	id = "[_room_contract?.id || ""]"
 	placement_group = "[_room_contract?.zone_id || ""]"
+	required = _room_contract?.required ? TRUE : FALSE
+	if(_room_contract?.spatial_kind in list(WORLD_EDIT_BUILDING_SPACE_CIRCULATION, WORLD_EDIT_BUILDING_SPACE_CHOKE))
+		node_kind = _room_contract.spatial_kind == WORLD_EDIT_BUILDING_SPACE_CHOKE ? WORLD_EDIT_BUILDING_TOPOLOGY_TRANSITION : WORLD_EDIT_BUILDING_TOPOLOGY_CIRCULATION_TERMINAL
 
 /datum/world_edit_building_layout_topology_edge
 	var/from_id = ""
@@ -346,6 +373,15 @@
 	var/list/route_overlay_turfs = list()
 	var/list/route_overlay_lookup = list()
 	var/list/route_zone_by_turf = list()
+	var/list/route_owner_by_turf = list()
+	var/list/ownership_by_turf = list()
+	var/list/partition_edges = list()
+	var/list/composition_contracts = list()
+	var/list/family_constraints = list()
+	var/family_policy_id = ""
+	var/orientation_variant = 0
+	var/topology_signature = ""
+	var/list/quality_vector = list()
 
 /datum/world_edit_building_layout_candidate/proc/add_room_allocation_request(datum/world_edit_building_layout_room_allocation_request/allocation_request)
 	if(istype(allocation_request))
@@ -367,7 +403,7 @@
 	route_lookup[route_turf] = TRUE
 
 /datum/world_edit_building_layout_candidate/proc/reserve_route_access(room_id, list/wall_run, list/route_run, list/connector_run = null)
-	if(!length("[room_id]") || !islist(wall_run) || !islist(route_run) || length(wall_run) < 2 || length(wall_run) != length(route_run))
+	if(!length("[room_id]") || !islist(wall_run) || !islist(route_run) || !length(wall_run) || length(wall_run) != length(route_run))
 		return FALSE
 	var/list/reservation = list("room_id" = "[room_id]", "wall_run" = wall_run.Copy(), "route_run" = route_run.Copy(), "connector_run" = islist(connector_run) ? connector_run.Copy() : list())
 	access_reservations_by_room["[room_id]"] = reservation
@@ -384,6 +420,22 @@
 
 /datum/world_edit_building_layout_candidate/proc/get_route_access_reservation(room_id)
 	return access_reservations_by_room["[room_id]"]
+
+/datum/world_edit_building_layout_allocation_partial
+	var/list/placements = list()
+	var/list/placement_order = list()
+	var/score = 0
+
+/datum/world_edit_building_layout_allocation_partial/proc/fork_with(room_id, list/rect, score_delta = 0)
+	if(!length("[room_id]") || !islist(rect))
+		return null
+	var/datum/world_edit_building_layout_allocation_partial/child = new
+	child.placements = placements.Copy()
+	child.placement_order = placement_order.Copy()
+	child.placements["[room_id]"] = rect.Copy()
+	child.placement_order += "[room_id]"
+	child.score = score + round(text2num("[score_delta]") || 0)
+	return child
 
 /datum/world_edit_building_layout_candidate/proc/add_room_connection(datum/world_edit_building_layout_room_connection/connection)
 	if(istype(connection))
@@ -595,6 +647,9 @@
 	var/list/room_connections = list()
 	var/datum/world_edit_building_layout_topology_graph/topology_graph = null
 	var/topology_family = ""
+	var/list/family_constraints = list()
+	var/family_policy_id = ""
+	var/orientation_variant = 0
 
 /datum/world_edit_building_layout_region_candidate/New(_pattern_id = "", _id = "", _score = 0)
 	. = ..()
@@ -655,6 +710,22 @@
 	. = ..()
 	id = "[_id]"
 	scene_kind = length("[_scene_kind]") ? "[_scene_kind]" : id
+
+/datum/world_edit_building_layout_composition_contract
+	var/id = ""
+	var/room_id = ""
+	var/scene_contract_id = ""
+	var/instance_policy = WORLD_EDIT_BUILDING_CLUSTER_GLOBAL_ONCE
+	var/list/required_groups = list()
+	var/list/optional_groups = list()
+	var/min_negative_space_tiles = 1
+	var/reserve_interaction_lane = TRUE
+
+/datum/world_edit_building_layout_composition_contract/New(_id = "", _room_id = "", _scene_contract_id = "")
+	. = ..()
+	id = "[_id]"
+	room_id = "[_room_id]"
+	scene_contract_id = "[_scene_contract_id]"
 
 /datum/world_edit_building_layout_scene_plan
 	var/id = ""

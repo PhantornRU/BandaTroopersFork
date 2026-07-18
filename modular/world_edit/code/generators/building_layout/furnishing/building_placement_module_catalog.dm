@@ -112,11 +112,11 @@
 		list("workshop", "central_assembly_table", list("table_pair", "table_corner", "desk_suite")),
 		list("workshop", "operator_console", list("wall_single", "service_single")),
 		list("workshop", "tool_storage", list("wall_pair", "wall_single")),
-		list("workshop", "parts_crate_stack", list("staging_pair", "staging_corner")),
+		list("workshop", "parts_crate_stack", list("staging_pair", "staging_corner", "compact_single")),
 		list("storage", "rack_aisles", list("aisle_line", "wide_line", "wall_line", "compact_single")),
 		list("storage", "loading_crates", list("staging_pair", "staging_corner", "staging_line", "compact_single")),
 		list("storage", "inspection_table", list("desk_suite", "table_pair")),
-		list("storage", "crate_stack", list("staging_pair", "staging_line")),
+		list("storage", "crate_stack", list("staging_pair", "staging_line", "compact_single")),
 		list("medbay", "treatment_bay_signature", list("wall_line", "wide_line", "service_line", "wall_single", "compact_single")),
 		list("medbay", "med_storage_wall", list("wall_single")),
 		list("medbay", "triage_table", list("desk_suite", "table_pair", "compact_table")),
@@ -130,7 +130,7 @@
 		list("hydroponics", "service_counter", list("wall_pair", "service_line", "compact_single")),
 		list("hydroponics", "seed_cabinets", list("wall_pair", "service_line", "compact_single")),
 		list("hydroponics", "seed_cabinets_compact", list("wall_single", "service_single")),
-		list("hydroponics", "fertilizer_crates", list("staging_pair", "staging_corner")),
+		list("hydroponics", "fertilizer_crates", list("staging_pair", "staging_corner", "compact_single")),
 		list("hydroponics", "tool_rack", list("wall_single", "service_single")),
 		list("hydroponics", "grower_chair", list("seating_single", "seating_corner")),
 		list("kitchen", "serving_counter", list("counter_line", "wide_line", "service_line")),
@@ -139,13 +139,13 @@
 		list("kitchen", "cold_storage_wall", list("wall_pair", "wall_line", "compact_single")),
 		list("kitchen", "dining_tables", list("table_pair", "table_corner", "compact_table")),
 		list("kitchen", "pantry_rack", list("wall_single", "service_single")),
-		list("kitchen", "supply_crates", list("staging_pair", "staging_corner")),
+		list("kitchen", "supply_crates", list("staging_pair", "staging_corner", "compact_single")),
 		list("dormitory", "bed_wall_runs", list("wall_line", "wide_line", "long_pair", "wall_single")),
 		list("dormitory", "locker_wall", list("wall_line", "wall_pair", "service_line")),
 		list("dormitory", "locker_wall_compact", list("wall_pair", "wall_single", "service_single", "compact_single")),
 		list("dormitory", "ready_table", list("table_pair", "table_corner", "desk_suite")),
 		list("dormitory", "personal_rack", list("wall_single", "service_single")),
-		list("dormitory", "footlocker_crates", list("staging_pair", "staging_corner")),
+		list("dormitory", "footlocker_crates", list("staging_pair", "staging_corner", "compact_single")),
 		list("office", "primary_desk_suite", list("desk_suite", "table_pair", "table_corner")),
 		list("office", "filing_cabinets", list("wall_line", "wall_pair", "service_line", "compact_single")),
 		list("office", "office_console", list("wall_single", "service_single")),
@@ -168,7 +168,7 @@
 		list("engineering", "power_console_wall", list("wall_single")),
 		list("engineering", "parts_racks", list("aisle_line", "compact_single")),
 		list("engineering", "generator_unit", list("wall_single")),
-		list("engineering", "cable_crates", list("staging_pair", "staging_line"))
+		list("engineering", "cable_crates", list("staging_pair", "staging_line", "compact_single"))
 	)
 	for(var/list/family as anything in families)
 		if(!islist(family) || length(family) < 3)

@@ -54,14 +54,13 @@
 			program.min_circulation_area += circulation_contract.min_area
 	compile_building_layout_connection_contracts(state, program)
 	program.topology_graph = compile_building_layout_topology_graph(state, program)
-	if(!istype(program.topology_graph) || !length(program.topology_graph.nodes))
+	if(!istype(program.topology_graph) || !length(program.topology_graph.nodes) || length(program.topology_graph.compile_errors))
 		state.add_error("Program contract '[program.id]' has no functional topology graph.")
 		return null
-	compile_building_layout_scene_contracts(state, program)
 	for(var/category as anything in state.semantic_plan.object_budgets)
 		if(!is_building_infrastructure_category(category))
 			program.global_scene_slot_limits["[category]"] = state.semantic_plan.object_budgets[category]
-	reserve_building_layout_required_scene_identity_budget(program)
+	compile_building_layout_scene_contracts(state, program)
 	return program
 
 /datum/world_edit_generator/building_layout/proc/select_building_layout_room_zone_specs(datum/world_edit_building_layout_state/state)
@@ -139,16 +138,21 @@
 	if(!istype(state) || !istype(zone_spec))
 		return null
 	var/usable_area = max(length(state.geometry.footprint) - length(state.geometry.boundary), 1)
-	var/average_room_area = max(round(usable_area / max(target_room_count, 1)), zone_spec.min_area)
+	var/size_profile = "[state.config["size_profile"] || WORLD_EDIT_BUILDING_SIZE_PROFILE_STANDARD]"
+	var/structural_buffer_percent = 5
+	if(size_profile == WORLD_EDIT_BUILDING_SIZE_PROFILE_COMPACT)
+		structural_buffer_percent = 3
+	else if(size_profile == WORLD_EDIT_BUILDING_SIZE_PROFILE_SPACIOUS)
+		structural_buffer_percent = 8
+	var/useful_room_budget = max(round(usable_area * (100 - structural_buffer_percent) / 100) - programmatic_building_layout_route_reserve(state, target_room_count), target_room_count)
+	var/average_room_area = max(round(useful_room_budget / max(target_room_count, 1)), zone_spec.min_area)
 	var/min_area = max(zone_spec.min_area, (zone_spec.role in list("hub", "public", "public_med")) ? 9 : ((zone_spec.role in list("entry", "route", "choke")) ? 2 : 4))
-	min_area = max(min_area, get_building_layout_zone_scene_min_area(state, zone_spec, instance_index))
-	// Large explicit footprints must be substantially claimed by functional
-	// rooms instead of leaving an object-poor unassigned moat around a compact
-	// recipe. Standard/compact footprints keep a little more circulation slack.
-	var/preferred_fill_ratio = usable_area >= 360 ? 1.0 : 0.75
-	var/preferred_area = max(min_area, round(average_room_area * preferred_fill_ratio))
-	var/max_area = max(preferred_area, round(average_room_area * 1.05))
-	var/min_width = max(2, min(round(sqrt(min_area)), 5))
+	var/required_composition_footprint = get_building_layout_zone_scene_min_area(state, zone_spec, instance_index)
+	min_area = max(min_area, required_composition_footprint)
+	var/preferred_area = max(min_area, zone_spec.min_area, required_composition_footprint, average_room_area)
+	var/public_multiplier = (zone_spec.role in list("hub", "public", "public_med", "staging") || zone_spec.spatial_kind == WORLD_EDIT_BUILDING_SPACE_OPEN_BAY) ? 1.40 : 1.25
+	var/max_area = max(preferred_area, round(preferred_area * public_multiplier))
+	var/min_width = max(2, min(round(sqrt(min_area)), 8))
 	var/requires_controlled_route_access = zone_spec.privacy_class != "public"
 	if(requires_controlled_route_access)
 		min_width = max(min_width, 3)
@@ -182,16 +186,24 @@
 	room.allowed_scene_kinds = list()
 	return room
 
+/datum/world_edit_generator/building_layout/proc/programmatic_building_layout_route_reserve(datum/world_edit_building_layout_state/state, target_room_count)
+	if(!istype(state))
+		return 0
+	var/min_side = min(round(state.geometry.bounds["width"] || 0), round(state.geometry.bounds["height"] || 0))
+	return max(min_side - 2, max(round(target_room_count / 2), 1))
+
 /datum/world_edit_generator/building_layout/proc/get_building_layout_zone_scene_min_area(datum/world_edit_building_layout_state/state, datum/world_edit_building_zone_spec/zone_spec, instance_index = 1)
 	if(!istype(state) || !istype(zone_spec))
 		return 0
 	var/min_scene_area = 0
+	var/required_group_count = 0
 	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan?.cluster_specs)
 		if(!istype(cluster_spec) || !cluster_spec.required || is_building_infrastructure_category(cluster_spec.category))
 			continue
 		var/cluster_matches_zone = get_building_layout_cluster_zone_anchor_score(cluster_spec, zone_spec.id) > 0 || cluster_spec.optional_zone_id == zone_spec.id
 		if(!cluster_matches_zone)
 			continue
+		required_group_count++
 		var/datum/world_edit_building_cluster_spec/capacity_spec = cluster_spec
 		if(instance_index > 1 && length(cluster_spec.compact_substitute_id))
 			var/datum/world_edit_building_cluster_spec/compact_spec = state.semantic_plan?.get_cluster_spec_by_id(cluster_spec.compact_substitute_id)
@@ -211,7 +223,12 @@
 			module_area = max(module_area, 6)
 		min_scene_area = max(min_scene_area, module_area)
 	if(instance_index > 1)
+		// A repeated functional room still owns an atomic composition: one
+		// authored module instance, its interaction lane, door clearance and
+		// negative space.  A 3x4 cell cannot satisfy all four simultaneously.
 		min_scene_area = max(min_scene_area, 12)
+	if(min_scene_area > 0)
+		min_scene_area += max(required_group_count - 1, 0) * 4
 	return min_scene_area
 
 /datum/world_edit_generator/building_layout/proc/configure_building_layout_partition_policy(datum/world_edit_building_layout_room_contract/room)
@@ -250,19 +267,28 @@
 	for(var/datum/world_edit_building_adjacency_rule/rule as anything in state.semantic_plan?.adjacency_rules)
 		if(!istype(rule))
 			continue
-		var/list/from_room_ids = get_building_layout_functional_room_ids_for_zone(program, rule.zone_a)
-		var/list/to_room_ids = get_building_layout_functional_room_ids_for_zone(program, rule.zone_b)
+		var/list/from_room_ids = get_building_layout_room_ids_for_zone(program, rule.zone_a)
+		var/list/to_room_ids = get_building_layout_room_ids_for_zone(program, rule.zone_b)
 		if(!length(from_room_ids) || !length(to_room_ids))
+			if(rule.required)
+				state.add_error("topology.required_endpoint_missing:[rule.zone_a]:[rule.zone_b]")
 			continue
 		for(var/from_index in 1 to length(from_room_ids))
 			var/from_room_id = from_room_ids[from_index]
 			var/to_room_id = to_room_ids[((from_index - 1) % length(to_room_ids)) + 1]
-			program.add_connection_contract(new /datum/world_edit_building_layout_connection_contract(from_room_id, to_room_id, rule.required, WORLD_EDIT_BUILDING_EDGE_SHARED))
+			program.add_connection_contract(new /datum/world_edit_building_layout_connection_contract(from_room_id, to_room_id, rule.required, get_building_layout_topology_edge_kind(state, program, from_room_id, to_room_id)))
 		for(var/to_index in 1 to length(to_room_ids))
 			var/to_room_id = to_room_ids[to_index]
 			var/from_room_id = from_room_ids[((to_index - 1) % length(from_room_ids)) + 1]
 			if(!building_layout_program_has_connection(program, from_room_id, to_room_id))
-				program.add_connection_contract(new /datum/world_edit_building_layout_connection_contract(from_room_id, to_room_id, rule.required, WORLD_EDIT_BUILDING_EDGE_SHARED))
+				program.add_connection_contract(new /datum/world_edit_building_layout_connection_contract(from_room_id, to_room_id, rule.required, get_building_layout_topology_edge_kind(state, program, from_room_id, to_room_id)))
+
+/datum/world_edit_generator/building_layout/proc/get_building_layout_room_ids_for_zone(datum/world_edit_building_layout_program_contract/program, zone_id)
+	var/list/result = list()
+	for(var/datum/world_edit_building_layout_room_contract/room_contract as anything in program?.room_contracts)
+		if(istype(room_contract) && room_contract.zone_id == zone_id)
+			result += room_contract.id
+	return result
 
 /datum/world_edit_generator/building_layout/proc/get_building_layout_functional_room_ids_for_zone(datum/world_edit_building_layout_program_contract/program, zone_id)
 	var/list/result = list()
@@ -270,6 +296,26 @@
 		if(istype(room_contract) && room_contract.zone_id == zone_id)
 			result += room_contract.id
 	return result
+
+/datum/world_edit_generator/building_layout/proc/get_building_layout_topology_edge_kind(datum/world_edit_building_layout_state/state, datum/world_edit_building_layout_program_contract/program, from_room_id, to_room_id)
+	var/datum/world_edit_building_layout_room_contract/from_room = program?.get_room_contract(from_room_id)
+	var/datum/world_edit_building_layout_room_contract/to_room = program?.get_room_contract(to_room_id)
+	if(!istype(from_room) || !istype(to_room))
+		return WORLD_EDIT_BUILDING_EDGE_SHARED
+	for(var/datum/world_edit_building_nested_room_spec/nested_spec as anything in state?.semantic_plan?.nested_room_specs)
+		if(!istype(nested_spec))
+			continue
+		if((nested_spec.outer_zone_id == from_room.zone_id && nested_spec.inner_zone_id == to_room.zone_id) || (nested_spec.outer_zone_id == to_room.zone_id && nested_spec.inner_zone_id == from_room.zone_id))
+			return WORLD_EDIT_BUILDING_EDGE_NESTED
+	if(from_room.spatial_kind in list(WORLD_EDIT_BUILDING_SPACE_CIRCULATION, WORLD_EDIT_BUILDING_SPACE_CHOKE) || to_room.spatial_kind in list(WORLD_EDIT_BUILDING_SPACE_CIRCULATION, WORLD_EDIT_BUILDING_SPACE_CHOKE))
+		return WORLD_EDIT_BUILDING_EDGE_ROUTE
+	if(from_room.privacy_class == "secure" || to_room.privacy_class == "secure" || from_room.partition_policy == WORLD_EDIT_BUILDING_PARTITION_SECURE || to_room.partition_policy == WORLD_EDIT_BUILDING_PARTITION_SECURE)
+		return WORLD_EDIT_BUILDING_EDGE_SECURE
+	var/from_public = from_room.privacy_class == "public" || from_room.spatial_kind == WORLD_EDIT_BUILDING_SPACE_OPEN_BAY
+	var/to_public = to_room.privacy_class == "public" || to_room.spatial_kind == WORLD_EDIT_BUILDING_SPACE_OPEN_BAY
+	if(from_public && to_public)
+		return WORLD_EDIT_BUILDING_EDGE_OPEN_MERGE
+	return WORLD_EDIT_BUILDING_EDGE_SHARED
 
 /datum/world_edit_generator/building_layout/proc/building_layout_program_has_connection(datum/world_edit_building_layout_program_contract/program, from_room_id, to_room_id)
 	for(var/datum/world_edit_building_layout_connection_contract/connection as anything in program?.connection_contracts)
@@ -281,7 +327,7 @@
 	if(!istype(state) || !istype(program))
 		return null
 	var/datum/world_edit_building_layout_topology_graph/graph = new
-	for(var/datum/world_edit_building_layout_room_contract/room_contract as anything in program.functional_room_contracts)
+	for(var/datum/world_edit_building_layout_room_contract/room_contract as anything in program.room_contracts)
 		if(istype(room_contract))
 			graph.add_node(new /datum/world_edit_building_layout_topology_node(room_contract))
 	for(var/datum/world_edit_building_layout_connection_contract/connection as anything in program.connection_contracts)
@@ -289,7 +335,7 @@
 			continue
 		var/datum/world_edit_building_layout_topology_edge/edge = new(connection.from_room, connection.to_room, connection.kind, connection.required)
 		edge.privacy_transition = connection.privacy_transition
-		edge.min_shared_wall = 2
+		edge.min_shared_wall = 3
 		graph.add_edge(edge)
 	for(var/datum/world_edit_building_nested_room_spec/nested_spec as anything in state.semantic_plan?.nested_room_specs)
 		if(!istype(nested_spec))
@@ -301,11 +347,22 @@
 				break
 			graph.add_edge(new /datum/world_edit_building_layout_topology_edge(outer_ids[((inner_index - 1) % length(outer_ids)) + 1], inner_ids[inner_index], WORLD_EDIT_BUILDING_EDGE_NESTED, TRUE))
 	graph.root_node_id = select_building_layout_topology_root(state, program, graph)
-	connect_building_layout_topology_components(graph)
+	var/list/reachable = build_building_layout_topology_reachable_lookup(graph, graph.root_node_id)
+	for(var/datum/world_edit_building_layout_topology_node/node as anything in graph.nodes)
+		if(istype(node) && node.required && !reachable[node.id])
+			var/error_code = "topology.required_disconnected:[node.id]"
+			graph.compile_errors += error_code
+			state.add_error(error_code)
+	graph.required_connected = !length(graph.compile_errors)
 	assign_building_layout_topology_depths(graph)
 	return graph
 
 /datum/world_edit_generator/building_layout/proc/select_building_layout_topology_root(datum/world_edit_building_layout_state/state, datum/world_edit_building_layout_program_contract/program, datum/world_edit_building_layout_topology_graph/graph)
+	var/list/preferred_zones = list(state.archetype?.primary_zone, state.archetype?.hub_zone)
+	for(var/preferred_zone as anything in preferred_zones)
+		var/list/preferred_ids = get_building_layout_functional_room_ids_for_zone(program, preferred_zone)
+		if(length(preferred_ids))
+			return preferred_ids[1]
 	for(var/datum/world_edit_building_adjacency_rule/rule as anything in state.semantic_plan?.adjacency_rules)
 		if(!istype(rule) || !rule.required)
 			continue
@@ -319,23 +376,8 @@
 			var/list/candidates_a = get_building_layout_functional_room_ids_for_zone(program, rule.zone_a)
 			if(length(candidates_a))
 				return candidates_a[1]
-	var/list/preferred_zones = list(state.archetype?.primary_zone, state.archetype?.hub_zone)
-	for(var/preferred_zone as anything in preferred_zones)
-		var/list/preferred_ids = get_building_layout_functional_room_ids_for_zone(program, preferred_zone)
-		if(length(preferred_ids))
-			return preferred_ids[1]
 	var/datum/world_edit_building_layout_topology_node/first_node = length(graph.nodes) ? graph.nodes[1] : null
 	return first_node?.id || ""
-
-/datum/world_edit_generator/building_layout/proc/connect_building_layout_topology_components(datum/world_edit_building_layout_topology_graph/graph)
-	if(!istype(graph) || !length(graph.root_node_id))
-		return
-	var/list/reachable = build_building_layout_topology_reachable_lookup(graph, graph.root_node_id)
-	for(var/datum/world_edit_building_layout_topology_node/node as anything in graph.nodes)
-		if(!istype(node) || reachable[node.id] || node.id == graph.root_node_id)
-			continue
-		graph.add_edge(new /datum/world_edit_building_layout_topology_edge(graph.root_node_id, node.id, WORLD_EDIT_BUILDING_EDGE_ROUTE, TRUE))
-		reachable = build_building_layout_topology_reachable_lookup(graph, graph.root_node_id)
 
 /datum/world_edit_generator/building_layout/proc/build_building_layout_topology_reachable_lookup(datum/world_edit_building_layout_topology_graph/graph, root_id)
 	var/list/reachable = list()
@@ -384,6 +426,10 @@
 /datum/world_edit_generator/building_layout/proc/compile_building_layout_scene_contracts(datum/world_edit_building_layout_state/state, datum/world_edit_building_layout_program_contract/program)
 	if(!istype(state) || !istype(program))
 		return
+	for(var/datum/world_edit_building_cluster_spec/cluster_spec as anything in state.semantic_plan?.cluster_specs)
+		if(!istype(cluster_spec) || cluster_spec.compact_substitute_only || is_building_infrastructure_category(cluster_spec.category))
+			continue
+		cluster_spec.instance_policy = cluster_spec.signature_required ? WORLD_EDIT_BUILDING_CLUSTER_PRIMARY_ONLY : (cluster_spec.required ? WORLD_EDIT_BUILDING_CLUSTER_GLOBAL_ONCE : WORLD_EDIT_BUILDING_CLUSTER_DISTRIBUTE_TOTAL)
 	for(var/datum/world_edit_building_layout_room_contract/room as anything in program.room_contracts)
 		if(!istype(room))
 			continue
@@ -421,26 +467,50 @@
 				scene.required_modules += instance_spec.id
 			else
 				scene.optional_modules += instance_spec.id
-		var/composition_members = 0
-		for(var/datum/world_edit_building_cluster_spec/required_instance_spec as anything in scene.module_specs)
-			if(!istype(required_instance_spec) || !required_instance_spec.required)
-				continue
-			composition_members += max(required_instance_spec.min_count, 1)
-			if(required_instance_spec.pattern == "table_cluster")
-				composition_members += max(required_instance_spec.chair_count, 0)
-		var/min_composition_members = get_building_layout_min_scene_members_for_room(room.id, room.role, room.preferred_area)
-		if(room.instance_index > 1)
-			min_composition_members = max(min_composition_members, 2)
-		if(composition_members < min_composition_members)
-			var/datum/world_edit_building_cluster_spec/composition_support = build_building_layout_scene_instance_support_spec(room, scene_kind)
-			if(istype(composition_support))
-				scene.module_specs += composition_support
-				scene.required_modules += composition_support.id
+		if(room.required && room.instance_index > 1 && !length(scene.required_modules))
+			var/datum/world_edit_building_cluster_spec/distributed_identity = select_building_layout_distributed_instance_identity(program, room, scene.module_specs)
+			if(istype(distributed_identity))
+				distributed_identity.required = TRUE
+				distributed_identity.failure_severity = "required"
+				distributed_identity.min_count = 1
+				distributed_identity.max_count = max(1, min(distributed_identity.max_count, 1))
+				scene.optional_modules -= distributed_identity.id
+				scene.required_modules += distributed_identity.id
 		configure_building_layout_scene_fallback(scene, room)
 		room.allowed_scene_kinds = list(scene_kind)
 		if(room.required)
 			room.required_scene_kinds = list(scene_kind)
 		program.add_scene_contract(scene)
+		var/datum/world_edit_building_layout_composition_contract/composition = new("[room.id]_composition", room.id, scene.id)
+		composition.instance_policy = room.instance_index > 1 ? WORLD_EDIT_BUILDING_CLUSTER_PER_INSTANCE : WORLD_EDIT_BUILDING_CLUSTER_GLOBAL_ONCE
+		composition.min_negative_space_tiles = max(scene.min_negative_space_tiles, 1)
+		for(var/datum/world_edit_building_cluster_spec/composition_group as anything in scene.module_specs)
+			if(!istype(composition_group))
+				continue
+			if(composition_group.required)
+				composition.required_groups += composition_group
+			else
+				composition.optional_groups += composition_group
+		program.add_composition_contract(composition)
+
+/datum/world_edit_generator/building_layout/proc/select_building_layout_distributed_instance_identity(datum/world_edit_building_layout_program_contract/program, datum/world_edit_building_layout_room_contract/room, list/module_specs)
+	if(!istype(program) || !istype(room) || !islist(module_specs))
+		return null
+	var/zone_instance_count = 0
+	for(var/datum/world_edit_building_layout_room_contract/instance_room as anything in program.room_contracts)
+		if(istype(instance_room) && instance_room.required && instance_room.zone_id == room.zone_id)
+			zone_instance_count++
+	var/datum/world_edit_building_cluster_spec/best = null
+	for(var/datum/world_edit_building_cluster_spec/module_spec as anything in module_specs)
+		if(!istype(module_spec) || module_spec.instance_policy != WORLD_EDIT_BUILDING_CLUSTER_DISTRIBUTE_TOTAL)
+			continue
+		var/slot_key = building_layout_global_scene_slot_key(module_spec.category)
+		var/slot_limit = round(text2num("[program.global_scene_slot_limits[slot_key]]") || 0)
+		if(slot_limit > 0 && slot_limit < max(zone_instance_count, 1))
+			continue
+		if(!istype(best) || module_spec.priority > best.priority)
+			best = module_spec
+	return best
 
 /datum/world_edit_generator/building_layout/proc/build_building_layout_scene_instance_module_spec(datum/world_edit_building_layout_state/state, datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_layout_room_contract/room)
 	if(!istype(state) || !istype(cluster_spec) || !istype(room))
@@ -454,11 +524,13 @@
 			source_spec = compact_spec
 			use_compact_spec = TRUE
 	if(room.instance_index <= 1 && !use_compact_spec)
+		cluster_spec.instance_policy = cluster_spec.signature_required ? WORLD_EDIT_BUILDING_CLUSTER_PRIMARY_ONLY : (cluster_spec.required ? WORLD_EDIT_BUILDING_CLUSTER_GLOBAL_ONCE : WORLD_EDIT_BUILDING_CLUSTER_DISTRIBUTE_TOTAL)
 		return cluster_spec
 	var/datum/world_edit_building_cluster_spec/instance_spec = source_spec.clone()
 	instance_spec.id = "[room.id]_[source_spec.id]"
 	instance_spec.count_cluster_id = source_spec.id
 	instance_spec.compact_substitute_only = FALSE
+	instance_spec.instance_policy = room.instance_index > 1 && source_spec.instance_policy == WORLD_EDIT_BUILDING_CLUSTER_DISTRIBUTE_TOTAL ? WORLD_EDIT_BUILDING_CLUSTER_DISTRIBUTE_TOTAL : (room.instance_index > 1 ? WORLD_EDIT_BUILDING_CLUSTER_PER_INSTANCE : source_spec.instance_policy)
 	instance_spec.required = cluster_spec.required || (room.required && cluster_spec.optional_zone_id == room.zone_id)
 	instance_spec.failure_severity = instance_spec.required ? "required" : "optional"
 	if(room.instance_index <= 1)
@@ -576,11 +648,19 @@
 	if(!istype(program) || !istype(cluster_spec) || !istype(room))
 		return FALSE
 	if(room.instance_index > 1)
+		if(cluster_spec.instance_policy == WORLD_EDIT_BUILDING_CLUSTER_GLOBAL_ONCE)
+			return FALSE
+		if(cluster_spec.instance_policy == WORLD_EDIT_BUILDING_CLUSTER_PRIMARY_ONLY && !building_layout_cluster_budget_allows_per_instance(program, cluster_spec, room))
+			return FALSE
 		return building_layout_cluster_exactly_matches_room(cluster_spec, room)
 	var/owner_room_id = ""
 	var/best_score = -999999999
 	for(var/datum/world_edit_building_layout_room_contract/candidate_room as anything in program.room_contracts)
-		if(!istype(candidate_room) || !building_layout_cluster_matches_room(cluster_spec, candidate_room))
+		// A GLOBAL_ONCE/PRIMARY_ONLY owner is always a primary instance. Secondary
+		// rooms compile their own explicit PER_INSTANCE clone below; allowing one
+		// of them into this election can steal the only authored group from the
+		// primary room merely because its minimum footprint is larger.
+		if(!istype(candidate_room) || candidate_room.instance_index > 1 || !building_layout_cluster_matches_room(cluster_spec, candidate_room))
 			continue
 		var/score = candidate_room.preferred_area * 100 + candidate_room.min_area * 10
 		if(length(cluster_spec.optional_zone_id) && cluster_spec.optional_zone_id == candidate_room.zone_id)
@@ -592,6 +672,23 @@
 			owner_room_id = candidate_room.id
 			best_score = score
 	return owner_room_id == room.id
+
+/datum/world_edit_generator/building_layout/proc/building_layout_cluster_budget_allows_per_instance(datum/world_edit_building_layout_program_contract/program, datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_layout_room_contract/room)
+	if(!istype(program) || !istype(cluster_spec) || !istype(room))
+		return FALSE
+	var/zone_instance_count = 0
+	for(var/datum/world_edit_building_layout_room_contract/instance_room as anything in program.room_contracts)
+		if(istype(instance_room) && instance_room.required && instance_room.zone_id == room.zone_id)
+			zone_instance_count++
+	if(zone_instance_count <= 1)
+		return FALSE
+	var/slot_key = building_layout_global_scene_slot_key(cluster_spec.category)
+	var/slot_limit = round(text2num("[program.global_scene_slot_limits[slot_key]]") || 0)
+	if(slot_limit <= 0)
+		return TRUE
+	var/primary_count = max(cluster_spec.min_count, 1)
+	var/instance_count = cluster_spec.slot == "bed" ? 2 : 1
+	return slot_limit >= primary_count + max(zone_instance_count - 1, 0) * instance_count
 
 /datum/world_edit_generator/building_layout/proc/building_layout_cluster_exactly_matches_room(datum/world_edit_building_cluster_spec/cluster_spec, datum/world_edit_building_layout_room_contract/room)
 	if(!istype(cluster_spec) || !istype(room))
@@ -736,20 +833,38 @@
 	if(!istype(context) || !istype(context.program_contract))
 		return null
 	if(!istype(context.program_contract.topology_graph) || !length(context.program_contract.functional_room_contracts))
+		context.state?.add_stage_report("layout_family_policy_reject", "failed", "topology graph or functional rooms unavailable", list("family" = family_id, "orientation" = orientation_variant))
 		return null
 	var/datum/world_edit_building_layout_region_candidate/region = new(family_id, candidate_id, 600 - orientation_variant * 5)
 	region.topology_graph = context.program_contract.topology_graph
 	region.topology_family = "[family_id]"
-	var/list/functional_ids = list()
-	for(var/datum/world_edit_building_layout_room_contract/room as anything in context.program_contract.functional_room_contracts)
-		if(istype(room))
-			functional_ids += room.id
-	region.add_influence_zone("functional_field", "functional", 2, 2, max(context.local_width() - 1, 2), max(context.local_height() - 1, 2), functional_ids, 100)
+	region.family_policy_id = "[family_id]"
+	region.orientation_variant = orientation_variant
+	var/datum/world_edit_building_layout_family_policy/policy = get_building_layout_family_policy(family_id)
+	if(!istype(policy) || !policy.can_solve(context))
+		context.state?.add_stage_report("layout_family_policy_reject", "failed", "policy unavailable or dimension-gated", list("family" = family_id, "orientation" = orientation_variant, "width" = context.local_width(), "height" = context.local_height()))
+		return null
+	region.family_constraints = call(policy, "build_constraints")(context, orientation_variant)
+	var/list/debug_groups = build_building_layout_family_groups(context)
+	var/seed_result = call(policy, "build_seed_regions")(context, region, orientation_variant)
+	if(!seed_result || !length(region.influence_zones))
+		var/datum/world_edit_building_layout_room_contract/first_functional = length(context.program_contract.functional_room_contracts) ? context.program_contract.functional_room_contracts[1] : null
+		context.state?.add_stage_report("layout_family_policy_reject", "failed", "policy produced no seed regions", list("family" = family_id, "orientation" = orientation_variant, "policy_type" = "[policy.type]", "policy_id" = policy.id, "seed_result" = seed_result, "zone_count" = length(region.influence_zones), "functional_count" = length(context.program_contract.functional_room_contracts), "first_functional_type" = "[first_functional?.type]", "first_functional_value" = "[first_functional]", "first_functional_id" = "[first_functional?.id]", "first_functional_role" = "[first_functional?.role]", "root_count" = length(debug_groups?["root"]), "public_count" = length(debug_groups?["public"]), "other_count" = length(debug_groups?["other"])))
+		return null
 	for(var/datum/world_edit_building_layout_topology_edge/edge as anything in region.topology_graph.edges)
 		if(!istype(edge))
 			continue
 		var/datum/world_edit_building_layout_room_contract/from_contract = context.program_contract.get_room_contract(edge.from_id)
+		var/datum/world_edit_building_layout_room_contract/to_contract = context.program_contract.get_room_contract(edge.to_id)
 		var/privacy = from_contract?.privacy_class || "public"
-		var/datum/world_edit_building_layout_room_connection/connection = region.add_connection("topology_[edge.from_id]_[edge.to_id]", edge.from_id, edge.to_id, privacy, FALSE, "topology")
+		var/from_endpoint = from_contract?.counts_toward_target ? edge.from_id : "route"
+		var/to_endpoint = to_contract?.counts_toward_target ? edge.to_id : "route"
+		if(from_endpoint == to_endpoint)
+			continue
+		var/opening_kind = edge.kind == WORLD_EDIT_BUILDING_EDGE_SECURE ? WORLD_EDIT_BUILDING_OPENING_SECURE_DOOR : (edge.kind == WORLD_EDIT_BUILDING_EDGE_OPEN_MERGE ? WORLD_EDIT_BUILDING_OPENING_WIDE_ARCH : (edge.kind == WORLD_EDIT_BUILDING_EDGE_NESTED ? WORLD_EDIT_BUILDING_OPENING_DOOR : edge.kind))
+		var/datum/world_edit_building_layout_room_contract/functional_contract = from_contract?.counts_toward_target ? from_contract : to_contract
+		if(family_id == "open_bay_perimeter" && edge.kind == WORLD_EDIT_BUILDING_EDGE_ROUTE && functional_contract?.spatial_kind == WORLD_EDIT_BUILDING_SPACE_OPEN_BAY)
+			opening_kind = WORLD_EDIT_BUILDING_OPENING_ARCH
+		var/datum/world_edit_building_layout_room_connection/connection = region.add_connection("topology_[edge.from_id]_[edge.to_id]", from_endpoint, to_endpoint, privacy, edge.required, opening_kind)
 		connection.min_shared_wall_length = edge.min_shared_wall
 	return region
