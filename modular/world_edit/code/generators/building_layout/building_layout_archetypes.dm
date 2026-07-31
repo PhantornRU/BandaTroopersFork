@@ -4,6 +4,9 @@
 #define WORLD_EDIT_BUILDING_SPACE_CHOKE "choke"
 #define WORLD_EDIT_BUILDING_SPACE_NESTED_ROOM "nested_room"
 
+#define WORLD_EDIT_BUILDING_CIRCULATION_ENCLOSED_ROUTE "enclosed_route"
+#define WORLD_EDIT_BUILDING_CIRCULATION_ROOM_OWNED_AISLE "room_owned_aisle"
+
 /datum/world_edit_building_zone_spec
 	var/id = ""
 	var/label = ""
@@ -26,6 +29,11 @@
 	var/counts_toward_target = TRUE
 	var/min_capacity_units = 0
 	var/capacity_kind = ""
+	/// Circulation is either independent corridor floor or an explicit overlay
+	/// owned by one functional room. Functional zones leave these fields inert.
+	var/circulation_kind = WORLD_EDIT_BUILDING_CIRCULATION_ENCLOSED_ROUTE
+	var/circulation_owner_room_id = ""
+	var/circulation_min_width = 1
 
 /datum/world_edit_building_zone_spec/New(_id, _label, _role, _min_area = 1, _required = TRUE, _must_touch_route = TRUE, _privacy_sensitive = FALSE, list/_anchor_tags = null, _window_allowed = TRUE, _divider_mode = "none", _privacy_class = null, _optional = FALSE, _optional_weight = 60, _optional_min_footprint = 0)
 	. = ..()
@@ -93,6 +101,9 @@
 	copy.counts_toward_target = counts_toward_target
 	copy.min_capacity_units = min_capacity_units
 	copy.capacity_kind = capacity_kind
+	copy.circulation_kind = circulation_kind
+	copy.circulation_owner_room_id = circulation_owner_room_id
+	copy.circulation_min_width = circulation_min_width
 	return copy
 
 /datum/world_edit_building_region_spec
@@ -167,38 +178,6 @@
 	if(isnull(y2) || target_turf.y > y2)
 		y2 = target_turf.y
 	tiny = area <= 1
-
-/datum/world_edit_building_divider_plan
-	var/id = ""
-	var/source_zone_id = ""
-	var/inner_zone_id = ""
-	var/list/wall_turfs = list()
-	var/list/opening_turfs = list()
-	var/list/opening_dirs = list()
-	var/list/inner_turfs = list()
-	var/score = 0
-
-/datum/world_edit_building_divider_plan/New(_id, _source_zone_id, _inner_zone_id)
-	. = ..()
-	id = "[_id]"
-	source_zone_id = "[_source_zone_id]"
-	inner_zone_id = "[_inner_zone_id]"
-
-/datum/world_edit_building_divider_edge_run
-	var/id = ""
-	var/zone_id = ""
-	var/source_zone_id = ""
-	var/list/wall_turfs = list()
-	var/list/outside_dirs = list()
-	var/orientation = ""
-	var/score = 0
-
-/datum/world_edit_building_divider_edge_run/New(_id, _zone_id, _source_zone_id, _orientation)
-	. = ..()
-	id = "[_id]"
-	zone_id = "[_zone_id]"
-	source_zone_id = "[_source_zone_id]"
-	orientation = "[_orientation]"
 
 /datum/world_edit_building_nested_room_spec
 	var/outer_zone_id = ""
@@ -863,7 +842,7 @@
 	add_signature_cluster("sleep_nook_signature", "major", "signature_living_nook", "bed", "sleeping_bed", list("sleep_privacy", "privacy_zone", "bed_wall"), 2, 2, FALSE, 0, 100, "sleep_nook", 35, TRUE, null, null)
 	add_signature_cluster("dining_pair", "major", "table_cluster", "table", "table", list("common", "social_focus", "focus_center"), 1, 2, FALSE, 2, 95, "common_table", 22, TRUE, null, "living_dining_cluster_chunk")
 	add_signature_cluster("center_social_cluster", "major", "table_cluster", "table", "table", list("common", "social_focus", "focus_center", "focus_ring"), 1, 2, FALSE, 4, 92, "living_social_core", 24, TRUE, null, "living_social_cluster_chunk")
-	add_signature_cluster("ring_social_cluster", "major", "table_cluster", "table", "table", list("common", "social_focus", "focus_ring"), 1, 2, FALSE, 3, 88, "living_social_ring", 20, TRUE, null, "living_social_ring_chunk")
+	add_signature_cluster("ring_social_cluster", "major", "table_cluster", "table", "table", list("common", "social_focus", "focus_ring"), 1, 2, FALSE, 2, 88, "living_social_ring", 20, TRUE, null, "living_social_ring_chunk")
 	add_signature_cluster("personal_storage", "major", "run", "cabinet", "personal_storage", list("storage_service", "service_strip", "storage_wall", "wall_anchor"), 1, 2, FALSE, 0, 80, "personal_storage", 20, TRUE, null, null)
 	add_signature_cluster("sanitation_combined", "major", "wall_object", "toilet", "sanitation", list("sanitation", "service_strip", "wall_anchor"), 1, 1, TRUE, 0, 75, "sanitation_combined", 12, TRUE, null, "sanitation_combined_chunk")
 	add_cluster("side_table", "secondary", "table_cluster", "table", "table", list("common", "window_band", "social_focus", "focus_ring"), 1, 2, FALSE, 1, 58, FALSE, null, "living_side_table_chunk")
@@ -939,7 +918,10 @@
 	add_adjacency("loading_axis", "rack_zone")
 	add_adjacency("loading_axis", "staging")
 	add_nested_room("loading_axis", "staging", 9, 9, 1)
-	add_signature_cluster("rack_aisles", "major", "signature_rack_aisles", "rack", "rack", list("rack_zone", "rack_aisle", "storage_wall"), 6, 8, FALSE, 0, 100, "rack_aisles", 45)
+	var/datum/world_edit_building_cluster_spec/storage_rack_spec = add_signature_cluster("rack_aisles", "major", "signature_rack_aisles", "rack", "rack", list("rack_zone", "rack_aisle", "storage_wall"), 6, 8, FALSE, 0, 100, "rack_aisles", 45)
+	storage_rack_spec.compact_substitute_id = "rack_aisles_compact"
+	var/datum/world_edit_building_cluster_spec/storage_rack_compact = add_signature_cluster("rack_aisles_compact", "major", "run", "rack", "rack", list("rack_zone", "rack_aisle", "storage_wall", "staging"), 1, 2, FALSE, 0, 75, "rack_aisles", 0, FALSE)
+	storage_rack_compact.compact_substitute_only = TRUE
 	add_signature_cluster("loading_crates", "major", "staging_group", "crate", "crate", list("staging", "loading_axis"), 2, 3, FALSE, 0, 80, "loading_staging", 20)
 	add_cluster("inspection_table", "secondary", "table_cluster", "table", "table", list("staging", "loading_axis"), 1, 1, FALSE, 1, 55, FALSE)
 	add_cluster("crate_stack", "detail", "run", "crate", "crate", list("staging", "rack_zone"), 2, 3, FALSE, 0, 45, FALSE)

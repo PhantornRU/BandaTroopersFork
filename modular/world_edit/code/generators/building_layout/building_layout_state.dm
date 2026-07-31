@@ -132,7 +132,19 @@
 
 /datum/world_edit_building_layout_state/proc/get_zone_turfs(zone_id)
 	var/list/turfs = geometry.zone_turfs["[zone_id]"]
-	return islist(turfs) ? turfs : list()
+	var/list/result = islist(turfs) ? turfs.Copy() : list()
+	// A room-owned aisle is a typed semantic layer over functional-room floor,
+	// not a request to steal those cells from the room's single physical owner.
+	// Expose the committed overlay and its connector through zone queries so
+	// validators/reporting see the authored circulation ID after materialization.
+	for(var/datum/world_edit_building_layout_route_overlay/overlay as anything in geometry.layout_route_overlays)
+		if(!istype(overlay) || overlay.id != "[zone_id]")
+			continue
+		for(var/turf/overlay_turf as anything in overlay.turfs)
+			append_unique_turf(result, overlay_turf)
+		for(var/turf/approach_turf as anything in overlay.approach_turfs)
+			append_unique_turf(result, approach_turf)
+	return result
 
 /datum/world_edit_building_layout_state/proc/set_zone_focus(zone_id, turf/target_turf)
 	if(!istype(target_turf) || !length("[zone_id]"))
@@ -228,10 +240,10 @@
 	geometry.corridor_turfs.Cut()
 	geometry.corridor_lookup.Cut()
 	geometry.solved_regions.Cut()
-	geometry.divider_plans.Cut()
 	geometry.internal_wall_turfs.Cut()
 	geometry.layout_room_plans.Cut()
 	geometry.layout_route_opening_plans.Cut()
+	geometry.layout_route_overlays.Cut()
 	geometry.primary_route_turfs.Cut()
 	geometry.separator_lane_turfs.Cut()
 	geometry.separator_lane_lookup.Cut()
@@ -250,27 +262,6 @@
 	geometry.wall_lookup[target_turf] = TRUE
 	geometry.adjacent_wall_dirs_by_turf.Cut()
 	append_unique_turf(geometry.internal_wall_turfs, target_turf)
-	return TRUE
-
-/datum/world_edit_building_layout_state/proc/add_divider_plan(datum/world_edit_building_divider_plan/divider_plan)
-	if(!istype(divider_plan))
-		return FALSE
-	if(!(divider_plan in geometry.divider_plans))
-		geometry.divider_plans += divider_plan
-	for(var/turf/inner_turf as anything in divider_plan.inner_turfs)
-		if(istype(inner_turf) && geometry.footprint_lookup[inner_turf] && !geometry.reserved_lookup[inner_turf])
-			add_zone(inner_turf, divider_plan.inner_zone_id)
-	var/list/emitted_wall_turfs = list()
-	for(var/turf/wall_turf as anything in divider_plan.wall_turfs)
-		if(add_internal_wall(wall_turf))
-			emitted_wall_turfs += wall_turf
-	divider_plan.wall_turfs = emitted_wall_turfs
-	for(var/turf/opening_turf as anything in divider_plan.opening_turfs)
-		if(!istype(opening_turf) || !geometry.footprint_lookup[opening_turf])
-			continue
-		append_unique_turf(geometry.door_turfs, opening_turf)
-		geometry.door_dirs[opening_turf] = divider_plan.opening_dirs[opening_turf] || NORTH
-		add_zone(opening_turf, divider_plan.source_zone_id)
 	return TRUE
 
 /datum/world_edit_building_layout_state/proc/can_place_fixture(turf/target_turf, allow_reserved = FALSE)

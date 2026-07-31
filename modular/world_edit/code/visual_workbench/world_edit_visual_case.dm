@@ -18,6 +18,7 @@
 	var/list/render_config = list()
 	var/list/profile_config = list()
 	var/workflow_run_id = ""
+	var/source_sha = ""
 	var/source_file = ""
 	var/out_dir = ""
 	var/datum/world_edit_visual_canvas/canvas
@@ -46,6 +47,7 @@
 	render_config = islist(data["render"]) ? data["render"] : list()
 	profile_config = islist(data["profile"]) ? data["profile"] : list()
 	workflow_run_id = "[data["workflow_run_id"] || data["run_id"] || ""]"
+	source_sha = "[data["source_sha"] || ""]"
 
 	if(!length(id))
 		return list("error" = "missing_case_id")

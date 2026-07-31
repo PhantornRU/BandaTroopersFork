@@ -10,7 +10,10 @@
 	var/list/source_macro_ids = list()
 	var/list/required_provider_slots = list()
 	var/list/occupied_offsets = list()
-	var/list/clearance_offsets = list()
+	var/list/front_access_offsets = list()
+	var/list/interaction_offsets = list()
+	var/list/aisle_offsets = list()
+	var/list/forbidden_offsets = list()
 	var/list/member_specs = list()
 	var/repeat_group = ""
 	var/max_per_room = 1
@@ -57,6 +60,9 @@
 /datum/world_edit_building_placement_module_catalog/proc/has_module(module_id)
 	return istype(modules_by_id["[module_id]"], /datum/world_edit_building_placement_module)
 
+/datum/world_edit_building_placement_module_catalog/proc/get_module(module_id)
+	return modules_by_id["[module_id]"]
+
 /datum/world_edit_building_placement_module_catalog/proc/get_for_cluster(datum/world_edit_building_cluster_spec/cluster_spec)
 	var/list/result = list()
 	var/list/generated_result = list()
@@ -100,12 +106,12 @@
 		list("living", "sleep_nook_signature", list("wall_pair", "nook_pair", "long_pair")),
 		list("living", "dining_pair", list("table_pair", "table_corner", "desk_suite")),
 		list("living", "center_social_cluster", list("table_cross", "table_corner", "compact_table")),
-		list("living", "ring_social_cluster", list("table_arc", "table_pair", "compact_table")),
+		list("living", "ring_social_cluster", list("table_cross", "table_arc", "table_pair", "compact_table")),
 		list("living", "personal_storage", list("wall_single", "wall_pair", "service_line")),
 		list("living", "sanitation_combined", list("wall_single", "service_single", "compact_single")),
 		list("living", "side_table", list("table_pair", "compact_table")),
 		list("living", "center_chair_group", list("seating_row", "seating_corner")),
-		list("workshop", "workbench_machine_wall", list("wall_line", "wide_line", "service_line")),
+		list("workshop", "workbench_machine_wall", list("wall_quad", "wall_line", "wide_line", "service_line")),
 		list("workshop", "workbench_machine_wall_compact", list("wall_single", "wall_pair", "compact_single")),
 		list("workshop", "parts_rack_aisles", list("aisle_line", "wall_line", "wide_line")),
 		list("workshop", "parts_rack_aisles_compact", list("wall_pair", "compact_single")),
@@ -113,7 +119,7 @@
 		list("workshop", "operator_console", list("wall_single", "service_single")),
 		list("workshop", "tool_storage", list("wall_pair", "wall_single")),
 		list("workshop", "parts_crate_stack", list("staging_pair", "staging_corner", "compact_single")),
-		list("storage", "rack_aisles", list("aisle_line", "wide_line", "wall_line", "compact_single")),
+		list("storage", "rack_aisles", list("aisle_six", "aisle_line", "wide_line", "wall_line", "compact_single")),
 		list("storage", "loading_crates", list("staging_pair", "staging_corner", "staging_line", "compact_single")),
 		list("storage", "inspection_table", list("desk_suite", "table_pair")),
 		list("storage", "crate_stack", list("staging_pair", "staging_line", "compact_single")),
@@ -135,12 +141,12 @@
 		list("hydroponics", "grower_chair", list("seating_single", "seating_corner")),
 		list("kitchen", "serving_counter", list("counter_line", "wide_line", "service_line")),
 		list("kitchen", "prep_tables", list("table_pair", "desk_suite", "compact_table")),
-		list("kitchen", "cooking_run", list("wall_line", "service_line", "wide_line", "wall_single", "service_single", "compact_single")),
+		list("kitchen", "cooking_run", list("wall_quad", "wall_line", "service_line", "wide_line", "wall_single", "service_single", "compact_single")),
 		list("kitchen", "cold_storage_wall", list("wall_pair", "wall_line", "compact_single")),
 		list("kitchen", "dining_tables", list("table_pair", "table_corner", "compact_table")),
 		list("kitchen", "pantry_rack", list("wall_single", "service_single")),
 		list("kitchen", "supply_crates", list("staging_pair", "staging_corner", "compact_single")),
-		list("dormitory", "bed_wall_runs", list("wall_line", "wide_line", "long_pair", "wall_single")),
+		list("dormitory", "bed_wall_runs", list("wall_quad", "wall_line", "wide_line", "long_pair", "wall_single")),
 		list("dormitory", "locker_wall", list("wall_line", "wall_pair", "service_line")),
 		list("dormitory", "locker_wall_compact", list("wall_pair", "wall_single", "service_single", "compact_single")),
 		list("dormitory", "ready_table", list("table_pair", "table_corner", "desk_suite")),
@@ -152,7 +158,7 @@
 		list("office", "visitor_chairs", list("seating_row", "seating_corner")),
 		list("office", "side_storage", list("wall_single", "service_single")),
 		list("office", "records_terminal", list("wall_single", "service_single")),
-		list("security", "security_control_counter", list("counter_line", "wide_line", "service_line")),
+		list("security", "security_control_counter", list("counter_quad", "counter_line", "wide_line", "service_line")),
 		list("security", "locker_run", list("wall_pair", "wall_line", "service_line")),
 		list("security", "holding_bed", list("wall_single", "compact_single")),
 		list("security", "evidence_rack", list("wall_single", "service_single")),
@@ -164,11 +170,25 @@
 		list("checkpoint", "security_storage", list("wall_single", "service_single")),
 		list("checkpoint", "visitor_chair", list("seating_single", "seating_corner")),
 		list("checkpoint", "barricade_line", list("staging_pair", "staging_line")),
-		list("engineering", "engineering_service_wall", list("aisle_line", "compact_single")),
+		list("chapel", "altar_focus", list("table_pair", "compact_table")),
+		list("chapel", "seating_left_rows", list("seating_row")),
+		list("chapel", "seating_right_rows", list("seating_row")),
+		list("ritual_chamber", "ritual_centerpiece", list("centerpiece_single")),
+		list("ritual_chamber", "axis_barriers", list("staging_line", "staging_pair")),
+		list("ritual_chamber", "reliquary_wall", list("wall_pair", "service_line")),
+		list("compound_colony", "central_table", list("table_cross")),
+		list("compound_colony", "living_beds", list("wall_pair", "long_pair")),
+		list("compound_colony", "workbench_run", list("wall_pair", "service_line")),
+		list("compound_colony", "storage_racks", list("wall_pair", "service_line")),
+		list("engineering", "engineering_service_wall", list("wall_quad", "aisle_line", "compact_single")),
 		list("engineering", "power_console_wall", list("wall_single")),
 		list("engineering", "parts_racks", list("aisle_line", "compact_single")),
 		list("engineering", "generator_unit", list("wall_single")),
-		list("engineering", "cable_crates", list("staging_pair", "staging_line", "compact_single"))
+		list("engineering", "cable_crates", list("staging_pair", "staging_line", "compact_single")),
+		list("laboratory", "lab_bench_signature", list("wall_quad", "wall_pair", "service_line")),
+		list("laboratory", "sample_storage_wall", list("wall_pair", "service_line")),
+		list("laboratory", "analysis_table", list("table_pair", "compact_table")),
+		list("laboratory", "research_console", list("wall_single", "service_single"))
 	)
 	for(var/list/family as anything in families)
 		if(!islist(family) || length(family) < 3)
@@ -214,7 +234,7 @@
 	module.max_per_building = max(cluster_spec.max_count, 1)
 	module.max_repeat_group_per_room = max(cluster_spec.max_count, 1)
 	module.priority = cluster_spec.priority + 25
-	var/wall_recipe = (clean_recipe_id in list("wall_single", "wall_pair", "wall_line", "service_line", "long_pair", "nook_pair", "counter_line")) ? TRUE : FALSE
+	var/wall_recipe = (clean_recipe_id in list("wall_single", "wall_pair", "wall_line", "wall_quad", "service_line", "long_pair", "nook_pair", "counter_line", "counter_quad")) ? TRUE : FALSE
 	module.wall_required = (cluster_spec.slot == "toilet" && cluster_spec.category == "sanitation") ? FALSE : (cluster_spec.wall_required || wall_recipe)
 	module.pattern = "curated_[clean_recipe_id]"
 	module.curated = TRUE
@@ -252,8 +272,10 @@
 			add_building_module_member(module, cluster_spec.slot, cluster_spec.category, dx, dy, index == 1)
 	else
 		var/member_count = 1
-		if(recipe_id == "grow_grid_6")
+		if(recipe_id in list("grow_grid_6", "aisle_six"))
 			member_count = min(max(cluster_spec.max_count, 1), 6)
+		else if(recipe_id in list("wall_quad", "counter_quad"))
+			member_count = min(max(cluster_spec.max_count, 1), 4)
 		else if(recipe_id in list("wall_pair", "service_line", "staging_pair", "staging_corner", "long_pair", "nook_pair"))
 			member_count = min(max(cluster_spec.max_count, 1), 2)
 		else if(recipe_id in list("wall_line", "wide_line", "aisle_line", "row_line", "grid_line", "counter_line", "staging_line"))
@@ -261,7 +283,7 @@
 		for(var/index in 1 to member_count)
 			var/dx = index - 1
 			var/dy = 0
-			if(recipe_id == "grow_grid_6")
+			if(recipe_id in list("grow_grid_6", "aisle_six"))
 				dx = (index - 1) % 3
 				dy = floor((index - 1) / 3)
 			else if(recipe_id in list("staging_corner", "nook_pair") && index == 2)
@@ -278,15 +300,29 @@
 			add_building_module_clearance(module, dx, 2)
 	else if(recipe_id in list("compact_single", "service_single", "seating_single", "centerpiece_single"))
 		add_building_module_clearance(module, 0, 1)
-	else if(recipe_id in list("aisle_line", "row_line", "grid_line", "staging_pair", "staging_corner", "staging_line", "wide_line"))
+	else if(recipe_id in list("aisle_six", "aisle_line", "row_line", "grid_line", "staging_pair", "staging_corner", "staging_line", "wide_line"))
 		for(var/list/member as anything in module.member_specs)
-			add_building_module_clearance(module, member["dx"], round(text2num("[member["dy"]]") || 0) + 1)
+			add_building_module_clearance(module, member["dx"], round(text2num("[member["dy"]]") || 0) + 1, "aisle")
+	else if(cluster_spec.pattern == "table_cluster" || cluster_spec.chair_count > 0)
+		// Curated table recipes author interaction geometry explicitly. A blanket
+		// four-neighbour halo around every chair reserves irrelevant side cells and
+		// makes the nominal compact recipe impossible beside a valid door cone. The
+		// rotatable one-sided lane is the authored approach; door-to-focus path
+		// validation chooses the accessible side for the concrete room.
+		add_building_module_clearance(module, 1, 0, "interaction")
 	else
 		for(var/list/member as anything in module.member_specs)
 			var/dx = round(text2num("[member["dx"]]") || 0)
 			var/dy = round(text2num("[member["dy"]]") || 0)
-			for(var/list/nearby in list(list(dx + 1, dy), list(dx - 1, dy), list(dx, dy + 1), list(dx, dy - 1)))
-				add_building_module_clearance(module, nearby[1], nearby[2])
+			if(module.wall_required)
+				// Curated wall recipes have an authored frontage: members run on
+				// the local X axis and the interaction lane is one tile forward.
+				// Reserving all four neighbours also reserves the wall behind the
+				// module and makes every multi-member wall recipe impossible.
+				add_building_module_clearance(module, dx, dy + 1, "front")
+			else
+				for(var/list/nearby in list(list(dx + 1, dy), list(dx - 1, dy), list(dx, dy + 1), list(dx, dy - 1)))
+					add_building_module_clearance(module, nearby[1], nearby[2])
 
 /datum/world_edit_generator/building_layout/proc/register_building_modules_for_cluster(datum/world_edit_building_placement_module_catalog/catalog, datum/world_edit_building_archetype/archetype, datum/world_edit_building_cluster_spec/cluster_spec)
 	var/list/variants = list("base")
@@ -342,6 +378,9 @@
 			seen[zone_spec.id] = TRUE
 			continue
 		for(var/zone_id as anything in archetype.zone_specs_by_id)
+			if(findtext("[anchor_id]", "[zone_id]_") == 1 && !seen[zone_id])
+				zones += zone_id
+				seen[zone_id] = TRUE
 			var/datum/world_edit_building_zone_spec/tagged_zone_spec = archetype.zone_specs_by_id[zone_id]
 			if(!istype(tagged_zone_spec) || seen[tagged_zone_spec.id])
 				continue
@@ -392,10 +431,30 @@
 	if(!("[slot]" in module.required_provider_slots))
 		module.required_provider_slots += "[slot]"
 
-/datum/world_edit_generator/building_layout/proc/add_building_module_clearance(datum/world_edit_building_placement_module/module, dx, dy)
+/datum/world_edit_generator/building_layout/proc/add_building_module_clearance(datum/world_edit_building_placement_module/module, dx, dy, clearance_kind = "")
 	var/key = "[round(dx)],[round(dy)]"
-	if(!(key in module.clearance_offsets))
-		module.clearance_offsets += key
+	var/list/target_offsets = module.interaction_offsets
+	switch("[clearance_kind]")
+		if("front")
+			target_offsets = module.front_access_offsets
+		if("aisle")
+			target_offsets = module.aisle_offsets
+		if("forbidden")
+			target_offsets = module.forbidden_offsets
+		else
+			if(module.wall_required)
+				target_offsets = module.front_access_offsets
+	if(!(key in target_offsets))
+		target_offsets += key
+
+/datum/world_edit_generator/building_layout/proc/get_building_module_clearance_offsets(datum/world_edit_building_placement_module/module)
+	var/list/result = list()
+	if(!istype(module))
+		return result
+	for(var/offset_key as anything in module.front_access_offsets + module.interaction_offsets + module.aisle_offsets + module.forbidden_offsets)
+		if(!(offset_key in result))
+			result += offset_key
+	return result
 
 /datum/world_edit_generator/building_layout/proc/build_building_module_member_specs(datum/world_edit_building_placement_module/module, datum/world_edit_building_cluster_spec/cluster_spec, variant)
 	if(cluster_spec.pattern == "table_cluster")
@@ -666,16 +725,15 @@
 				continue
 			if(building_module_front_clearance_cell_blocked(state, clearance_turf, occupied_lookup, requirement_id))
 				return null
-	else
-		for(var/offset_key as anything in module.clearance_offsets)
-			var/list/parts = splittext("[offset_key]", ",")
-			if(length(parts) < 2)
-				continue
-			var/turf/clearance_turf = get_template_offset_turf(origin, dir_to_use, text2num(parts[1]), text2num(parts[2]))
-			if(!istype(clearance_turf) || occupied_lookup[clearance_turf])
-				continue
-			if(state.geometry.wall_lookup[clearance_turf] || state.geometry.door_dirs[clearance_turf] || state.fixtures.fixture_lookup[clearance_turf] || state.geometry.reserved_lookup[clearance_turf] || state.has_anchor("door_cone", clearance_turf))
-				return null
+	for(var/offset_key as anything in get_building_module_clearance_offsets(module))
+		var/list/parts = splittext("[offset_key]", ",")
+		if(length(parts) < 2)
+			continue
+		var/turf/clearance_turf = get_template_offset_turf(origin, dir_to_use, text2num(parts[1]), text2num(parts[2]))
+		if(!istype(clearance_turf) || occupied_lookup[clearance_turf])
+			continue
+		if(state.geometry.wall_lookup[clearance_turf] || state.geometry.door_dirs[clearance_turf] || state.fixtures.fixture_lookup[clearance_turf] || state.geometry.reserved_lookup[clearance_turf] || state.has_anchor("door_cone", clearance_turf))
+			return null
 	var/score = module.priority + (length(module.member_specs) * 20) + score_fixture_turf(state, origin, cluster_spec.anchors, module.wall_required, cluster_spec)
 	if(state.has_anchor("focus_center", origin))
 		score += 100

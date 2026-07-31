@@ -21,15 +21,13 @@
 	var/list/room_by_turf = list()
 	var/list/corridor_turfs = list()
 	var/list/corridor_lookup = list()
-	var/list/divider_plans = list()
 	var/list/primary_route_turfs = list()
 	var/list/separator_lane_turfs = list()
 	var/list/separator_lane_lookup = list()
 	var/list/internal_wall_turfs = list()
 	var/list/layout_room_plans = list()
 	var/list/layout_route_opening_plans = list()
-	var/datum/world_edit_room_graph/room_graph
-	var/datum/world_edit_bsp_node/bsp_root
+	var/list/layout_route_overlays = list()
 	var/turf/center_turf
 	var/turf/semantic_hub_turf
 	var/turf/front_door_turf
@@ -43,4 +41,6 @@
 	var/room_graph_hash = 0
 	var/route_hash = 0
 	var/wall_hash = 0
+	var/structural_topology_signature = ""
+	var/geometry_layout_hash = 0
 	var/layout_hash = 0

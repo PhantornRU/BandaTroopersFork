@@ -1071,6 +1071,13 @@
 	if(istype(cluster_spec) && islist(cluster_spec.anchors))
 		for(var/anchor_id as anything in cluster_spec.anchors)
 			add_building_fixture_semantic_zone_id(state, zone_ids, zone_lookup, anchor_id)
+			// Module eligibility already treats authored zone anchor tags as an
+			// explicit compatibility relation. Required fixture validation must use
+			// the same relation or a curated module can solve successfully and then
+			// become impossible only during emission.
+			for(var/datum/world_edit_building_zone_spec/zone_spec as anything in state.semantic_plan.zone_specs)
+				if(istype(zone_spec) && "[anchor_id]" in zone_spec.anchor_tags)
+					add_building_fixture_semantic_zone_id(state, zone_ids, zone_lookup, zone_spec.id)
 	var/slot_text = lowertext("[slot]")
 	var/category_text = lowertext("[category]")
 	if(slot_text in list("bed", "sleeper") || category_text in list("bed", "medical_bed") || (istype(cluster_spec) && findtext(lowertext(cluster_spec.id), "sleep")))

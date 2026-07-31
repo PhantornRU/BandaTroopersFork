@@ -1,6 +1,9 @@
 /datum/world_edit_generator/building_layout
 	requires_preview_before_apply = TRUE
 	var/current_plan_request_key = null
+	var/feasibility_cached_request_key = null
+	var/datum/world_edit_building_layout_state/feasibility_cached_state = null
+	var/list/feasibility_cached_support_report = null
 
 /datum/world_edit_generator/building_layout/get_supported_placement_modes()
 	return list("single", "repeat")
@@ -422,8 +425,8 @@
 	var/best_half_width = current_half_width
 	var/best_half_depth = current_half_depth
 	var/best_score = 999999
-	for(var/test_half_width in current_half_width to 8)
-		for(var/test_half_depth in current_half_depth to 8)
+	for(var/test_half_width in current_half_width to WORLD_EDIT_BUILDING_MAX_POINT_HALF_EXTENT)
+		for(var/test_half_depth in current_half_depth to WORLD_EDIT_BUILDING_MAX_POINT_HALF_EXTENT)
 			if(get_building_point_usable_area_for_half_size(test_half_width, test_half_depth) < target_usable_area)
 				continue
 			var/score = ((test_half_width - current_half_width) + (test_half_depth - current_half_depth)) * 100 + abs(test_half_width - test_half_depth)
@@ -451,8 +454,8 @@
 		config["error"] = "Unable to resolve building program '[config["archetype_id"]]'."
 		return config
 	var/auto_size = isnull(islist(params) ? params["auto_size"] : null) ? TRUE : GLOB.world_edit_helpers.parse_bool(params["auto_size"])
-	config["half_width"] = num_param(params, "half_width", 4, 1, 8)
-	config["half_depth"] = num_param(params, "half_depth", 4, 1, 8)
+	config["half_width"] = num_param(params, "half_width", 4, 1, WORLD_EDIT_BUILDING_MAX_POINT_HALF_EXTENT)
+	config["half_depth"] = num_param(params, "half_depth", 4, 1, WORLD_EDIT_BUILDING_MAX_POINT_HALF_EXTENT)
 	config["requested_half_width"] = config["half_width"]
 	config["requested_half_depth"] = config["half_depth"]
 	config["auto_size"] = auto_size ? TRUE : FALSE
@@ -569,10 +572,10 @@
 		if("auto_size")
 			new_params[param_id] = GLOB.world_edit_helpers.parse_bool(value) ? TRUE : FALSE
 		if("half_width")
-			new_params[param_id] = ui_num_param(value, 4, 1, 8)
+			new_params[param_id] = ui_num_param(value, 4, 1, WORLD_EDIT_BUILDING_MAX_POINT_HALF_EXTENT)
 			new_params["auto_size"] = FALSE
 		if("half_depth")
-			new_params[param_id] = ui_num_param(value, 4, 1, 8)
+			new_params[param_id] = ui_num_param(value, 4, 1, WORLD_EDIT_BUILDING_MAX_POINT_HALF_EXTENT)
 			new_params["auto_size"] = FALSE
 		if("target_room_count")
 			new_params[param_id] = ui_num_param(value, 0, 0, 24)
@@ -812,12 +815,49 @@
 
 /datum/world_edit_generator/building_layout/get_placement_shape_support_report(shape_id, list/params, list/placement_context)
 	var/list/config = normalize_building_params(params)
+	feasibility_cached_request_key = null
+	feasibility_cached_state = null
+	feasibility_cached_support_report = null
 	var/list/report = build_building_context_support_result(shape_id, config, placement_context)
 	var/shape_locked = report["shape_locked"] || "[report["lock_code"]]" == "shape.unsupported_for_building_layout"
 	report["shape_locked"] = shape_locked ? TRUE : FALSE
 	report["request_locked"] = "[report["status"]]" != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED
 	report["locked"] = report["shape_locked"] ? TRUE : FALSE
+	if(istype(feasibility_cached_state) && "[report["status"]]" == WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED)
+		feasibility_cached_support_report = report.Copy()
+	else
+		feasibility_cached_request_key = null
+		feasibility_cached_state = null
 	return report
+
+/datum/world_edit_generator/building_layout/proc/build_building_feasibility_cache_key(shape_id, list/config, list/placement_context)
+	if(!islist(config) || !islist(placement_context))
+		return null
+	var/list/key_parts = list(
+		"archetype_id=[config["archetype_id"]]",
+		"faction_preset=[config["faction_preset"]]",
+		"shape=[shape_id || placement_context["shape"] || WORLD_EDIT_SHAPE_POINT]",
+		"direction=[placement_context["direction"] || config["direction"] || NORTH]",
+		"auto_size=[config["auto_size"] ? TRUE : FALSE]",
+		"half_width=[config["half_width"]]",
+		"half_depth=[config["half_depth"]]",
+		"size_profile=[config["size_profile"]]",
+		"target_room_count=[config["target_room_count"]]",
+		"window_density=[config["window_density"]]",
+		"detail_budget=[config["detail_budget"]]",
+		"building_seed=[config["building_seed"]]",
+		"back_exit=[config["back_exit"] ? TRUE : FALSE]",
+		"respect_blockers=[config["respect_blockers"] ? TRUE : FALSE]",
+		"replace_blocked_turfs=[config["replace_blocked_turfs"] ? TRUE : FALSE]",
+		"forced_footprint_family=[config["forced_footprint_family"]]",
+	)
+	var/list/anchor_keys = list()
+	for(var/turf/anchor_turf as anything in placement_context["anchor_turfs"])
+		if(istype(anchor_turf))
+			anchor_keys += "[anchor_turf.x],[anchor_turf.y],[anchor_turf.z]"
+	if(length(anchor_keys))
+		key_parts += "anchors=[sortList(anchor_keys).Join(";")]"
+	return sortList(key_parts).Join("|")
 
 /datum/world_edit_generator/building_layout/proc/get_building_program_required_compact_area(datum/world_edit_building_archetype/archetype)
 	if(!istype(archetype))
@@ -1952,6 +1992,7 @@
 	verdict.set_metric("layout_optional_template_reject_count", state.validation.layout_optional_template_reject_count)
 	verdict.set_metric("layout_template_reject_ratio_percent", state.validation.layout_template_reject_ratio_percent)
 	verdict.set_metric("layout_distinct_hard_valid_family_count", state.validation.layout_distinct_hard_valid_family_count)
+	verdict.set_metric("structural_topology_signature_count", state.config["structural_topology_signature_count"] || state.validation.layout_distinct_hard_valid_family_count)
 	verdict.set_metric("semantic_distribution_noise_score", state.validation.semantic_distribution_noise_score)
 	verdict.set_metric("semantic_functional_coverage_percent", state.validation.semantic_functional_coverage_percent)
 	verdict.set_metric("semantic_route_clearance_percent", state.validation.semantic_route_clearance_percent)
@@ -2021,7 +2062,6 @@
 	score += state.validation.space_distribution_score * 15
 	if(state.validation.signature_max_score > 0 && state.validation.signature_score >= state.semantic_plan?.min_signature_score)
 		score += 2500
-	score += length(state.geometry.divider_plans) * 900
 	score += min(length(state.geometry.internal_wall_turfs), 32) * 90
 	score += length(state.geometry.solved_regions) * 120
 	score += min(state.validation.region_claim_count, 80) * 45
@@ -2059,6 +2099,7 @@
 		"detailed" = detailed ? TRUE : FALSE,
 	)
 	if(istype(state))
+		var/datum/world_edit_building_layout_context/layout_context = state.layout_context
 		report["current_request_support_status"] = state.validation.current_request_support_status
 		report["user_facing_failure_reason"] = state.validation.user_facing_failure_reason
 		report["support_status_report"] = detailed ? state.validation.support_status_report.Copy() : list(
@@ -2087,7 +2128,7 @@
 		report["visibility_privacy_score"] = state.validation.visibility_privacy_score
 		report["space_distribution_score"] = state.validation.space_distribution_score
 		report["empty_floor_ratio"] = state.validation.empty_floor_ratio
-		report["divider_plan_count"] = length(state.geometry.divider_plans)
+		report["partition_segment_count"] = length(layout_context?.selected_candidate?.partition_segments)
 		report["internal_wall_count"] = length(state.geometry.internal_wall_turfs)
 		report["room_count"] = length(state.geometry.solved_rooms)
 		report["corridor_turf_count"] = length(state.geometry.corridor_turfs)
@@ -2163,6 +2204,8 @@
 		report["room_graph_hash"] = state.geometry.room_graph_hash
 		report["route_hash"] = state.geometry.route_hash
 		report["wall_hash"] = state.geometry.wall_hash
+		report["structural_topology_signature"] = state.geometry.structural_topology_signature
+		report["geometry_layout_hash"] = state.geometry.geometry_layout_hash
 		report["pattern_credit_hash"] = state.fixtures.pattern_credit_hash
 		report["layout_hash"] = state.geometry.layout_hash
 		report["degraded_region_fallback_count"] = state.validation.degraded_region_fallback_count
@@ -2202,8 +2245,8 @@
 /datum/world_edit_generator/building_layout/proc/add_building_point_size_candidate(list/candidates, list/seen, index, half_width, half_depth)
 	if(!islist(candidates) || !islist(seen))
 		return index
-	half_width = clamp(round(text2num("[half_width]") || 4), 1, 8)
-	half_depth = clamp(round(text2num("[half_depth]") || 4), 1, 8)
+	half_width = clamp(round(text2num("[half_width]") || 4), 1, WORLD_EDIT_BUILDING_MAX_POINT_HALF_EXTENT)
+	half_depth = clamp(round(text2num("[half_depth]") || 4), 1, WORLD_EDIT_BUILDING_MAX_POINT_HALF_EXTENT)
 	var/key = "[half_width]x[half_depth]"
 	if(seen[key])
 		return index
@@ -2220,8 +2263,8 @@
 	var/list/candidates = list()
 	if(!islist(config))
 		return candidates
-	var/start_half_width = clamp(round(text2num("[config["half_width"]]") || 4), 1, 8)
-	var/start_half_depth = clamp(round(text2num("[config["half_depth"]]") || 4), 1, 8)
+	var/start_half_width = clamp(round(text2num("[config["half_width"]]") || 4), 1, WORLD_EDIT_BUILDING_MAX_POINT_HALF_EXTENT)
+	var/start_half_depth = clamp(round(text2num("[config["half_depth"]]") || 4), 1, WORLD_EDIT_BUILDING_MAX_POINT_HALF_EXTENT)
 	if(!GLOB.world_edit_helpers.parse_bool(config["auto_size"]))
 		candidates += list(list(
 			"index" = 1,
@@ -2244,7 +2287,7 @@
 			break
 		index = add_building_point_size_candidate(candidates, seen, index, start_half_width + delta, start_half_depth + delta)
 	if(length(candidates) < WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
-		index = add_building_point_size_candidate(candidates, seen, index, 8, 8)
+		index = add_building_point_size_candidate(candidates, seen, index, WORLD_EDIT_BUILDING_MAX_POINT_HALF_EXTENT, WORLD_EDIT_BUILDING_MAX_POINT_HALF_EXTENT)
 	if(!length(candidates))
 		candidates += list(list(
 			"index" = 1,
@@ -2274,6 +2317,7 @@
 	var/list/dry_params = config.Copy()
 	dry_params["skip_feasibility_dry_solve"] = TRUE
 	dry_params["debug_reports"] = FALSE
+	var/cache_key = build_building_feasibility_cache_key(shape_id, config, placement_context)
 	var/datum/world_edit_shape_contract/shape_contract = build_shape_contract_from_placement_context(shape_id, placement_context["anchor_turfs"], placement_context)
 	var/datum/world_edit_building_request/request = build_building_request(dry_params, shape_contract, placement_context)
 	if(!istype(request) || request.config["error"])
@@ -2286,6 +2330,7 @@
 	var/list/ordered_candidate_families = (resolved_shape_id == WORLD_EDIT_SHAPE_POINT) ? get_ordered_building_footprint_candidate_families(request.config) : list(uppertext("[resolved_shape_id]"))
 	var/list/candidate_families = length(ordered_candidate_families) ? list(ordered_candidate_families[1]) : list("RECT")
 	var/list/size_candidates = resolved_shape_id == WORLD_EDIT_SHAPE_POINT ? get_building_point_size_candidate_specs(request.config) : list(list("index" = 1, "half_width" = request.config["half_width"], "half_depth" = request.config["half_depth"]))
+	var/cache_solved_state = length(size_candidates) == 1 && length(candidate_families) == 1
 	var/attempt_index = 0
 	var/first_candidate_error = null
 	var/datum/world_edit_building_layout_state/best_failed_state = null
@@ -2331,6 +2376,9 @@
 			result["status"] = "solved"
 			result["reason"] = ""
 			result["selected_candidate_report"] = build_building_layout_candidate_report(candidate_state, footprint_family, attempt_index, candidate_state.validation.layout_candidate_score, null, FALSE)
+			if(cache_solved_state && length("[cache_key]"))
+				feasibility_cached_request_key = cache_key
+				feasibility_cached_state = candidate_state
 			return result
 		if(attempt_index >= WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
 			break
@@ -2345,7 +2393,16 @@
 	var/datum/world_edit_plan/plan = new
 	var/datum/world_edit_building_request/request = build_building_request(params, shape_contract, placement_context)
 	var/shape_id = "[shape_contract?.shape_id || (islist(placement_context) ? placement_context["shape"] : null) || WORLD_EDIT_SHAPE_POINT]"
-	var/list/support_result = build_building_context_support_result(shape_id, request.config, placement_context)
+	var/plan_cache_key = build_building_feasibility_cache_key(shape_id, request.config, placement_context)
+	var/reuse_feasibility_state = istype(feasibility_cached_state) && length("[plan_cache_key]") && plan_cache_key == feasibility_cached_request_key
+	// The plan path performs the canonical candidate solve immediately below.
+	// Running the feasibility dry solve here would solve the same request twice;
+	// the public support-report path still performs its independent dry solve.
+	var/list/plan_support_config = request.config.Copy()
+	plan_support_config["skip_feasibility_dry_solve"] = TRUE
+	var/list/support_result = build_building_context_support_result(shape_id, plan_support_config, placement_context)
+	if(reuse_feasibility_state && islist(feasibility_cached_support_report) && "[support_result["status"]]" == WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED)
+		support_result = feasibility_cached_support_report.Copy()
 	apply_building_support_result_to_config(request.config, support_result)
 	// Locked/unsupported plans return before the normal building emitter. Keep
 	// the public size contract observable on that path as well, especially for
@@ -2391,45 +2448,58 @@
 	var/best_failed_attempt = 0
 	var/attempt_index = 0
 	var/first_candidate_error = null
-	for(var/list/size_candidate as anything in size_candidates)
-		for(var/footprint_family as anything in candidate_families)
+	if(reuse_feasibility_state && "[support_result["status"]]" == WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED)
+		best_state = feasibility_cached_state
+		best_score = best_state.validation.layout_candidate_score
+		attempt_index = max(round(text2num("[best_state.config["layout_candidate_index"]]") || 0), 1)
+		best_state.config["debug_reports"] = request.config["debug_reports"] ? TRUE : FALSE
+		apply_building_support_result_to_config(best_state.config, support_result)
+		best_state.set_support_status(support_result["status"], support_result["reason"])
+		best_state.validation.support_status_report = support_result.Copy()
+		candidate_reports += list(build_building_layout_candidate_report(best_state, best_state.config["footprint_family"], attempt_index))
+	feasibility_cached_request_key = null
+	feasibility_cached_state = null
+	feasibility_cached_support_report = null
+	if(!istype(best_state))
+		for(var/list/size_candidate as anything in size_candidates)
+			for(var/footprint_family as anything in candidate_families)
+				if(attempt_index >= WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
+					break
+				attempt_index++
+				var/datum/world_edit_building_request/candidate_request = build_building_candidate_request(request, footprint_family, attempt_index)
+				candidate_request.config["half_width"] = size_candidate["half_width"]
+				candidate_request.config["half_depth"] = size_candidate["half_depth"]
+				candidate_request.config["final_half_width"] = size_candidate["half_width"]
+				candidate_request.config["final_half_depth"] = size_candidate["half_depth"]
+				candidate_request.config["size_candidate_index"] = size_candidate["index"]
+				if(GLOB.world_edit_helpers.parse_bool(request.config["auto_size"]) && (size_candidate["half_width"] != request.config["half_width"] || size_candidate["half_depth"] != request.config["half_depth"]))
+					candidate_request.config["size_auto_adjusted"] = TRUE
+				var/datum/world_edit_building_layout_state/candidate_state = build_building_layout_candidate_state(candidate_request, shape_contract, params, placement_context)
+				if(!istype(candidate_state))
+					var/error_message = candidate_request.config["layout_candidate_error"] || "Candidate layout failed before semantic state."
+					if(isnull(first_candidate_error))
+						first_candidate_error = error_message
+					candidate_reports += list(build_building_layout_candidate_report(null, footprint_family, attempt_index, -999999999 + attempt_index, error_message))
+					continue
+				candidate_reports += list(build_building_layout_candidate_report(candidate_state, footprint_family, attempt_index))
+				if(candidate_state.has_errors())
+					if(!istype(best_failed_state) || candidate_state.validation.layout_candidate_score > best_failed_score)
+						best_failed_state = candidate_state
+						best_failed_score = candidate_state.validation.layout_candidate_score
+						best_failed_family = footprint_family
+						best_failed_attempt = attempt_index
+					if(isnull(first_candidate_error))
+						if(candidate_state.validation.current_request_support_status != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED && length(candidate_state.validation.user_facing_failure_reason))
+							first_candidate_error = candidate_state.validation.user_facing_failure_reason
+						else
+							first_candidate_error = length(candidate_state.validation.errors) ? candidate_state.validation.errors[1] : "Building candidate failed validation."
+					continue
+				if(!istype(best_state) || candidate_state.validation.layout_candidate_score > best_score)
+					best_state = candidate_state
+					best_score = candidate_state.validation.layout_candidate_score
+					best_state.config["layout_candidate_index"] = attempt_index
 			if(attempt_index >= WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
 				break
-			attempt_index++
-			var/datum/world_edit_building_request/candidate_request = build_building_candidate_request(request, footprint_family, attempt_index)
-			candidate_request.config["half_width"] = size_candidate["half_width"]
-			candidate_request.config["half_depth"] = size_candidate["half_depth"]
-			candidate_request.config["final_half_width"] = size_candidate["half_width"]
-			candidate_request.config["final_half_depth"] = size_candidate["half_depth"]
-			candidate_request.config["size_candidate_index"] = size_candidate["index"]
-			if(GLOB.world_edit_helpers.parse_bool(request.config["auto_size"]) && (size_candidate["half_width"] != request.config["half_width"] || size_candidate["half_depth"] != request.config["half_depth"]))
-				candidate_request.config["size_auto_adjusted"] = TRUE
-			var/datum/world_edit_building_layout_state/candidate_state = build_building_layout_candidate_state(candidate_request, shape_contract, params, placement_context)
-			if(!istype(candidate_state))
-				var/error_message = candidate_request.config["layout_candidate_error"] || "Candidate layout failed before semantic state."
-				if(isnull(first_candidate_error))
-					first_candidate_error = error_message
-				candidate_reports += list(build_building_layout_candidate_report(null, footprint_family, attempt_index, -999999999 + attempt_index, error_message))
-				continue
-			candidate_reports += list(build_building_layout_candidate_report(candidate_state, footprint_family, attempt_index))
-			if(candidate_state.has_errors())
-				if(!istype(best_failed_state) || candidate_state.validation.layout_candidate_score > best_failed_score)
-					best_failed_state = candidate_state
-					best_failed_score = candidate_state.validation.layout_candidate_score
-					best_failed_family = footprint_family
-					best_failed_attempt = attempt_index
-				if(isnull(first_candidate_error))
-					if(candidate_state.validation.current_request_support_status != WORLD_EDIT_BUILDING_SUPPORT_SUPPORTED && length(candidate_state.validation.user_facing_failure_reason))
-						first_candidate_error = candidate_state.validation.user_facing_failure_reason
-					else
-						first_candidate_error = length(candidate_state.validation.errors) ? candidate_state.validation.errors[1] : "Building candidate failed validation."
-				continue
-			if(!istype(best_state) || candidate_state.validation.layout_candidate_score > best_score)
-				best_state = candidate_state
-				best_score = candidate_state.validation.layout_candidate_score
-				best_state.config["layout_candidate_index"] = attempt_index
-		if(attempt_index >= WORLD_EDIT_BUILDING_MAX_LAYOUT_CANDIDATES)
-			break
 
 	if(!istype(best_state))
 		var/final_candidate_error = first_candidate_error || "Unable to build any building layout candidate."
@@ -3002,6 +3072,7 @@
 	return result
 
 #undef WORLD_EDIT_BUILDING_MAX_FOOTPRINT_TURFS
+#undef WORLD_EDIT_BUILDING_MAX_POINT_HALF_EXTENT
 #undef WORLD_EDIT_BUILDING_MAX_PREVIEW_OBJECT_SPECS
 #undef WORLD_EDIT_BUILDING_MAX_HOVER_PREVIEW_OBJECT_SPECS
 #undef WORLD_EDIT_BUILDING_MAX_WINDOWS

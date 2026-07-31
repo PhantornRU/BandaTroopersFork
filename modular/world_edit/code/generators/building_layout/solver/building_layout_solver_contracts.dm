@@ -15,6 +15,10 @@
 #define WORLD_EDIT_BUILDING_EDGE_SECURE "secure"
 #define WORLD_EDIT_BUILDING_EDGE_NESTED "nested"
 
+#define WORLD_EDIT_BUILDING_ROUTE_POLICY_DIRECT "direct"
+#define WORLD_EDIT_BUILDING_ROUTE_POLICY_NETWORK "network"
+#define WORLD_EDIT_BUILDING_ROUTE_POLICY_AXIAL "axial"
+
 #define WORLD_EDIT_BUILDING_TOPOLOGY_FUNCTIONAL "functional"
 #define WORLD_EDIT_BUILDING_TOPOLOGY_CIRCULATION_TERMINAL "circulation_terminal"
 #define WORLD_EDIT_BUILDING_TOPOLOGY_TRANSITION "transition"
@@ -30,6 +34,9 @@
 	var/datum/world_edit_building_layout_program_contract/program_contract
 	var/datum/world_edit_building_layout_scene_budget/scene_budget
 	var/datum/world_edit_building_layout_candidate/selected_candidate = null
+	/// One bounded beam per stable authored family/region/orientation key. Ranked complete partials
+	/// are reused when materializing the 4-6 candidate alternatives.
+	var/list/allocation_shortlists_by_region = list()
 	var/list/errors = list()
 	var/list/warnings = list()
 
@@ -221,6 +228,17 @@
 	var/counts_toward_target = TRUE
 	var/min_capacity_units = 0
 	var/capacity_kind = ""
+	var/min_wall_frontage = 0
+	var/min_composition_short_side = 0
+	var/min_composition_long_side = 0
+	var/nested_parent_floor_min_area = 0
+	var/nested_parent_floor_min_width = 0
+	var/nested_parent_floor_min_height = 0
+	var/nested_child_reserved_area = 0
+	var/nested_partition_reserved_area = 0
+	var/circulation_kind = WORLD_EDIT_BUILDING_CIRCULATION_ENCLOSED_ROUTE
+	var/circulation_owner_room_id = ""
+	var/circulation_min_width = 1
 
 /datum/world_edit_building_layout_room_contract/New(_id = "", _role = "", _zone_id = "", _required = TRUE, _min_area = 1, _preferred_area = 1, _max_area = 999, _min_width = 1, _min_height = 1, _max_width = 999, _max_height = 999)
 	. = ..()
@@ -237,20 +255,61 @@
 	max_height = max(round(text2num("[_max_height]") || 999), min_height)
 
 /datum/world_edit_building_layout_connection_contract
-	var/from_room = ""
-	var/to_room = ""
+	var/from_node_id = ""
+	var/to_node_id = ""
 	var/required = TRUE
-	var/kind = "route"
-	var/door_required = TRUE
+	var/edge_kind = WORLD_EDIT_BUILDING_EDGE_SHARED
+	var/opening_policy = WORLD_EDIT_BUILDING_OPENING_DOOR
+	var/route_policy = WORLD_EDIT_BUILDING_ROUTE_POLICY_DIRECT
 	var/privacy_transition = ""
+	var/min_shared_wall = 1
+	var/min_opening_width = 1
+	var/max_opening_width = 1
 
-/datum/world_edit_building_layout_connection_contract/New(_from_room = "", _to_room = "", _required = TRUE, _kind = "route", _door_required = TRUE)
+/datum/world_edit_building_layout_connection_contract/New(_from_node_id = "", _to_node_id = "", _required = TRUE, _edge_kind = WORLD_EDIT_BUILDING_EDGE_SHARED, _opening_policy = WORLD_EDIT_BUILDING_OPENING_DOOR, _route_policy = WORLD_EDIT_BUILDING_ROUTE_POLICY_DIRECT, _min_shared_wall = 1, _min_opening_width = 1, _max_opening_width = 1)
 	. = ..()
-	from_room = "[_from_room]"
-	to_room = "[_to_room]"
+	from_node_id = "[_from_node_id]"
+	to_node_id = "[_to_node_id]"
 	required = _required ? TRUE : FALSE
-	kind = length("[_kind]") ? "[_kind]" : "route"
-	door_required = _door_required ? TRUE : FALSE
+	edge_kind = length("[_edge_kind]") ? "[_edge_kind]" : WORLD_EDIT_BUILDING_EDGE_SHARED
+	opening_policy = length("[_opening_policy]") ? "[_opening_policy]" : WORLD_EDIT_BUILDING_OPENING_DOOR
+	route_policy = length("[_route_policy]") ? "[_route_policy]" : WORLD_EDIT_BUILDING_ROUTE_POLICY_DIRECT
+	min_shared_wall = max(round(text2num("[_min_shared_wall]") || 1), 1)
+	min_opening_width = max(round(text2num("[_min_opening_width]") || 1), 1)
+	max_opening_width = max(round(text2num("[_max_opening_width]") || min_opening_width), min_opening_width)
+
+/datum/world_edit_building_layout_route_overlay
+	var/id = ""
+	var/owner_room_id = ""
+	var/kind = WORLD_EDIT_BUILDING_CIRCULATION_ROOM_OWNED_AISLE
+	var/list/turfs = list()
+	var/list/turf_lookup = list()
+	/// A controlled threshold may narrow below aisle width. This connected room
+	/// approach is reserved from furnishing but is not credited to aisle area.
+	var/list/approach_turfs = list()
+	var/list/approach_lookup = list()
+	var/min_width = 1
+	var/required = TRUE
+
+/datum/world_edit_building_layout_route_overlay/New(_id = "", _owner_room_id = "", _kind = WORLD_EDIT_BUILDING_CIRCULATION_ROOM_OWNED_AISLE, _min_width = 1, _required = TRUE)
+	. = ..()
+	id = "[_id]"
+	owner_room_id = "[_owner_room_id]"
+	kind = "[_kind]"
+	min_width = max(round(text2num("[_min_width]") || 1), 1)
+	required = _required ? TRUE : FALSE
+
+/datum/world_edit_building_layout_route_overlay/proc/add_turf(turf/overlay_turf)
+	if(!istype(overlay_turf) || turf_lookup[overlay_turf])
+		return
+	turfs += overlay_turf
+	turf_lookup[overlay_turf] = TRUE
+
+/datum/world_edit_building_layout_route_overlay/proc/add_approach_turf(turf/approach_turf)
+	if(!istype(approach_turf) || turf_lookup[approach_turf] || approach_lookup[approach_turf])
+		return
+	approach_turfs += approach_turf
+	approach_lookup[approach_turf] = TRUE
 
 /datum/world_edit_building_layout_topology_graph
 	var/list/nodes = list()
@@ -307,16 +366,22 @@
 /datum/world_edit_building_layout_topology_edge
 	var/from_id = ""
 	var/to_id = ""
-	var/kind = WORLD_EDIT_BUILDING_EDGE_SHARED
+	var/edge_kind = WORLD_EDIT_BUILDING_EDGE_SHARED
+	var/opening_policy = WORLD_EDIT_BUILDING_OPENING_DOOR
+	var/route_policy = WORLD_EDIT_BUILDING_ROUTE_POLICY_DIRECT
 	var/required = TRUE
-	var/min_shared_wall = 0
+	var/min_shared_wall = 1
+	var/min_opening_width = 1
+	var/max_opening_width = 1
 	var/privacy_transition = ""
 
-/datum/world_edit_building_layout_topology_edge/New(_from_id = "", _to_id = "", _kind = WORLD_EDIT_BUILDING_EDGE_SHARED, _required = TRUE)
+/datum/world_edit_building_layout_topology_edge/New(_from_id = "", _to_id = "", _edge_kind = WORLD_EDIT_BUILDING_EDGE_SHARED, _required = TRUE, _opening_policy = WORLD_EDIT_BUILDING_OPENING_DOOR, _route_policy = WORLD_EDIT_BUILDING_ROUTE_POLICY_DIRECT)
 	. = ..()
 	from_id = "[_from_id]"
 	to_id = "[_to_id]"
-	kind = "[_kind]"
+	edge_kind = length("[_edge_kind]") ? "[_edge_kind]" : WORLD_EDIT_BUILDING_EDGE_SHARED
+	opening_policy = length("[_opening_policy]") ? "[_opening_policy]" : WORLD_EDIT_BUILDING_OPENING_DOOR
+	route_policy = length("[_route_policy]") ? "[_route_policy]" : WORLD_EDIT_BUILDING_ROUTE_POLICY_DIRECT
 	required = _required ? TRUE : FALSE
 
 /datum/world_edit_building_layout_pattern
@@ -353,6 +418,13 @@
 	var/list/room_connections = list()
 	var/list/route_turfs = list()
 	var/list/route_lookup = list()
+	var/list/route_overlays = list()
+	var/list/route_overlays_by_id = list()
+	var/list/route_overlay_lookup = list()
+	var/list/owner_aisle_turfs = list()
+	var/list/owner_aisle_lookup = list()
+	var/list/owner_aisle_zone_by_turf = list()
+	var/list/owner_aisle_owner_by_turf = list()
 	var/list/access_reserved_lookup = list()
 	var/list/access_reservations_by_room = list()
 	var/list/reserved_partition_wall_lookup = list()
@@ -370,11 +442,12 @@
 	var/score = 0
 	var/datum/world_edit_building_layout_topology_graph/topology_graph = null
 	var/topology_family = ""
-	var/list/route_overlay_turfs = list()
-	var/list/route_overlay_lookup = list()
 	var/list/route_zone_by_turf = list()
 	var/list/route_owner_by_turf = list()
+	var/list/route_terminal_hints_by_connection = list()
+	var/list/route_terminal_wall_hint_lookup = list()
 	var/list/ownership_by_turf = list()
+	var/list/partition_segments = list()
 	var/list/partition_edges = list()
 	var/list/composition_contracts = list()
 	var/list/family_constraints = list()
@@ -402,11 +475,39 @@
 	route_turfs += route_turf
 	route_lookup[route_turf] = TRUE
 
-/datum/world_edit_building_layout_candidate/proc/reserve_route_access(room_id, list/wall_run, list/route_run, list/connector_run = null)
-	if(!length("[room_id]") || !islist(wall_run) || !islist(route_run) || !length(wall_run) || length(wall_run) != length(route_run))
+/datum/world_edit_building_layout_candidate/proc/add_route_overlay(datum/world_edit_building_layout_route_overlay/overlay)
+	if(!istype(overlay) || !length(overlay.id) || route_overlays_by_id[overlay.id])
 		return FALSE
-	var/list/reservation = list("room_id" = "[room_id]", "wall_run" = wall_run.Copy(), "route_run" = route_run.Copy(), "connector_run" = islist(connector_run) ? connector_run.Copy() : list())
-	access_reservations_by_room["[room_id]"] = reservation
+	route_overlays += overlay
+	route_overlays_by_id[overlay.id] = overlay
+	for(var/turf/overlay_turf as anything in overlay.turfs)
+		route_overlay_lookup[overlay_turf] = TRUE
+	for(var/turf/approach_turf as anything in overlay.approach_turfs)
+		route_overlay_lookup[approach_turf] = TRUE
+	return TRUE
+
+/datum/world_edit_building_layout_candidate/proc/add_owner_aisle_turf(turf/aisle_turf, owner_id, zone_id)
+	if(!istype(aisle_turf) || owner_aisle_lookup[aisle_turf])
+		return
+	owner_aisle_turfs += aisle_turf
+	owner_aisle_lookup[aisle_turf] = TRUE
+	owner_aisle_owner_by_turf[aisle_turf] = "[owner_id]"
+	owner_aisle_zone_by_turf[aisle_turf] = "[zone_id]"
+	ownership_by_turf[aisle_turf] = "[owner_id]"
+
+/datum/world_edit_building_layout_candidate/proc/reserve_route_access(room_id, list/wall_run, list/route_run, list/connector_run = null, terminal_id = "", circulation_id = "")
+	if(!length("[room_id]") || !islist(wall_run) || !islist(route_run) || !length(wall_run) || !length(route_run))
+		return FALSE
+	var/reservation_id = length("[terminal_id]") ? "[terminal_id]" : "[room_id]"
+	var/list/reservation = list(
+		"terminal_id" = reservation_id,
+		"room_id" = "[room_id]",
+		"circulation_id" = "[circulation_id]",
+		"wall_run" = wall_run.Copy(),
+		"route_run" = route_run.Copy(),
+		"connector_run" = islist(connector_run) ? connector_run.Copy() : list(),
+	)
+	access_reservations_by_room[reservation_id] = reservation
 	for(var/turf/wall_turf as anything in wall_run)
 		if(istype(wall_turf))
 			access_reserved_lookup[wall_turf] = TRUE
@@ -418,12 +519,23 @@
 			access_reserved_lookup[connector_turf] = TRUE
 	return TRUE
 
-/datum/world_edit_building_layout_candidate/proc/get_route_access_reservation(room_id)
-	return access_reservations_by_room["[room_id]"]
+/datum/world_edit_building_layout_candidate/proc/get_route_access_reservation(room_id, terminal_id = "")
+	if(length("[terminal_id]") && islist(access_reservations_by_room["[terminal_id]"]))
+		return access_reservations_by_room["[terminal_id]"]
+	if(islist(access_reservations_by_room["[room_id]"]))
+		return access_reservations_by_room["[room_id]"]
+	for(var/reservation_id as anything in access_reservations_by_room)
+		var/list/reservation = access_reservations_by_room[reservation_id]
+		if(reservation?["room_id"] == "[room_id]")
+			return reservation
+	return null
 
 /datum/world_edit_building_layout_allocation_partial
 	var/list/placements = list()
 	var/list/placement_order = list()
+	var/list/estimated_route_terminals = list()
+	var/list/nested_partition_plan = null
+	var/terminal_topology_signature = ""
 	var/score = 0
 
 /datum/world_edit_building_layout_allocation_partial/proc/fork_with(room_id, list/rect, score_delta = 0)
@@ -432,6 +544,8 @@
 	var/datum/world_edit_building_layout_allocation_partial/child = new
 	child.placements = placements.Copy()
 	child.placement_order = placement_order.Copy()
+	child.estimated_route_terminals = estimated_route_terminals.Copy()
+	child.terminal_topology_signature = terminal_topology_signature
 	child.placements["[room_id]"] = rect.Copy()
 	child.placement_order += "[room_id]"
 	child.score = score + round(text2num("[score_delta]") || 0)
@@ -557,26 +671,57 @@
 	from_room = "[_from_room]"
 	to_room = "[_to_room]"
 
+/datum/world_edit_building_partition_segment
+	var/id = ""
+	var/owner_a = ""
+	var/owner_b = ""
+	var/orientation = ""
+	var/kind = WORLD_EDIT_BUILDING_EDGE_SHARED
+	var/opening_policy = WORLD_EDIT_BUILDING_OPENING_DOOR
+	var/list/turfs = list()
+	var/list/turf_lookup = list()
+
+/datum/world_edit_building_partition_segment/New(_id = "", _owner_a = "", _owner_b = "", _orientation = "", _kind = WORLD_EDIT_BUILDING_EDGE_SHARED, _opening_policy = WORLD_EDIT_BUILDING_OPENING_DOOR)
+	. = ..()
+	id = "[_id]"
+	owner_a = "[_owner_a]"
+	owner_b = "[_owner_b]"
+	orientation = "[_orientation]"
+	kind = "[_kind]"
+	opening_policy = "[_opening_policy]"
+
+/datum/world_edit_building_partition_segment/proc/add_turf(turf/wall_turf)
+	if(!istype(wall_turf) || turf_lookup[wall_turf])
+		return
+	turfs += wall_turf
+	turf_lookup[wall_turf] = TRUE
+
 /datum/world_edit_building_layout_room_connection
 	var/id = ""
-	var/from_room_id = ""
-	var/to_room_id = ""
-	var/kind = "door"
+	var/from_node_id = ""
+	var/to_node_id = ""
+	var/edge_kind = WORLD_EDIT_BUILDING_EDGE_SHARED
+	var/opening_policy = WORLD_EDIT_BUILDING_OPENING_DOOR
+	var/route_policy = WORLD_EDIT_BUILDING_ROUTE_POLICY_DIRECT
 	var/privacy = "public"
 	var/required = TRUE
-	var/min_shared_wall_length = 3
+	var/min_shared_wall = 1
+	var/min_opening_width = 1
+	var/max_opening_width = 1
 	var/max_door_count = 1
 	var/prefer_center = TRUE
 	var/allow_corner = FALSE
 
-/datum/world_edit_building_layout_room_connection/New(_id = "", _from_room_id = "", _to_room_id = "", _privacy = "public", _required = TRUE, _kind = "door")
+/datum/world_edit_building_layout_room_connection/New(_id = "", _from_node_id = "", _to_node_id = "", _privacy = "public", _required = TRUE, _edge_kind = WORLD_EDIT_BUILDING_EDGE_SHARED, _opening_policy = WORLD_EDIT_BUILDING_OPENING_DOOR, _route_policy = WORLD_EDIT_BUILDING_ROUTE_POLICY_DIRECT)
 	. = ..()
 	id = "[_id]"
-	from_room_id = "[_from_room_id]"
-	to_room_id = "[_to_room_id]"
+	from_node_id = "[_from_node_id]"
+	to_node_id = "[_to_node_id]"
 	privacy = length("[_privacy]") ? "[_privacy]" : "public"
 	required = _required ? TRUE : FALSE
-	kind = length("[_kind]") ? "[_kind]" : "door"
+	edge_kind = length("[_edge_kind]") ? "[_edge_kind]" : WORLD_EDIT_BUILDING_EDGE_SHARED
+	opening_policy = length("[_opening_policy]") ? "[_opening_policy]" : WORLD_EDIT_BUILDING_OPENING_DOOR
+	route_policy = length("[_route_policy]") ? "[_route_policy]" : WORLD_EDIT_BUILDING_ROUTE_POLICY_DIRECT
 
 /datum/world_edit_building_layout_opening_candidate
 	var/id = ""
@@ -667,8 +812,8 @@
 	route_hints += hint
 	return hint
 
-/datum/world_edit_building_layout_region_candidate/proc/add_connection(connection_id, from_room_id, to_room_id, privacy = "public", required = TRUE, kind = "door")
-	var/datum/world_edit_building_layout_room_connection/connection = new(connection_id, from_room_id, to_room_id, privacy, required, kind)
+/datum/world_edit_building_layout_region_candidate/proc/add_connection(connection_id, from_node_id, to_node_id, privacy = "public", required = TRUE, edge_kind = WORLD_EDIT_BUILDING_EDGE_SHARED, opening_policy = WORLD_EDIT_BUILDING_OPENING_DOOR, route_policy = WORLD_EDIT_BUILDING_ROUTE_POLICY_DIRECT)
+	var/datum/world_edit_building_layout_room_connection/connection = new(connection_id, from_node_id, to_node_id, privacy, required, edge_kind, opening_policy, route_policy)
 	room_connections += connection
 	return connection
 
@@ -703,8 +848,6 @@
 	var/list/scene_slot_limits = list()
 	var/list/forbidden_module_slots = list()
 	var/list/module_specs = list()
-	var/fallback_slot = "light"
-	var/fallback_category = "light"
 
 /datum/world_edit_building_layout_scene_contract/New(_id = "", _scene_kind = "")
 	. = ..()
@@ -753,6 +896,9 @@
 		"category" = "[category]",
 		"turf" = member_turf,
 		"dir" = dir_to_use,
+		"wall_dir" = null,
+		"front_dir" = dir_to_use,
+		"interaction_dir" = dir_to_use,
 		"scene_slot" = length("[scene_slot]") ? "[scene_slot]" : "[slot]",
 		"wall_mounted" = wall_mounted ? TRUE : FALSE,
 		"major" = major ? TRUE : FALSE,

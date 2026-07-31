@@ -250,6 +250,8 @@
 		"user_facing_failure_reason" = metadata["user_facing_failure_reason"],
 		"error" = metadata["error"],
 		"layout_hash" = metadata["layout_hash"],
+		"structural_topology_signature" = metadata["structural_topology_signature"],
+		"geometry_layout_hash" = metadata["geometry_layout_hash"],
 		"pattern_credit_hash" = metadata["pattern_credit_hash"],
 		"footprint_source" = metadata["footprint_source"],
 		"placement_shape_used_as_seed_only" = metadata["placement_shape_used_as_seed_only"],
@@ -273,7 +275,7 @@
 		"raw_category_credit_count" = raw_category_credit_count,
 		"scatter_signature_credit_count" = scatter_signature_credit_count,
 		"hard_counters" = hard_counters,
-		"divider_plan_count" = metadata["divider_plan_count"],
+		"partition_segment_count" = metadata["partition_segment_count"],
 		"nested_room_count" = metadata["nested_room_count"],
 		"degraded_region_fallback_count" = metadata["degraded_region_fallback_count"],
 	)

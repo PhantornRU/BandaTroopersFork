@@ -23,160 +23,12 @@
 		return candidate
 	if(!build_building_layout_ownership_partition_graph(context, candidate))
 		candidate.errors += "partition.graph_failed:[region_candidate.id]"
+	if(!length(candidate.errors) && !assign_building_layout_owner_aisles(context, candidate))
+		candidate.errors += "route.owner_aisle_assignment_failed"
 	if(!validate_layout_room_allocation(context, candidate))
 		return candidate
 	refresh_building_layout_candidate_lookups(candidate)
 	return candidate
-
-/datum/world_edit_generator/building_layout/proc/materialize_building_layout_circulation_overlay(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate)
-	var/datum/world_edit_building_layout_state/state = context?.state
-	if(!istype(state) || !istype(candidate))
-		return
-	var/list/reserved_wall_lookup = list()
-	for(var/room_id as anything in candidate.access_reservations_by_room)
-		var/list/reservation = candidate.access_reservations_by_room[room_id]
-		for(var/turf/wall_turf as anything in reservation?["wall_run"])
-			if(istype(wall_turf))
-				reserved_wall_lookup[wall_turf] = TRUE
-	for(var/datum/world_edit_building_layout_room_plan/room_plan as anything in candidate.room_plans)
-		var/datum/world_edit_building_layout_room_contract/room_contract = context.program_contract?.get_room_contract(room_plan?.contract_id)
-		// Closed service/storage rooms need a real partition reserve too: their
-		// required wall-mounted scene modules cannot be satisfied by an open-bay
-		// perimeter that circulation later consumes.
-		if(!istype(room_plan) || !istype(room_contract) || !(room_contract.partition_policy in list(WORLD_EDIT_BUILDING_PARTITION_CLOSED, WORLD_EDIT_BUILDING_PARTITION_SECURE)))
-			continue
-		for(var/turf/room_turf as anything in room_plan.turfs)
-			for(var/check_dir in GLOB.cardinals)
-				var/turf/partition_turf = get_step(room_turf, check_dir)
-				if(!istype(partition_turf) || room_plan.turf_lookup[partition_turf] || candidate.route_lookup[partition_turf] || state.geometry.boundary_lookup[partition_turf])
-					continue
-				reserved_wall_lookup[partition_turf] = TRUE
-	candidate.reserved_partition_wall_lookup = reserved_wall_lookup.Copy()
-	for(var/turf/interior_turf as anything in state.geometry.interior)
-		if(!istype(interior_turf) || candidate.route_lookup[interior_turf] || reserved_wall_lookup[interior_turf] || building_layout_candidate_turf_in_room(candidate, interior_turf))
-			continue
-		candidate.route_overlay_turfs += interior_turf
-		candidate.route_overlay_lookup[interior_turf] = TRUE
-		candidate.route_zone_by_turf[interior_turf] = "circulation_open_bay"
-	var/list/circulation_pool = candidate.route_turfs.Copy() + candidate.route_overlay_turfs.Copy()
-	var/pool_index = 1
-	for(var/datum/world_edit_building_layout_room_contract/circulation_contract as anything in context.program_contract?.circulation_contracts)
-		if(!istype(circulation_contract) || !circulation_contract.required)
-			continue
-		var/claimed_count = 0
-		while(pool_index <= length(circulation_pool) && claimed_count < max(circulation_contract.min_area, 1))
-			var/turf/claimed_turf = circulation_pool[pool_index]
-			pool_index++
-			if(!istype(claimed_turf))
-				continue
-			candidate.route_zone_by_turf[claimed_turf] = circulation_contract.zone_id
-			claimed_count++
-
-/datum/world_edit_generator/building_layout/proc/solve_building_layout_route_after_rooms(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate)
-	var/datum/world_edit_building_layout_state/state = context?.state
-	if(!istype(state) || !istype(candidate) || !length(candidate.room_plans))
-		return FALSE
-	var/entry_dir = state.geometry.requested_direction || state.placement_dir || NORTH
-	if(!(entry_dir in GLOB.cardinals))
-		entry_dir = NORTH
-	var/list/entry_targets = list()
-	for(var/turf/boundary_turf as anything in state.geometry.boundary)
-		if(!istype(boundary_turf) || !boundary_turf_has_outside_dir(boundary_turf, state.geometry.footprint_lookup, entry_dir))
-			continue
-		var/turf/inside_turf = get_step(boundary_turf, turn(entry_dir, 180))
-		if(!istype(inside_turf) || !state.geometry.footprint_lookup[inside_turf] || state.geometry.boundary_lookup[inside_turf] || building_layout_candidate_turf_in_room(candidate, inside_turf))
-			continue
-		entry_targets += inside_turf
-	if(!length(entry_targets))
-		return FALSE
-	var/turf/seed = entry_targets[1]
-	var/turf/center_turf = context.local_turf(round(context.local_width() / 2), round(context.local_height() / 2))
-	var/best_distance = 999999
-	for(var/turf/entry_target as anything in entry_targets)
-		var/distance = istype(center_turf) ? get_dist(entry_target, center_turf) : 0
-		if(distance < best_distance)
-			seed = entry_target
-			best_distance = distance
-	candidate.add_route_turf(seed)
-	return TRUE
-
-/datum/world_edit_generator/building_layout/proc/building_layout_candidate_turf_in_room(datum/world_edit_building_layout_candidate/candidate, turf/check_turf)
-	if(!istype(candidate) || !istype(check_turf))
-		return FALSE
-	for(var/datum/world_edit_building_layout_room_plan/room_plan as anything in candidate.room_plans)
-		if(istype(room_plan) && room_plan.turf_lookup[check_turf])
-			return TRUE
-	return FALSE
-
-/datum/world_edit_generator/building_layout/proc/connect_building_layout_route_to_rooms(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate)
-	var/datum/world_edit_building_layout_state/state = context?.state
-	if(!istype(context) || !istype(state) || !istype(candidate))
-		return FALSE
-	for(var/datum/world_edit_building_layout_room_plan/room_plan as anything in candidate.room_plans)
-		if(!istype(room_plan))
-			continue
-		if(building_layout_room_plan_has_route_partition(candidate, room_plan))
-			continue
-		var/list/reservation = candidate.get_route_access_reservation(room_plan.id)
-		var/list/wall_run = reservation?["wall_run"]
-		var/list/route_run = reservation?["route_run"]
-		if(!islist(reservation) || !islist(wall_run) || !islist(route_run) || length(wall_run) < 2 || length(wall_run) != length(route_run))
-			candidate.errors += "route.room_connect_missing_reservation:[room_plan.id]"
-			return FALSE
-		var/list/room_lookup = list()
-		for(var/datum/world_edit_building_layout_room_plan/occupied_room as anything in candidate.room_plans)
-			if(!istype(occupied_room))
-				continue
-			for(var/turf/occupied_turf as anything in occupied_room.turfs)
-				room_lookup[occupied_turf] = TRUE
-		var/list/connector_run = reservation?["connector_run"]
-		var/turf/target_turf = route_run[max(round((length(route_run) + 1) / 2), 1)]
-		if(!istype(target_turf) || room_lookup[target_turf] || !state.geometry.footprint_lookup[target_turf] || state.geometry.boundary_lookup[target_turf])
-			candidate.errors += "route.room_connect_invalid_reservation:[room_plan.id]"
-			return FALSE
-		if(!candidate.route_lookup[target_turf])
-			connector_run = find_building_layout_route_connector(context, candidate, target_turf, room_plan.turf_lookup, room_plan)
-			if(!islist(connector_run))
-				candidate.errors += "route.room_connect_unreachable:[room_plan.id]"
-				return FALSE
-			reservation["connector_run"] = connector_run.Copy()
-		for(var/turf/connector_turf as anything in connector_run)
-			candidate.add_route_turf(connector_turf)
-		for(var/turf/reserved_route_turf as anything in route_run)
-			candidate.add_route_turf(reserved_route_turf)
-	return TRUE
-
-/datum/world_edit_generator/building_layout/proc/building_layout_room_plan_has_route_partition(datum/world_edit_building_layout_candidate/candidate, datum/world_edit_building_layout_room_plan/room_plan)
-	if(!istype(candidate) || !istype(room_plan))
-		return FALSE
-	var/list/reservation = candidate.get_route_access_reservation(room_plan.id)
-	var/list/wall_run = reservation?["wall_run"]
-	var/list/route_run = reservation?["route_run"]
-	if(islist(wall_run) && islist(route_run) && length(wall_run) >= 2 && length(wall_run) == length(route_run))
-		for(var/run_index in 1 to length(wall_run))
-			var/turf/wall_turf = wall_run[run_index]
-			var/turf/route_turf = route_run[run_index]
-			if(!istype(wall_turf) || !istype(route_turf) || candidate.route_lookup[wall_turf] || !candidate.route_lookup[route_turf])
-				return FALSE
-		return TRUE
-	var/list/route_lookup = list()
-	var/list/room_lookup = list()
-	for(var/datum/world_edit_building_layout_room_plan/occupied_room as anything in candidate.room_plans)
-		if(!istype(occupied_room))
-			continue
-		for(var/turf/occupied_turf as anything in occupied_room.turfs)
-			if(istype(occupied_turf))
-				room_lookup[occupied_turf] = TRUE
-	for(var/turf/route_turf as anything in candidate.route_turfs)
-		route_lookup[route_turf] = TRUE
-	for(var/turf/room_turf as anything in room_plan.turfs)
-		for(var/check_dir in GLOB.cardinals)
-			if(!room_plan.has_turf(get_step(room_turf, turn(check_dir, 90))) && !room_plan.has_turf(get_step(room_turf, turn(check_dir, -90))))
-				continue
-			var/turf/wall_turf = get_step(room_turf, check_dir)
-			if(!room_lookup[wall_turf] && !route_lookup[wall_turf] && route_lookup[get_step(wall_turf, check_dir)])
-				return TRUE
-	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/allocate_building_layout_zone_rooms(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate, datum/world_edit_building_layout_influence_zone/zone, allocation_variant = 0)
 	if(!istype(context) || !istype(candidate) || !istype(zone))
@@ -239,26 +91,101 @@
 		return sort_building_layout_room_contracts_by_priority(contracts, allocation_variant)
 	var/list/pending = islist(contracts) ? contracts.Copy() : list()
 	var/list/ordered = list()
+	var/nested_cohort_parent_id = ""
 	while(length(pending))
 		var/list/pending_ids = list()
+		var/list/ordered_ids = list()
 		for(var/datum/world_edit_building_layout_room_contract/pending_contract as anything in pending)
 			if(istype(pending_contract))
 				pending_ids[pending_contract.id] = TRUE
+		for(var/datum/world_edit_building_layout_room_contract/ordered_contract as anything in ordered)
+			if(istype(ordered_contract))
+				ordered_ids[ordered_contract.id] = TRUE
+		var/hub_root_id = "[candidate.topology_graph.root_node_id || ""]"
+		var/hub_root_ordered = FALSE
+		for(var/datum/world_edit_building_layout_room_contract/ordered_hub_contract as anything in ordered)
+			if(ordered_hub_contract?.id == hub_root_id)
+				hub_root_ordered = TRUE
+				break
+		var/has_pending_structural_root_child = FALSE
+		if((candidate.family_policy_id in list("hub_spoke", "split_wing")) && hub_root_ordered)
+			for(var/datum/world_edit_building_layout_room_contract/pending_spoke_contract as anything in pending)
+				if(building_layout_contract_is_direct_structural_root_child(candidate, pending_spoke_contract?.id))
+					has_pending_structural_root_child = TRUE
+					break
+		var/list/pending_nested_count_by_parent = list()
+		// Direct SHARED/SECURE children and a 3+ NESTED cohort are both atomic,
+		// but activating both filters at once leaves their intersection empty. Close
+		// the root's structural frontages first, then pack its contained cohort.
+		if(!has_pending_structural_root_child)
+			for(var/datum/world_edit_building_layout_room_contract/pending_nested_contract as anything in pending)
+				var/datum/world_edit_building_layout_topology_node/pending_nested_node = candidate.topology_graph.get_node(pending_nested_contract?.id)
+				var/pending_parent_id = "[pending_nested_node?.parent_id || ""]"
+				if(!length(pending_parent_id) || !ordered_ids[pending_parent_id])
+					continue
+				var/datum/world_edit_building_layout_topology_edge/pending_parent_edge = get_building_layout_partial_edge(candidate.topology_graph, pending_nested_contract.id, pending_parent_id)
+				if(pending_parent_edge?.edge_kind != WORLD_EDIT_BUILDING_EDGE_NESTED || !pending_parent_edge.required)
+					continue
+				pending_nested_count_by_parent[pending_parent_id] = (pending_nested_count_by_parent[pending_parent_id] || 0) + 1
+				if(!length(nested_cohort_parent_id) && pending_nested_count_by_parent[pending_parent_id] >= 3)
+					nested_cohort_parent_id = pending_parent_id
+		else
+			nested_cohort_parent_id = ""
+		if(length(nested_cohort_parent_id) && !(pending_nested_count_by_parent[nested_cohort_parent_id] || 0))
+			nested_cohort_parent_id = ""
 		var/best_index = 0
 		var/best_score = -999999999
 		for(var/index in 1 to length(pending))
 			var/datum/world_edit_building_layout_room_contract/room_contract = pending[index]
 			if(!istype(room_contract))
 				continue
+			if(has_pending_structural_root_child)
+				if(!building_layout_contract_is_direct_structural_root_child(candidate, room_contract.id))
+					continue
 			var/datum/world_edit_building_layout_topology_node/node = candidate.topology_graph.get_node(room_contract.id)
+			if(length(nested_cohort_parent_id))
+				var/datum/world_edit_building_layout_topology_edge/cohort_parent_edge = get_building_layout_partial_edge(candidate.topology_graph, room_contract.id, nested_cohort_parent_id)
+				if(node?.parent_id != nested_cohort_parent_id || cohort_parent_edge?.edge_kind != WORLD_EDIT_BUILDING_EDGE_NESTED)
+					continue
 			if(length(node?.parent_id) && pending_ids[node.parent_id])
 				continue
 			var/score = (room_contract.required ? 100000 : 0) + room_contract.preferred_area * 10 + room_contract.min_area
-			if(room_contract.instance_index <= 1)
+			if(length(nested_cohort_parent_id))
+				score += max(room_contract.min_wall_frontage, 0) * 1000000
+			var/route_terminal_count = 0
+			var/placed_atomic_parent = FALSE
+			for(var/datum/world_edit_building_layout_topology_edge/edge as anything in candidate.topology_graph.get_edges_for(room_contract.id))
+				if(istype(edge) && edge.required && edge.edge_kind == WORLD_EDIT_BUILDING_EDGE_ROUTE && edge.route_policy == WORLD_EDIT_BUILDING_ROUTE_POLICY_NETWORK)
+					route_terminal_count++
+				if(istype(edge) && edge.required && (edge.edge_kind in list(WORLD_EDIT_BUILDING_EDGE_SECURE, WORLD_EDIT_BUILDING_EDGE_SHARED, WORLD_EDIT_BUILDING_EDGE_OPEN_MERGE)))
+					var/other_id = edge.from_id == room_contract.id ? edge.to_id : edge.from_id
+					if(ordered_ids[other_id] && node?.parent_id == other_id)
+						placed_atomic_parent = TRUE
+			// NETWORK terminals consume scarce connected frontage and therefore
+			// precede dependency-free nested/service rooms. Nested rooms are already
+			// constrained by their allocated parent; they must not split the remaining
+			// route component before every typed endpoint has a feasible terminal.
+			score += route_terminal_count * 2000000
+			// A typed direct edge is an allocation atom. Once its parent is placed,
+			// close that geometry before unrelated terminals consume the only legal
+			// shared segment. The bounded NETWORK lookahead below remains the hard
+			// guard for every still-pending route endpoint.
+			if(placed_atomic_parent)
+				score += 3000000
+			if(allocation_variant in list(1, 2))
+				// Explore compact-frontier order with both deterministic anchor sweeps.
+				// Root/dependency precedence still applies, while small terminal rooms
+				// reserve reachable frontage before a large primary room can seal it.
+				score -= room_contract.min_area * 100
+				if(room_contract.spatial_kind != WORLD_EDIT_BUILDING_SPACE_OPEN_BAY)
+					// Enclosed functional rooms have a finite wall/terminal frontage;
+					// flexible open bays can consume the residual region afterwards.
+					score += 150000
+			else if(room_contract.instance_index <= 1)
 				score += 1000000
 			if(node?.id == candidate.topology_graph.root_node_id)
 				score += 10000000
-			if(allocation_variant % 2)
+			if(allocation_variant in list(1, 2))
 				score -= index
 			else
 				score += index
@@ -270,6 +197,18 @@
 		ordered += pending[best_index]
 		pending.Cut(best_index, best_index + 1)
 	return ordered
+
+/datum/world_edit_generator/building_layout/proc/building_layout_contract_is_direct_structural_root_child(datum/world_edit_building_layout_candidate/candidate, room_id)
+	if(!istype(candidate?.topology_graph) || !(candidate.family_policy_id in list("hub_spoke", "split_wing")) || !length("[room_id]"))
+		return FALSE
+	var/root_id = "[candidate.topology_graph.root_node_id || ""]"
+	for(var/datum/world_edit_building_layout_topology_edge/root_edge as anything in candidate.topology_graph.get_edges_for(root_id))
+		if(!istype(root_edge) || !root_edge.required || root_edge.edge_kind in list(WORLD_EDIT_BUILDING_EDGE_ROUTE, WORLD_EDIT_BUILDING_EDGE_NESTED))
+			continue
+		var/other_id = root_edge.from_id == root_id ? root_edge.to_id : root_edge.from_id
+		if(other_id == room_id)
+			return TRUE
+	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/get_room_contracts_for_building_layout_zone(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_influence_zone/zone)
 	var/list/contracts = list()
@@ -333,9 +272,6 @@
 	var/ideal_w = round(text2num("[ideal_size["w"]]") || room_contract.min_width)
 	var/ideal_h = round(text2num("[ideal_size["h"]]") || room_contract.min_height)
 	var/target_area = max(room_contract.min_area, min(room_contract.preferred_area, round(text2num("[target_area_override]") || room_contract.preferred_area)))
-	var/list/direct_route_rect = length(candidate.route_turfs) ? find_building_layout_direct_route_room_rect(context, candidate, zone, free_rects, room_contract, target_area, placement_variant) : null
-	if(islist(direct_route_rect))
-		return direct_route_rect
 	for(var/list/free_rect as anything in free_rects)
 		if(evaluated_candidate_count >= WORLD_EDIT_BUILDING_MAX_ROOM_CANDIDATES)
 			break
@@ -432,26 +368,41 @@
 	var/list/result = list()
 	if(!istype(room_contract))
 		return result
-	var/list/ideal = building_layout_ideal_room_size(room_contract, room_contract.target_aspect)
-	var/ideal_w = clamp(round(text2num("[ideal["w"]]") || room_contract.min_width), room_contract.min_width, room_contract.max_width)
-	var/ideal_h = clamp(round(text2num("[ideal["h"]]") || room_contract.min_height), room_contract.min_height, room_contract.max_height)
+	var/requested_area = clamp(round(text2num("[target_area]") || room_contract.preferred_area), room_contract.min_area, room_contract.max_area)
 	var/target_aspect = max(room_contract.target_aspect, 1)
-	var/target_w = clamp(round(sqrt(max(target_area, room_contract.min_area) * target_aspect)), room_contract.min_width, room_contract.max_width)
-	var/target_h = clamp(round(max(target_area, room_contract.min_area) / max(target_w, 1)), room_contract.min_height, room_contract.max_height)
-	// The bounded position scan must evaluate the requested capacity before a
-	// minimum-size fallback. On a large footprint, scanning the small shape
-	// first can consume all 128 candidates and silently under-size the room.
-	result += list(list("w" = target_w, "h" = target_h))
-	if(target_w != target_h)
-		result += list(list("w" = target_h, "h" = target_w))
-	result += list(list("w" = ideal_w, "h" = ideal_h))
-	if(ideal_w != ideal_h)
-		result += list(list("w" = ideal_h, "h" = ideal_w))
-	result += list(list("w" = room_contract.min_width, "h" = room_contract.min_height))
-	if(room_contract.min_width != room_contract.min_height)
-		result += list(list("w" = room_contract.min_height, "h" = room_contract.min_width))
-	var/square_side = max(round(sqrt(max(target_area, room_contract.min_area))), 1)
-	result += list(list("w" = clamp(square_side, room_contract.min_width, room_contract.max_width), "h" = clamp(square_side, room_contract.min_height, room_contract.max_height)))
+	var/max_axis = max(room_contract.max_width, room_contract.max_height)
+	for(var/room_w in 1 to max_axis)
+		for(var/room_h in 1 to max_axis)
+			var/area = room_w * room_h
+			if(area < room_contract.min_area || area > room_contract.max_area)
+				continue
+			var/fits_min_dimensions = (room_w >= room_contract.min_width && room_h >= room_contract.min_height) || (room_w >= room_contract.min_height && room_h >= room_contract.min_width)
+			var/fits_max_dimensions = (room_w <= room_contract.max_width && room_h <= room_contract.max_height) || (room_w <= room_contract.max_height && room_h <= room_contract.max_width)
+			if(!fits_min_dimensions || !fits_max_dimensions)
+				continue
+			if(room_contract.min_composition_short_side > 0 && min(room_w, room_h) < room_contract.min_composition_short_side)
+				continue
+			if(room_contract.min_composition_long_side > 0 && max(room_w, room_h) < room_contract.min_composition_long_side)
+				continue
+			var/aspect = max(room_w, room_h) / max(min(room_w, room_h), 1)
+			if(aspect > max(room_contract.max_aspect, 1))
+				continue
+			var/rank = abs(area - requested_area) * 1000 + round(abs(aspect - target_aspect) * 100)
+			if(placement_variant % 2)
+				rank += room_w > room_h ? 0 : 1
+			else
+				rank += room_h > room_w ? 0 : 1
+			var/list/variant = list("w" = room_w, "h" = room_h, "rank" = rank)
+			var/insert_at = length(result) + 1
+			for(var/index in 1 to length(result))
+				var/list/existing = result[index]
+				if(rank < round(text2num("[existing?["rank"]]") || 0))
+					insert_at = index
+					break
+			result.Insert(insert_at, null)
+			result[insert_at] = variant
+			if(length(result) > 12)
+				result.Cut(13)
 	return result
 
 /datum/world_edit_generator/building_layout/proc/score_building_layout_topology_rect(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate, datum/world_edit_building_layout_room_contract/room_contract, list/rect, placement_variant = 0)
@@ -493,121 +444,8 @@
 				score -= abs(center_y - field_center_y) * 55
 			else
 				score -= abs(center_x - field_center_x) * 55
-	if(candidate.topology_family == "hub_spoke")
-		score += score_building_layout_parallel_room_spacing(context, candidate, rect)
 	return score
 
-/datum/world_edit_generator/building_layout/proc/score_building_layout_parallel_room_spacing(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate, list/rect)
-	if(!istype(context) || !istype(candidate) || !islist(rect))
-		return 0
-	var/list/world_x = list()
-	var/list/world_y = list()
-	for(var/list/corner as anything in list(list(rect["x1"], rect["y1"]), list(rect["x1"], rect["y2"]), list(rect["x2"], rect["y1"]), list(rect["x2"], rect["y2"])))
-		var/turf/corner_turf = context.local_turf(corner[1], corner[2])
-		if(!istype(corner_turf))
-			continue
-		world_x += corner_turf.x
-		world_y += corner_turf.y
-	if(!length(world_x) || !length(world_y))
-		return 0
-	var/world_x1 = min(world_x)
-	var/world_x2 = max(world_x)
-	var/world_y1 = min(world_y)
-	var/world_y2 = max(world_y)
-	var/penalty = 0
-	for(var/datum/world_edit_building_layout_room_plan/existing_room as anything in candidate.room_plans)
-		if(!istype(existing_room))
-			continue
-		var/horizontal_gap = max(world_x1 - existing_room.x2 - 1, existing_room.x1 - world_x2 - 1)
-		var/vertical_overlap = min(world_y2, existing_room.y2) - max(world_y1, existing_room.y1) + 1
-		if(horizontal_gap >= 3 && horizontal_gap <= 5 && vertical_overlap >= 3)
-			penalty -= vertical_overlap * 5000
-		var/vertical_gap = max(world_y1 - existing_room.y2 - 1, existing_room.y1 - world_y2 - 1)
-		var/horizontal_overlap = min(world_x2, existing_room.x2) - max(world_x1, existing_room.x1) + 1
-		if(vertical_gap >= 3 && vertical_gap <= 5 && horizontal_overlap >= 3)
-			penalty -= horizontal_overlap * 5000
-	return penalty
-
-/datum/world_edit_generator/building_layout/proc/find_building_layout_direct_route_room_rect(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate, datum/world_edit_building_layout_influence_zone/zone, list/free_rects, datum/world_edit_building_layout_room_contract/room_contract, target_area, placement_variant = 0)
-	if(!istype(context) || !istype(candidate) || !istype(zone) || !islist(free_rects) || !istype(room_contract))
-		return null
-	var/list/best_rect = null
-	var/best_score = -999999999
-	var/evaluated_candidate_count = 0
-	var/direct_candidate_limit = min(WORLD_EDIT_BUILDING_MAX_ROOM_CANDIDATES, 8)
-	var/list/alignments = placement_variant == 1 ? list(1, 0, -1) : (placement_variant == 2 ? list(-1, 0, 1) : list(0, -1, 1))
-	var/list/ideal_size = building_layout_ideal_room_size(room_contract, room_contract.target_aspect)
-	var/ideal_w = clamp(round(text2num("[ideal_size["w"]]") || room_contract.min_width), room_contract.min_width, room_contract.max_width)
-	var/ideal_h = clamp(round(text2num("[ideal_size["h"]]") || room_contract.min_height), room_contract.min_height, room_contract.max_height)
-	var/list/width_variants = list(room_contract.min_width)
-	width_variants |= min(room_contract.max_width, room_contract.min_height)
-	width_variants |= ideal_w
-	width_variants |= min(room_contract.max_width, room_contract.min_width + 2)
-	var/list/height_variants = list(room_contract.min_height)
-	height_variants |= min(room_contract.max_height, room_contract.min_width)
-	height_variants |= ideal_h
-	height_variants |= min(room_contract.max_height, room_contract.min_height + 2)
-	for(var/turf/route_turf as anything in candidate.route_turfs)
-		if(evaluated_candidate_count >= direct_candidate_limit)
-			break
-		var/list/route_local = context.local_coordinates(route_turf)
-		if(!islist(route_local))
-			continue
-		var/route_x = round(text2num("[route_local["x"]]") || 0)
-		var/route_y = round(text2num("[route_local["y"]]") || 0)
-		for(var/access_dir in GLOB.cardinals)
-			if(evaluated_candidate_count >= direct_candidate_limit)
-				break
-			for(var/room_w as anything in width_variants)
-				if(evaluated_candidate_count >= direct_candidate_limit)
-					break
-				for(var/room_h as anything in height_variants)
-					if(evaluated_candidate_count >= direct_candidate_limit)
-						break
-					for(var/alignment as anything in alignments)
-						if(evaluated_candidate_count >= direct_candidate_limit)
-							break
-						var/local_x1 = 0
-						var/local_y1 = 0
-						switch(access_dir)
-							if(EAST)
-								local_x1 = route_x + 2
-								local_y1 = route_y - round((room_h - 1) / 2) + alignment
-							if(WEST)
-								local_x1 = route_x - room_w - 1
-								local_y1 = route_y - round((room_h - 1) / 2) + alignment
-							if(SOUTH)
-								local_x1 = route_x - round((room_w - 1) / 2) + alignment
-								local_y1 = route_y + 2
-							if(NORTH)
-								local_x1 = route_x - round((room_w - 1) / 2) + alignment
-								local_y1 = route_y - room_h - 1
-						var/list/rect = build_building_layout_rect(local_x1, local_y1, local_x1 + room_w - 1, local_y1 + room_h - 1)
-						if(!building_layout_room_rect_valid_for_contract(context, rect, room_contract) || !building_layout_rect_inside_any_free_rect(rect, free_rects) || !building_layout_room_rect_inside_footprint(context, rect) || building_layout_room_rect_hits_candidate_reservation(context, candidate, rect) || !building_layout_room_rect_has_available_route_access(context, candidate, rect, room_contract) || building_layout_room_rect_has_blocked_room_contact(context, candidate, rect, room_contract))
-							continue
-						evaluated_candidate_count++
-						var/area = building_layout_rect_area(rect)
-						var/score = 100000 - abs(area - target_area) * 20 - abs(alignment) * 10
-						score += zone.priority
-						switch(placement_variant)
-							if(1)
-								score -= (local_x1 + local_y1) * 2
-							if(2)
-								score += (local_x1 - local_y1) * 40
-							if(3)
-								score -= (local_x1 + local_y1) * 40
-						if(!islist(best_rect) || score > best_score)
-							best_rect = rect
-							best_score = score
-	return best_rect
-
-/datum/world_edit_generator/building_layout/proc/building_layout_rect_inside_any_free_rect(list/rect, list/free_rects)
-	if(!islist(rect) || !islist(free_rects))
-		return FALSE
-	for(var/list/free_rect as anything in free_rects)
-		if(islist(free_rect) && rect["x1"] >= free_rect["x1"] && rect["y1"] >= free_rect["y1"] && rect["x2"] <= free_rect["x2"] && rect["y2"] <= free_rect["y2"])
-			return TRUE
-	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/reserve_building_layout_room_route_access(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate, datum/world_edit_building_layout_room_plan/room_plan)
 	if(!istype(context) || !istype(candidate) || !istype(room_plan))
@@ -636,7 +474,7 @@
 	return islist(find_building_layout_route_access_reservation(context, candidate, room_turfs, null, building_layout_room_access_run_length(room_contract)))
 
 /datum/world_edit_generator/building_layout/proc/building_layout_room_access_run_length(datum/world_edit_building_layout_room_contract/room_contract)
-	if(istype(room_contract) && room_contract.route_opening_kind in list(WORLD_EDIT_BUILDING_OPENING_ARCH, WORLD_EDIT_BUILDING_OPENING_WIDE_ARCH))
+	if(istype(room_contract) && (room_contract.route_opening_kind in list(WORLD_EDIT_BUILDING_OPENING_ARCH, WORLD_EDIT_BUILDING_OPENING_WIDE_ARCH)))
 		return 2
 	return 3
 
@@ -850,7 +688,7 @@
 	var/area = clamp(room_contract.preferred_area, room_contract.min_area, room_contract.max_area)
 	var/aspect = max(text2num("[target_aspect]") || 1.333, 1)
 	var/ideal_w = round(sqrt(area * aspect))
-	var/ideal_h = round(max(area / max(ideal_w, 1), 1))
+	var/ideal_h = ceil(max(area / max(ideal_w, 1), 1))
 	ideal_w = clamp(ideal_w, room_contract.min_width, room_contract.max_width)
 	ideal_h = clamp(ideal_h, room_contract.min_height, room_contract.max_height)
 	result["w"] = ideal_w
@@ -869,10 +707,38 @@
 	var/fits_max_dimensions = (w <= room_contract.max_width && h <= room_contract.max_height) || (w <= room_contract.max_height && h <= room_contract.max_width)
 	if(!fits_min_dimensions || !fits_max_dimensions)
 		return FALSE
+	if(room_contract.min_composition_short_side > 0 && min(w, h) < room_contract.min_composition_short_side)
+		return FALSE
+	if(room_contract.min_composition_long_side > 0 && max(w, h) < room_contract.min_composition_long_side)
+		return FALSE
 	var/aspect = max(w, h) / max(min(w, h), 1)
 	if(aspect > max(room_contract.max_aspect, 1))
 		return FALSE
+	if(room_contract.counts_toward_target && (room_contract.partition_policy in list(WORLD_EDIT_BUILDING_PARTITION_CLOSED, WORLD_EDIT_BUILDING_PARTITION_SECURE)) && building_layout_room_rect_leaves_single_wall_strip_against_boundary(context, rect))
+		return FALSE
 	return TRUE
+
+/datum/world_edit_generator/building_layout/proc/building_layout_room_rect_leaves_single_wall_strip_against_boundary(datum/world_edit_building_layout_context/context, list/rect)
+	if(!istype(context?.state) || !islist(rect))
+		return FALSE
+	var/x1 = round(text2num("[rect["x1"]]") || 0)
+	var/y1 = round(text2num("[rect["y1"]]") || 0)
+	var/x2 = round(text2num("[rect["x2"]]") || 0)
+	var/y2 = round(text2num("[rect["y2"]]") || 0)
+	var/list/room_lookup = list()
+	for(var/x in x1 to x2)
+		for(var/y in y1 to y2)
+			var/turf/room_turf = context.local_turf(x, y)
+			if(istype(room_turf))
+				room_lookup[room_turf] = TRUE
+	for(var/turf/room_turf as anything in room_lookup)
+		for(var/check_dir in GLOB.cardinals)
+			var/turf/prospective_wall_turf = get_step(room_turf, check_dir)
+			if(!istype(prospective_wall_turf) || room_lookup[prospective_wall_turf] || context.state.geometry.boundary_lookup[prospective_wall_turf])
+				continue
+			if(context.state.geometry.boundary_lookup[get_step(prospective_wall_turf, check_dir)])
+				return TRUE
+	return FALSE
 
 /datum/world_edit_generator/building_layout/proc/building_layout_room_can_fit_required_scene(datum/world_edit_building_layout_context/context, list/room_rect, datum/world_edit_building_layout_room_contract/room_contract)
 	if(!istype(context) || !islist(room_rect) || !istype(room_contract))

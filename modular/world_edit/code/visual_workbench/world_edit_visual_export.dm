@@ -36,6 +36,8 @@
 	)
 	if(length(workflow_run_id))
 		semantic["workflow_run_id"] = workflow_run_id
+	if(length(source_sha))
+		semantic["source_sha"] = source_sha
 	if(islist(report_data?["profile"]))
 		semantic["profile"] = report_data["profile"]
 

@@ -18,6 +18,8 @@ REPO_ROOT = SCRIPT_DIR.parents[2]
 DEFAULT_DMB = REPO_ROOT / "colonialmarines.dmb"
 DEFAULT_DREAMDAEMON_ARGS = ["-trusted", "-verbose"]
 DEFAULT_RUNTIME_LOG = TOOL_ROOT / "runtime.log"
+START_DETECTION_TIMEOUT_SECONDS = 15.0
+START_DETECTION_POLL_SECONDS = 0.5
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(line_buffering=True)
@@ -184,7 +186,7 @@ def start_runtime(
     log_handle.write("\n=== DreamDaemon start " + datetime.now().isoformat() + " ===\n")
     log_handle.write("command: " + " ".join(launch_args) + "\n")
     log_handle.flush()
-    subprocess.Popen(
+    launched = subprocess.Popen(
         launch_args,
         cwd=REPO_ROOT,
         stdout=log_handle,
@@ -192,13 +194,24 @@ def start_runtime(
         creationflags=CREATE_FLAGS,
     )
     log_handle.close()
-    time.sleep(2)
-    after_processes = runtime_processes()
-    after_pids = {str(process.get("Id")) for process in after_processes if process.get("Id")}
-    if not (after_pids - before_pids) and not any(process_matches_dmb(process, dmb_path) for process in after_processes):
-        print("DreamDaemon did not appear after start.", file=sys.stderr)
-        return 1
-    return 0
+    deadline = time.monotonic() + START_DETECTION_TIMEOUT_SECONDS
+    while time.monotonic() < deadline:
+        after_processes = runtime_processes()
+        for process in after_processes:
+            process_id = str(process.get("Id") or "")
+            if process_id == str(launched.pid) or (process_id not in before_pids and process_matches_dmb(process, dmb_path)):
+                return 0
+        if launched.poll() is not None:
+            print(f"DreamDaemon exited during startup with code {launched.returncode}.", file=sys.stderr)
+            return 1
+        time.sleep(START_DETECTION_POLL_SECONDS)
+
+    print(
+        f"DreamDaemon did not appear after {START_DETECTION_TIMEOUT_SECONDS:g} seconds; stopping launched PID {launched.pid}.",
+        file=sys.stderr,
+    )
+    subprocess.run(["taskkill", "/PID", str(launched.pid), "/T", "/F"], cwd=REPO_ROOT)
+    return 1
 
 
 def dreamdaemon_args(runtime_params: list[str] | None = None) -> list[str]:

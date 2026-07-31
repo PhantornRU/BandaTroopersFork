@@ -74,10 +74,16 @@
 	add_signature_cluster("prep_tables", "major", "table_cluster", "table", "table", list("prep_core", "work_cluster", "focus_center"), 1, 2, FALSE, 1, 95, "prep_surface", 15)
 	add_signature_cluster("cooking_run", "major", "signature_cook_line", "table", "table", list("cooking_line", "service_wall", "machine_wall"), 4, 5, TRUE, 0, 90, "cook_line", 35)
 	add_signature_cluster("cold_storage_wall", "major", "run", "fridge", "cold_storage", list("cold_storage", "cold_storage_wall", "storage_wall"), 2, 3, TRUE, 0, 85, "cold_storage", 20)
-	add_cluster("dining_tables", "secondary", "table_cluster", "table", "table", list("dining_front", "social_focus", "window_band"), 1, 2, FALSE, 3, 65, FALSE)
+	var/datum/world_edit_building_cluster_spec/dining_table_spec = add_cluster("dining_tables", "secondary", "table_cluster", "table", "table", list("dining_front", "social_focus", "window_band"), 1, 2, FALSE, 3, 65, FALSE)
+	dining_table_spec.compact_substitute_id = "dining_tables_compact"
+	var/datum/world_edit_building_cluster_spec/dining_table_compact = add_cluster("dining_tables_compact", "secondary", "table_cluster", "table", "table", list("dining_front", "social_focus", "window_band"), 1, 1, FALSE, 1, 60, FALSE)
+	dining_table_compact.compact_substitute_only = TRUE
 	add_cluster("pantry_rack", "secondary", "wall_object", "rack", "rack", list("cold_storage", "wall_anchor"), 1, 1, TRUE, 0, 50, FALSE)
 	add_cluster("supply_crates", "detail", "staging_group", "crate", "crate", list("cold_storage", "prep_core"), 1, 2, FALSE, 0, 40, FALSE)
-	object_budgets = list("table" = 8, "chair" = 8, "cabinet" = 4, "cold_storage" = 3, "console" = 1, "rack" = 2, "crate" = 2)
+	// The canonical six-room contract requires serving(3), prep(1), cooking(4)
+	// and one explicit compact dining identity. Keep that authored demand inside
+	// the budget instead of silently dropping the dining room's composition.
+	object_budgets = list("table" = 9, "chair" = 8, "cabinet" = 4, "cold_storage" = 3, "console" = 1, "rack" = 2, "crate" = 2)
 	category_minimums = list("table" = 4, "cold_storage" = 2)
 
 /datum/world_edit_building_archetype/dormitory
@@ -93,7 +99,10 @@
 
 /datum/world_edit_building_archetype/dormitory/build_definition()
 	add_zone("entry_buffer", "Entry buffer", "entry", 2, TRUE, TRUE, FALSE, list("entry_buffer", "public_route"), TRUE)
-	add_zone("central_aisle", "Central aisle", "route", 5, TRUE, TRUE, FALSE, list("central_aisle", "primary_lane", "ready_area"), FALSE)
+	var/datum/world_edit_building_zone_spec/central_aisle = add_zone("central_aisle", "Central aisle", "route", 5, TRUE, TRUE, FALSE, list("central_aisle", "primary_lane", "ready_area"), FALSE)
+	central_aisle.circulation_kind = WORLD_EDIT_BUILDING_CIRCULATION_ROOM_OWNED_AISLE
+	central_aisle.circulation_owner_room_id = "sleep_bay"
+	central_aisle.circulation_min_width = 2
 	add_zone("sleep_bay", "Sleep bay", "private", 10, TRUE, TRUE, TRUE, list("sleep_bay", "privacy_zone", "wall_anchor"), FALSE, "nook")
 	add_zone("locker_strip", "Locker strip", "storage", 4, TRUE, TRUE, FALSE, list("locker_strip", "service_strip", "wall_anchor"), FALSE, "nook")
 	add_zone("ready_area", "Ready area", "hub", 4, TRUE, TRUE, FALSE, list("ready_area", "social_focus", "work_cluster"), TRUE)

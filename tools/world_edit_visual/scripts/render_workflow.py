@@ -55,12 +55,17 @@ class RenderWorkflow:
         self.log_handle = None
         self.preparer = CasePreparer()
         self.workflow_run_id = ""
+        self.source_sha = self.resolve_source_sha()
 
     def run(self) -> int:
         self.start_log()
         try:
             self.info("World Edit Visual render")
             self.info(f"Details: {self.display_path(DEFAULT_WORKFLOW_LOG)}")
+            if not self.source_sha:
+                self.info("Cannot resolve the repository HEAD for SHA-bound artifacts.")
+                return 1
+            self.debug(f"Source SHA: {self.source_sha}")
             if not self.case_paths:
                 self.info("No cases found.")
                 return 1
@@ -82,7 +87,7 @@ class RenderWorkflow:
 
         for case_id in case_ids:
             self.clear_case_artifacts(case_id)
-        self.preparer.prepare(case_paths, workflow_run_id=self.workflow_run_id)
+        self.preparer.prepare(case_paths, workflow_run_id=self.workflow_run_id, source_sha=self.source_sha)
 
         failures: list[str] = []
         rendered = 0
@@ -170,7 +175,7 @@ class RenderWorkflow:
         self.debug(f"Workflow run id: {self.workflow_run_id}")
 
         self.clear_case_artifacts(case_id)
-        self.preparer.prepare([case_path], workflow_run_id=self.workflow_run_id)
+        self.preparer.prepare([case_path], workflow_run_id=self.workflow_run_id, source_sha=self.source_sha)
 
         runtime_result, runtime_log = self.ensure_runtime()
         if runtime_result != 0:
@@ -312,6 +317,21 @@ class RenderWorkflow:
     def create_workflow_run_id() -> str:
         return f"{int(time.time() * 1000)}-{uuid.uuid4().hex}"
 
+    @staticmethod
+    def resolve_source_sha() -> str:
+        completed = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=REPO_ROOT,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding="utf-8",
+            errors="replace",
+        )
+        if completed.returncode != 0:
+            return ""
+        return completed.stdout.strip()
+
     def wait_for_semantic(self, case_ids: list[str]) -> tuple[list[str], list[str]]:
         deadline = time.monotonic() + self.timeout_seconds
         pending = set(case_ids)
@@ -335,7 +355,10 @@ class RenderWorkflow:
             data = json.loads(semantic_path.read_text(encoding="utf-8-sig"))
         except (OSError, json.JSONDecodeError):
             return False
-        return str(data.get("workflow_run_id") or "") == self.workflow_run_id
+        return (
+            str(data.get("workflow_run_id") or "") == self.workflow_run_id
+            and str(data.get("source_sha") or "") == self.source_sha
+        )
 
     def load_last_progress(self, case_id: str) -> dict:
         progress_path = DEFAULT_OUT_DIR / case_id / "progress.json"
@@ -382,6 +405,7 @@ class RenderWorkflow:
         payload = {
             "case_id": case_id,
             "workflow_run_id": self.workflow_run_id,
+            "source_sha": self.source_sha,
             "status": "error",
             "kind": kind,
             "message": message,

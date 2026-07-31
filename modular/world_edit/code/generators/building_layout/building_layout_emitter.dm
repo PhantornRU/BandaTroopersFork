@@ -572,13 +572,13 @@
 	plan.metadata["room_graph_hash"] = state.geometry.room_graph_hash
 	plan.metadata["route_hash"] = state.geometry.route_hash
 	plan.metadata["wall_hash"] = state.geometry.wall_hash
+	plan.metadata["structural_topology_signature"] = state.geometry.structural_topology_signature
+	plan.metadata["geometry_layout_hash"] = state.geometry.geometry_layout_hash
 	plan.metadata["pattern_credit_hash"] = state.fixtures.pattern_credit_hash
 	plan.metadata["layout_hash"] = state.geometry.layout_hash
 	plan.metadata["determinism_check_hash"] = state.validation.determinism_check_hash
 	var/target_room_count = round(text2num("[state.config["target_room_count"]]") || 0)
 	var/effective_room_count_divider_count = state.validation.room_count_divider_count
-	if(target_room_count > 0 && length(state.geometry.solved_rooms) >= target_room_count && length(state.geometry.divider_plans) > 0)
-		effective_room_count_divider_count = max(effective_room_count_divider_count, length(state.geometry.divider_plans))
 	plan.metadata["building_placement_contract"] = list(
 		"program_id" = state.archetype?.id,
 		"shell_preset" = state.config["faction_preset"],
@@ -605,6 +605,7 @@
 	plan.metadata["layout_candidate_count"] = state.config["layout_candidate_count"] || 0
 	plan.metadata["layout_hard_valid_candidate_count"] = state.config["layout_hard_valid_candidate_count"] || 0
 	plan.metadata["layout_distinct_hard_valid_family_count"] = state.config["layout_distinct_hard_valid_family_count"] || state.validation.layout_distinct_hard_valid_family_count
+	plan.metadata["structural_topology_signature_count"] = state.config["structural_topology_signature_count"] || state.validation.layout_distinct_hard_valid_family_count
 	plan.metadata["layout_selected_topology_family"] = active_layout_context?.selected_candidate?.topology_family || state.config["layout_pattern_id"] || ""
 	plan.metadata["layout_best_hard_valid_candidate_score"] = state.config["layout_best_hard_valid_candidate_score"] || state.config["layout_candidate_score"] || 0
 	plan.metadata["layout_family_winner_count"] = state.config["layout_family_winner_count"] || 0
@@ -695,6 +696,7 @@
 	plan.metadata["layout_missing_wall_context_reject_count"] = state.validation.layout_missing_wall_context_reject_count
 	plan.metadata["layout_hard_valid_candidate_shortage_count"] = state.validation.layout_hard_valid_candidate_shortage_count
 	plan.metadata["layout_distinct_hard_valid_family_count"] = state.config["layout_distinct_hard_valid_family_count"] || state.validation.layout_distinct_hard_valid_family_count
+	plan.metadata["structural_topology_signature_count"] = state.config["structural_topology_signature_count"] || state.validation.layout_distinct_hard_valid_family_count
 	plan.metadata["layout_functional_room_count"] = state.validation.layout_functional_room_count
 	plan.metadata["layout_target_functional_room_count"] = state.validation.layout_target_functional_room_count
 	plan.metadata["layout_functional_room_count_gap"] = state.validation.layout_functional_room_count_gap
@@ -898,7 +900,7 @@
 	plan.metadata["corridor_turf_count"] = length(state.geometry.corridor_turfs)
 	plan.metadata["primary_route_count"] = length(state.geometry.primary_route_turfs)
 	plan.metadata["internal_wall_count"] = length(state.geometry.internal_wall_turfs)
-	plan.metadata["divider_plan_count"] = length(state.geometry.divider_plans)
+	plan.metadata["partition_segment_count"] = length(active_layout_context?.selected_candidate?.partition_segments)
 	plan.metadata["usable_fixture_area"] = state.fixtures.usable_fixture_area
 	plan.metadata["patterned_layout"] = TRUE
 	plan.metadata["layout_contract"] = "semantic_region_solver"

@@ -106,6 +106,48 @@
 			return TRUE
 	return FALSE
 
+/datum/unit_test/world_edit_building_layout/proc/build_family_policy_test_context(turf/anchor_turf)
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/datum/world_edit_building_layout_state/state = new
+	state.placement_dir = NORTH
+	state.geometry.bounds = list(
+		"min_x" = anchor_turf.x - 7,
+		"max_x" = anchor_turf.x + 7,
+		"min_y" = anchor_turf.y - 7,
+		"max_y" = anchor_turf.y + 7,
+		"width" = 15,
+		"height" = 15,
+		"z" = anchor_turf.z,
+	)
+	var/datum/world_edit_building_layout_program_contract/program = new
+	program.topology_graph = new
+	var/datum/world_edit_building_layout_context/context = new(generator, state, program)
+	for(var/local_x in 1 to 15)
+		for(var/local_y in 1 to 15)
+			var/turf/check_turf = context.local_turf(local_x, local_y)
+			if(!istype(check_turf))
+				continue
+			if(local_x == 1 || local_x == 15 || local_y == 1 || local_y == 15)
+				state.geometry.boundary_lookup[check_turf] = TRUE
+			else
+				state.geometry.interior += check_turf
+	return context
+
+/datum/unit_test/world_edit_building_layout/proc/add_family_policy_test_room(datum/world_edit_building_layout_context/context, datum/world_edit_building_layout_candidate/candidate, room_id, role, privacy_class, spatial_kind, local_x1, local_y1, local_x2, local_y2, parent_id = "", graph_depth = 0)
+	var/datum/world_edit_building_layout_room_contract/room_contract = new(room_id, role, room_id)
+	room_contract.privacy_class = "[privacy_class]"
+	room_contract.spatial_kind = "[spatial_kind]"
+	context.program_contract.add_room_contract(room_contract)
+	var/datum/world_edit_building_layout_topology_node/node = new(room_contract)
+	node.parent_id = "[parent_id]"
+	node.depth = graph_depth
+	context.program_contract.topology_graph.add_node(node)
+	var/datum/world_edit_building_layout_room_plan/room_plan = context.generator.add_building_layout_room_rect(context, candidate, room_id, room_id, role, room_id, local_x1, local_y1, local_x2, local_y2)
+	room_plan.spatial_kind = "[spatial_kind]"
+	room_plan.topology_parent = "[parent_id]"
+	room_plan.graph_depth = graph_depth
+	return room_plan
+
 /datum/unit_test/world_edit_building_layout/proc/assert_living_template_plan_contract(datum/world_edit_plan/plan)
 	TEST_ASSERT_NOTNULL(plan, "Living template contract did not return a plan.")
 	TEST_ASSERT(!plan.metadata["error"], "Living template contract failed: [plan.metadata["error"]]")
@@ -188,7 +230,8 @@
 		TEST_ASSERT(length(module.allowed_programs), "Placement module [module_id] has no allowed programs.")
 		TEST_ASSERT(length(module.allowed_zone_ids) || length(module.allowed_room_roles), "Placement module [module_id] has no zone or role constraints.")
 		TEST_ASSERT(length(module.occupied_offsets), "Placement module [module_id] has no occupied cells.")
-		TEST_ASSERT(length(module.clearance_offsets), "Placement module [module_id] has no clearance cells.")
+		TEST_ASSERT(length(generator.get_building_module_clearance_offsets(module)), "Placement module [module_id] has no authored front, interaction, aisle, or forbidden clearance cells.")
+		TEST_ASSERT(length(module.front_access_offsets) || length(module.interaction_offsets) || length(module.aisle_offsets) || length(module.forbidden_offsets), "Placement module [module_id] did not preserve a typed clearance mask.")
 		TEST_ASSERT(length(module.repeat_group), "Placement module [module_id] has no repeat group.")
 		TEST_ASSERT(module.max_per_room > 0, "Placement module [module_id] has invalid max_per_room.")
 		TEST_ASSERT(module.max_per_building > 0, "Placement module [module_id] has invalid max_per_building.")
@@ -312,6 +355,10 @@
 	TEST_ASSERT_NOTNULL(replay_plan, "Default living replay preview did not return a plan.")
 	TEST_ASSERT(!replay_plan.metadata["error"], "[replay_plan.metadata["error"]]")
 	TEST_ASSERT_EQUAL("[plan.metadata["layout_hash"]]", "[replay_plan.metadata["layout_hash"]]", "Default living same-seed replay changed layout_hash.")
+	TEST_ASSERT(length("[plan.metadata["structural_topology_signature"]]"), "Default living preview did not report structural_topology_signature.")
+	TEST_ASSERT(length("[plan.metadata["geometry_layout_hash"]]"), "Default living preview did not report geometry_layout_hash.")
+	TEST_ASSERT_EQUAL("[plan.metadata["structural_topology_signature"]]", "[replay_plan.metadata["structural_topology_signature"]]", "Default living same-seed replay changed structural_topology_signature.")
+	TEST_ASSERT_EQUAL("[plan.metadata["geometry_layout_hash"]]", "[replay_plan.metadata["geometry_layout_hash"]]", "Default living same-seed replay changed geometry_layout_hash.")
 	assert_living_template_plan_contract(plan)
 
 /datum/unit_test/world_edit_building_layout/direction_matrix/Run()
@@ -526,7 +573,7 @@
 			state.geometry.footprint += footprint_turf
 			state.geometry.footprint_lookup[footprint_turf] = TRUE
 		var/datum/world_edit_building_layout_program_contract/program = generator.build_building_layout_program_contract(state)
-		TEST_ASSERT_NOTNULL(program, "Program contract did not compile for [program_id].")
+		TEST_ASSERT_NOTNULL(program, "Program contract did not compile for [program_id]: [jointext(state.validation.errors, "; ")]")
 		TEST_ASSERT_EQUAL(program.id, "[program_id]", "Program contract id mismatch for [program_id].")
 		TEST_ASSERT_EQUAL(length(program.functional_room_contracts), program.target_functional_room_count, "Program contract functional room count is not exact for [program_id].")
 		for(var/datum/world_edit_building_layout_room_contract/circulation_contract as anything in program.circulation_contracts)
@@ -560,6 +607,171 @@
 	state.config["layout_distinct_hard_valid_family_count"] = 1
 	generator.validate_building_layout_candidate_diversity(state)
 	TEST_ASSERT_EQUAL(state.validation.layout_hard_valid_candidate_shortage_count, 1, "Standard layouts must reject two hard-valid candidates from only one topology family.")
+
+/datum/unit_test/world_edit_building_layout/structural_signature_ignores_translation_and_family_label/Run()
+	var/datum/world_edit_generator/building_layout/generator = new
+	var/turf/anchor_turf = get_test_anchor_turf()
+	TEST_ASSERT_NOTNULL(anchor_turf, "Structural-signature test could not resolve an anchor turf.")
+	prepare_building_test_canvas(anchor_turf, 8)
+	var/list/candidates = list()
+	for(var/variant in 1 to 2)
+		var/shift = variant == 1 ? 0 : 3
+		var/datum/world_edit_building_layout_candidate/candidate = new
+		candidate.topology_family = variant == 1 ? "hub_spoke" : "split_wing"
+		candidate.topology_graph = new
+		candidate.topology_graph.root_node_id = "root"
+		var/datum/world_edit_building_layout_room_contract/root_contract = new("root", "hub", "root")
+		var/datum/world_edit_building_layout_room_contract/child_contract = new("child", "service", "child")
+		var/datum/world_edit_building_layout_topology_node/root_node = new(root_contract)
+		var/datum/world_edit_building_layout_topology_node/child_node = new(child_contract)
+		child_node.parent_id = "root"
+		child_node.depth = 1
+		candidate.topology_graph.add_node(root_node)
+		candidate.topology_graph.add_node(child_node)
+		candidate.topology_graph.add_edge(new /datum/world_edit_building_layout_topology_edge("root", "child", "shared", TRUE, "door", "direct"))
+		var/datum/world_edit_building_layout_room_plan/root_plan = new("root", "root", "hub", "root")
+		var/datum/world_edit_building_layout_room_plan/child_plan = new("child", "child", "service", "child")
+		child_plan.topology_parent = "root"
+		child_plan.graph_depth = 1
+		for(var/turf/root_turf in block(locate(anchor_turf.x - 3 + shift, anchor_turf.y + shift, anchor_turf.z), locate(anchor_turf.x - 2 + shift, anchor_turf.y + 1 + shift, anchor_turf.z)))
+			root_plan.add_turf(root_turf)
+		for(var/turf/child_turf in block(locate(anchor_turf.x + 2 + shift, anchor_turf.y + shift, anchor_turf.z), locate(anchor_turf.x + 3 + shift, anchor_turf.y + 1 + shift, anchor_turf.z)))
+			child_plan.add_turf(child_turf)
+		candidate.add_room_plan(root_plan)
+		candidate.add_room_plan(child_plan)
+		for(var/route_offset in 0 to 1)
+			var/turf/route_turf = locate(anchor_turf.x + shift, anchor_turf.y + route_offset + shift, anchor_turf.z)
+			candidate.add_route_turf(route_turf)
+			candidate.route_owner_by_turf[route_turf] = "public_circulation"
+		candidates += candidate
+	var/datum/world_edit_building_layout_candidate/first_candidate = candidates[1]
+	var/datum/world_edit_building_layout_candidate/translated_candidate = candidates[2]
+	var/first_signature = generator.build_building_layout_topology_signature(first_candidate)
+	var/translated_signature = generator.build_building_layout_topology_signature(translated_candidate)
+	TEST_ASSERT_EQUAL(first_signature, translated_signature, "Structural signature changed after pure translation or family relabeling.")
+	var/datum/world_edit_building_layout_topology_edge/changed_edge = translated_candidate.topology_graph.edges[1]
+	changed_edge.edge_kind = "secure"
+	changed_edge.opening_policy = "secure_door"
+	TEST_ASSERT(generator.build_building_layout_topology_signature(translated_candidate) != first_signature, "Structural signature ignored a typed edge semantic change.")
+
+/datum/unit_test/world_edit_building_layout/topology_family_hard_invariant_matrix/Run()
+	var/turf/anchor_turf = get_test_anchor_turf()
+	TEST_ASSERT_NOTNULL(anchor_turf, "Topology-family matrix could not resolve an anchor turf.")
+	prepare_building_test_canvas(anchor_turf, 10)
+	var/datum/world_edit_building_layout_context/context
+	var/datum/world_edit_building_layout_candidate/candidate
+	var/datum/world_edit_building_layout_family_policy/policy
+
+	context = build_family_policy_test_context(anchor_turf)
+	candidate = new
+	candidate.family_policy_id = "hub_spoke"
+	candidate.topology_graph = context.program_contract.topology_graph
+	var/datum/world_edit_building_layout_room_plan/hub_root = add_family_policy_test_room(context, candidate, "hub", "hub", "public", "functional_room", 7, 7, 9, 9)
+	add_family_policy_test_room(context, candidate, "hub_west", "service", "semi_private", "functional_room", 2, 7, 4, 9, "hub", 1)
+	add_family_policy_test_room(context, candidate, "hub_east", "service", "semi_private", "functional_room", 12, 7, 14, 9, "hub", 1)
+	context.program_contract.topology_graph.root_node_id = hub_root.contract_id
+	context.program_contract.topology_graph.add_edge(new /datum/world_edit_building_layout_topology_edge("hub", "hub_west"))
+	context.program_contract.topology_graph.add_edge(new /datum/world_edit_building_layout_topology_edge("hub", "hub_east"))
+	policy = new /datum/world_edit_building_layout_family_policy/hub_spoke
+	TEST_ASSERT(policy.hard_validate(context, candidate), "Valid hub_spoke candidate failed its hard invariants: [jointext(candidate.errors, ",")]")
+	context.program_contract.topology_graph.edges.Cut(2, 3)
+	TEST_ASSERT(!policy.hard_validate(context, candidate), "hub_spoke accepted a root with fewer than two functional children.")
+
+	context = build_family_policy_test_context(anchor_turf)
+	candidate = new
+	candidate.family_policy_id = "split_wing"
+	candidate.topology_graph = context.program_contract.topology_graph
+	var/datum/world_edit_building_layout_room_plan/split_root = add_family_policy_test_room(context, candidate, "transition", "hub", "public", "functional_room", 7, 7, 9, 9)
+	var/datum/world_edit_building_layout_room_plan/split_west = add_family_policy_test_room(context, candidate, "wing_west", "service", "semi_private", "functional_room", 2, 7, 4, 9, "transition", 1)
+	var/datum/world_edit_building_layout_room_plan/split_east = add_family_policy_test_room(context, candidate, "wing_east", "service", "semi_private", "functional_room", 12, 7, 14, 9, "transition", 1)
+	context.program_contract.topology_graph.root_node_id = split_root.contract_id
+	policy = new /datum/world_edit_building_layout_family_policy/split_wing
+	TEST_ASSERT(policy.hard_validate(context, candidate), "Valid split_wing candidate failed its hard invariants: [jointext(candidate.errors, ",")]")
+	split_east.x1 = split_west.x1
+	split_east.x2 = split_west.x2
+	TEST_ASSERT(!policy.hard_validate(context, candidate), "split_wing accepted an empty second wing.")
+
+	context = build_family_policy_test_context(anchor_turf)
+	candidate = new
+	candidate.family_policy_id = "open_bay_perimeter"
+	candidate.topology_graph = context.program_contract.topology_graph
+	var/datum/world_edit_building_layout_room_plan/open_bay = add_family_policy_test_room(context, candidate, "open_bay", "hub", "public", "open_bay", 4, 4, 11, 11)
+	add_family_policy_test_room(context, candidate, "bay_service", "service", "semi_private", "functional_room", 13, 6, 14, 8, "open_bay", 1)
+	context.program_contract.topology_graph.root_node_id = open_bay.contract_id
+	context.program_contract.topology_graph.add_edge(new /datum/world_edit_building_layout_topology_edge("open_bay", "bay_service", "shared", TRUE, "door"))
+	var/turf/bay_route_turf = context.local_turf(12, 7)
+	candidate.add_route_turf(bay_route_turf)
+	policy = new /datum/world_edit_building_layout_family_policy/open_bay_perimeter
+	TEST_ASSERT(policy.can_solve(context), "open_bay_perimeter rejected an explicit single OPEN_BAY contract.")
+	TEST_ASSERT(policy.hard_validate(context, candidate), "Valid open_bay_perimeter candidate failed its hard invariants: [jointext(candidate.errors, ",")]")
+	candidate.route_turfs = list()
+	candidate.route_lookup = list()
+	TEST_ASSERT(!policy.hard_validate(context, candidate), "open_bay_perimeter accepted an OPEN_BAY without an owner aisle.")
+
+	context = build_family_policy_test_context(anchor_turf)
+	candidate = new
+	candidate.family_policy_id = "secure_core"
+	candidate.topology_graph = context.program_contract.topology_graph
+	var/datum/world_edit_building_layout_room_plan/secure_room = add_family_policy_test_room(context, candidate, "secure_room", "secure", "secure", "functional_room", 7, 7, 9, 9)
+	var/datum/world_edit_building_layout_room_contract/choke_contract = new("secure_choke", "choke", "secure_choke")
+	choke_contract.spatial_kind = "choke"
+	choke_contract.counts_toward_target = FALSE
+	context.program_contract.add_room_contract(choke_contract)
+	context.program_contract.topology_graph.add_node(new /datum/world_edit_building_layout_topology_node(choke_contract))
+	context.program_contract.topology_graph.root_node_id = secure_room.contract_id
+	var/datum/world_edit_building_layout_topology_edge/secure_edge = new("secure_choke", "secure_room", "secure", TRUE, "secure_door")
+	context.program_contract.topology_graph.add_edge(secure_edge)
+	policy = new /datum/world_edit_building_layout_family_policy/secure_core
+	TEST_ASSERT(policy.hard_validate(context, candidate), "Valid secure_core candidate failed its hard invariants: [jointext(candidate.errors, ",")]")
+	secure_edge.opening_policy = "door"
+	TEST_ASSERT(!policy.hard_validate(context, candidate), "secure_core accepted a non-secure controlled transition.")
+
+	context = build_family_policy_test_context(anchor_turf)
+	candidate = new
+	candidate.family_policy_id = "nested_service"
+	candidate.topology_graph = context.program_contract.topology_graph
+	var/datum/world_edit_building_layout_room_plan/nested_parent = add_family_policy_test_room(context, candidate, "nested_parent", "hub", "public", "functional_room", 3, 3, 12, 12)
+	var/datum/world_edit_building_layout_room_plan/nested_child = add_family_policy_test_room(context, candidate, "nested_child", "service", "semi_private", "nested_room", 5, 5, 7, 7, "nested_parent", 1)
+	context.program_contract.topology_graph.root_node_id = nested_parent.contract_id
+	context.program_contract.topology_graph.add_edge(new /datum/world_edit_building_layout_topology_edge("nested_parent", "nested_child", "nested", TRUE, "door"))
+	candidate.add_door_plan(new /datum/world_edit_building_layout_route_opening_plan("nested_opening", "door", context.local_turf(4, 6), EAST, "nested_parent", "nested_child"))
+	policy = new /datum/world_edit_building_layout_family_policy/nested_service
+	TEST_ASSERT(policy.hard_validate(context, candidate), "Valid nested_service candidate failed its hard invariants: [jointext(candidate.errors, ",")]")
+	nested_child.x1 = nested_parent.x1
+	TEST_ASSERT(!policy.hard_validate(context, candidate), "nested_service accepted a child touching the parent boundary.")
+
+	context = build_family_policy_test_context(anchor_turf)
+	candidate = new
+	candidate.family_policy_id = "compound_cells"
+	candidate.topology_graph = context.program_contract.topology_graph
+	add_family_policy_test_room(context, candidate, "pod_sw", "service", "public", "functional_room", 2, 10, 4, 13)
+	add_family_policy_test_room(context, candidate, "pod_se", "service", "public", "functional_room", 11, 10, 13, 13)
+	add_family_policy_test_room(context, candidate, "pod_nw", "service", "public", "functional_room", 2, 2, 4, 5)
+	candidate.region_candidate = new("compound_cells", "compound_test")
+	candidate.region_candidate.add_route_hint("compound_courtyard", "cross", 8, 8, 8, 8)
+	candidate.add_route_turf(context.local_turf(8, 8))
+	policy = new /datum/world_edit_building_layout_family_policy/compound_cells
+	TEST_ASSERT(policy.hard_validate(context, candidate), "Valid compound_cells candidate failed its hard invariants: [jointext(candidate.errors, ",")]")
+	candidate.region_candidate.route_hints = list()
+	TEST_ASSERT(!policy.hard_validate(context, candidate), "compound_cells accepted a layout without the authored courtyard route hint.")
+
+	context = build_family_policy_test_context(anchor_turf)
+	candidate = new
+	candidate.family_policy_id = "axial_fallback"
+	candidate.topology_graph = context.program_contract.topology_graph
+	add_family_policy_test_room(context, candidate, "axial_room", "service", "public", "functional_room", 2, 6, 4, 9)
+	candidate.region_candidate = new("axial_fallback", "axial_test")
+	candidate.region_candidate.add_route_hint("axial_route", "line", 8, 3, 8, 13)
+	for(var/local_y in 4 to 10)
+		candidate.add_route_turf(context.local_turf(8, local_y))
+	policy = new /datum/world_edit_building_layout_family_policy/axial_fallback
+	var/axial_valid = policy.hard_validate(context, candidate)
+	TEST_ASSERT(axial_valid, "Valid axial_fallback candidate failed its hard invariants: [jointext(candidate.errors, ",")]; policy=[policy.id] candidate_policy=[candidate.family_policy_id] room_count=[length(candidate.room_plans)] route_count=[length(candidate.route_turfs)] hint_count=[length(candidate.region_candidate.route_hints)]")
+	candidate.route_turfs = list()
+	candidate.route_lookup = list()
+	for(var/local_offset in 5 to 8)
+		candidate.add_route_turf(context.local_turf(local_offset, local_offset))
+	TEST_ASSERT(!policy.hard_validate(context, candidate), "axial_fallback accepted a route without a dominant axial trunk.")
 
 /datum/unit_test/world_edit_building_layout/seeded_family_selection_preserves_quality_tier/Run()
 	var/datum/world_edit_generator/building_layout/generator = new

@@ -46,6 +46,8 @@
 		out["profile"] = profile
 	if(length(workflow_run_id))
 		out["workflow_run_id"] = workflow_run_id
+	if(length(source_sha))
+		out["source_sha"] = source_sha
 	return out
 
 /datum/world_edit_visual_case/proc/write_json_file(path, list/value)

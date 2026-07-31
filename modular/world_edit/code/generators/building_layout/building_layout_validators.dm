@@ -340,8 +340,6 @@
 	validate_building_privacy_rules(state)
 	validate_building_forbidden_rules(state)
 	validate_building_semantic_slot_preflight(state)
-	if(state.fixtures.structured_scene_emitted)
-		credit_building_semantic_scene_requirements(state)
 	validate_building_major_clusters(state)
 	validate_building_furnishing_quality(state)
 	validate_building_layout_scenes(state)
@@ -350,13 +348,8 @@
 	validate_building_counter_facing(state)
 	validate_building_density_rules(state)
 	validate_building_signature_rules(state)
-	validate_building_nested_room_rules(state)
-	validate_building_divider_rules(state)
 	validate_building_layout_review_contract(state)
-	// The canonical review contract normalizes scene underfill against authored
-	// composition groups. Semantic aggregation must consume those final values,
-	// not the superseded legacy member-count heuristic.
-	validate_building_semantic_scene_contracts(state)
+	validate_building_layout_structured_scene_contracts(state)
 	validate_building_acceptance_counters(state)
 
 /datum/world_edit_generator/building_layout/proc/validate_building_zone_requirements(datum/world_edit_building_layout_state/state)
@@ -1078,26 +1071,10 @@
 			return TRUE
 	return FALSE
 
-/datum/world_edit_generator/building_layout/proc/remove_building_wall_component(datum/world_edit_building_layout_state/state, list/component)
-	if(!istype(state) || !islist(component))
-		return 0
-	var/removed_count = 0
-	for(var/turf/wall_turf as anything in component)
-		if(!istype(wall_turf) || state.geometry.boundary_lookup[wall_turf] || state.geometry.door_dirs[wall_turf])
-			continue
-		if(!state.geometry.wall_lookup[wall_turf])
-			continue
-		state.geometry.wall_lookup.Remove(wall_turf)
-		state.geometry.internal_wall_turfs -= wall_turf
-		removed_count++
-	return removed_count
-
 /datum/world_edit_generator/building_layout/proc/validate_building_wall_geometry_rules(datum/world_edit_building_layout_state/state)
 	if(!istype(state))
 		return
-	var/list/protected_wall_lookup = build_building_wall_repair_protection_lookup(state)
 	var/list/visited_wall_lookup = list()
-	var/repaired_single_sided_wall_count = 0
 	for(var/turf/wall_turf as anything in state.geometry.wall_lookup.Copy())
 		if(!istype(wall_turf))
 			continue
@@ -1105,15 +1082,10 @@
 			state.validation.wall_outside_footprint_count++
 			state.add_error("Wall geometry contains a wall outside the footprint at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
 			continue
-		if(!state.geometry.boundary_lookup[wall_turf] && !state.geometry.door_dirs[wall_turf] && !building_wall_touches_floor_or_opening(state, wall_turf) && !building_wall_is_canonical_partition_corner_join(state, wall_turf))
+		if(!state.geometry.boundary_lookup[wall_turf] && !state.geometry.door_dirs[wall_turf] && !building_wall_touches_floor_or_opening(state, wall_turf))
 			state.validation.wall_unmapped_interior_count++
 			state.add_error("Wall geometry contains an internal wall not mapped to any adjacent room or route at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
 		else if(!state.geometry.boundary_lookup[wall_turf] && !state.geometry.door_dirs[wall_turf] && count_building_wall_adjacent_mapped_domains(state, wall_turf) <= 1 && !building_wall_has_opposite_mapped_domains(state, wall_turf) && count_building_wall_cardinal_neighbors(state, wall_turf) <= 1 && !building_wall_supports_wall_fixture(state, wall_turf))
-			if(building_layout_solver_enabled(state))
-				state.geometry.wall_lookup.Remove(wall_turf)
-				state.geometry.internal_wall_turfs -= wall_turf
-				repaired_single_sided_wall_count++
-				continue
 			state.validation.wall_single_sided_internal_count++
 			state.add_error("Wall geometry contains a single-sided internal wall spur at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
 		if(!state.geometry.boundary_lookup[wall_turf] && !visited_wall_lookup[wall_turf])
@@ -1129,69 +1101,22 @@
 			for(var/check_dir in list(EAST, WEST))
 				var/turf/side_turf = get_step(wall_turf, check_dir)
 				if(state.geometry.wall_lookup[side_turf] && building_wall_has_axis(state, side_turf, "vertical"))
-					// Attempt repair: remove one of the double walls (prefer the one not on a zone boundary)
-					var/turf/remove_turf = null
-					var/can_remove_side = !state.geometry.door_dirs[side_turf] && !state.geometry.reserved_lookup[side_turf] && !protected_wall_lookup[side_turf]
-					var/can_remove_wall = !state.geometry.door_dirs[wall_turf] && !state.geometry.reserved_lookup[wall_turf] && !protected_wall_lookup[wall_turf]
-					if(can_remove_side && !can_remove_wall)
-						remove_turf = side_turf
-					else if(!can_remove_side && can_remove_wall)
-						remove_turf = wall_turf
-					else if(can_remove_side && can_remove_wall)
-						remove_turf = (!state.geometry.door_dirs[side_turf] && !state.geometry.reserved_lookup[side_turf]) ? side_turf : wall_turf
-					if(istype(remove_turf) && !state.geometry.door_dirs[remove_turf] && !state.geometry.reserved_lookup[remove_turf])
-						state.geometry.wall_lookup -= remove_turf
-						state.geometry.internal_wall_turfs -= remove_turf
-						state.validation.double_wall_repair_count++
-						state.add_warning("Double-thick vertical wall at [GLOB.world_edit_helpers.turf_to_text(wall_turf)] repaired by removing wall at [GLOB.world_edit_helpers.turf_to_text(remove_turf)].")
-					else
-						state.validation.fixture_conflict_count++
-						state.validation.double_wall_error_count++
-						state.add_error("Wall geometry has a double-thick vertical segment at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
+					state.validation.fixture_conflict_count++
+					state.validation.double_wall_error_count++
+					state.add_error("Wall geometry has a double-thick vertical segment at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
 					break
 		if(horizontal_wall)
 			for(var/check_dir in list(NORTH, SOUTH))
 				var/turf/side_turf = get_step(wall_turf, check_dir)
 				if(state.geometry.wall_lookup[side_turf] && building_wall_has_axis(state, side_turf, "horizontal"))
-					// Attempt repair: remove one of the double walls
-					var/turf/remove_turf = null
-					var/can_remove_side = !state.geometry.door_dirs[side_turf] && !state.geometry.reserved_lookup[side_turf] && !protected_wall_lookup[side_turf]
-					var/can_remove_wall = !state.geometry.door_dirs[wall_turf] && !state.geometry.reserved_lookup[wall_turf] && !protected_wall_lookup[wall_turf]
-					if(can_remove_side && !can_remove_wall)
-						remove_turf = side_turf
-					else if(!can_remove_side && can_remove_wall)
-						remove_turf = wall_turf
-					else if(can_remove_side && can_remove_wall)
-						remove_turf = (!state.geometry.door_dirs[side_turf] && !state.geometry.reserved_lookup[side_turf]) ? side_turf : wall_turf
-					if(istype(remove_turf) && !state.geometry.door_dirs[remove_turf] && !state.geometry.reserved_lookup[remove_turf])
-						state.geometry.wall_lookup -= remove_turf
-						state.geometry.internal_wall_turfs -= remove_turf
-						state.validation.double_wall_repair_count++
-						state.add_warning("Double-thick horizontal wall at [GLOB.world_edit_helpers.turf_to_text(wall_turf)] repaired by removing wall at [GLOB.world_edit_helpers.turf_to_text(remove_turf)].")
-					else
-						state.validation.fixture_conflict_count++
-						state.validation.double_wall_error_count++
-						state.add_error("Wall geometry has a double-thick horizontal segment at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
+					state.validation.fixture_conflict_count++
+					state.validation.double_wall_error_count++
+					state.add_error("Wall geometry has a double-thick horizontal segment at [GLOB.world_edit_helpers.turf_to_text(wall_turf)].")
 					break
 		validate_building_wall_diagonal_pair(state, wall_turf, NORTHEAST, NORTH, EAST)
 		validate_building_wall_diagonal_pair(state, wall_turf, NORTHWEST, NORTH, WEST)
 		validate_building_wall_diagonal_pair(state, wall_turf, SOUTHEAST, SOUTH, EAST)
 		validate_building_wall_diagonal_pair(state, wall_turf, SOUTHWEST, SOUTH, WEST)
-	if(repaired_single_sided_wall_count > 0)
-		state.add_stage_report("layout_wall_validator_spur_repair", "ok", null, list(
-			"removed_single_sided_wall_tile_count" = repaired_single_sided_wall_count,
-		))
-
-/datum/world_edit_generator/building_layout/proc/building_wall_is_canonical_partition_corner_join(datum/world_edit_building_layout_state/state, turf/wall_turf)
-	var/datum/world_edit_building_layout_context/context = state?.layout_context
-	var/datum/world_edit_building_layout_candidate/candidate = context?.selected_candidate
-	if(!istype(candidate) || !istype(wall_turf))
-		return FALSE
-	for(var/list/partition_edge as anything in candidate.partition_edges)
-		if(islist(partition_edge) && partition_edge["wall_turf"] == wall_turf && partition_edge["owner_b"] == "corner_join")
-			return TRUE
-	return FALSE
-
 /datum/world_edit_generator/building_layout/proc/validate_building_wall_diagonal_pair(datum/world_edit_building_layout_state/state, turf/wall_turf, diagonal_dir, ortho_a, ortho_b)
 	var/turf/diagonal_turf = get_step(wall_turf, diagonal_dir)
 	if(!state.geometry.wall_lookup[diagonal_turf])
@@ -1282,29 +1207,6 @@
 			state.validation.emit_state_mismatch_count++
 			state.add_error("Wall fixture has no emitted object placement.")
 
-/datum/world_edit_generator/building_layout/proc/build_building_wall_repair_protection_lookup(datum/world_edit_building_layout_state/state)
-	var/list/protected = list()
-	if(!istype(state))
-		return protected
-	for(var/datum/world_edit_building_divider_plan/divider_plan as anything in state.geometry.divider_plans)
-		if(!istype(divider_plan))
-			continue
-		for(var/turf/wall_turf as anything in divider_plan.wall_turfs)
-			if(istype(wall_turf))
-				protected[wall_turf] = TRUE
-	for(var/list/placement as anything in state.fixtures.object_placements)
-		if(!islist(placement) || !GLOB.world_edit_helpers.parse_bool(placement["wall_mounted"]))
-			continue
-		var/turf/target_turf = placement["turf"]
-		if(!istype(target_turf))
-			continue
-		var/wall_dir = text2num("[placement["wall_dir"]]") || 0
-		if(!(wall_dir in GLOB.cardinals))
-			continue
-		var/turf/wall_turf = get_step(target_turf, wall_dir)
-		if(istype(wall_turf))
-			protected[wall_turf] = TRUE
-	return protected
 
 /datum/world_edit_generator/building_layout/proc/build_building_reachable_floor_lookup(datum/world_edit_building_layout_state/state)
 	var/list/reachable = list()
@@ -1974,48 +1876,6 @@
 	var/threshold = round(text2num("[style_budget["max_empty_floor_ratio"]]") || WORLD_EDIT_BUILDING_DEFAULT_MAX_EMPTY_FLOOR_RATIO)
 	return clamp(threshold, 35, 78)
 
-/datum/world_edit_generator/building_layout/proc/validate_building_nested_room_rules(datum/world_edit_building_layout_state/state)
-	if(building_layout_solver_enabled(state))
-		return
-	var/list/nested_specs = islist(state.semantic_plan?.nested_room_specs) ? state.semantic_plan.nested_room_specs.Copy() : list()
-	if(!length(nested_specs) && length("[state.semantic_plan?.nested_inner_zone]"))
-		nested_specs += new /datum/world_edit_building_nested_room_spec(state.semantic_plan.nested_outer_zone, state.semantic_plan.nested_inner_zone, state.semantic_plan.nested_min_width, state.semantic_plan.nested_min_height, 1)
-	for(var/datum/world_edit_building_nested_room_spec/nested_spec as anything in nested_specs)
-		if(!istype(nested_spec) || !length(nested_spec.inner_zone_id))
-			continue
-		if((state.geometry.bounds["width"] || 0) < nested_spec.min_width || (state.geometry.bounds["height"] || 0) < nested_spec.min_height)
-			continue
-		if(!length(state.get_zone_turfs(nested_spec.inner_zone_id)))
-			continue
-		var/datum/world_edit_building_zone_spec/inner_zone_spec = state.semantic_plan.get_zone_spec(nested_spec.inner_zone_id)
-		if(istype(inner_zone_spec) && inner_zone_spec.role != "nested")
-			continue
-		var/nested_plan_found = FALSE
-		for(var/datum/world_edit_building_divider_plan/divider_plan as anything in state.geometry.divider_plans)
-			if(istype(divider_plan) && divider_plan.inner_zone_id == nested_spec.inner_zone_id && findtext("[divider_plan.id]", "nested_") == 1)
-				nested_plan_found = TRUE
-				break
-		if(!nested_plan_found)
-			state.add_error("Nested zone '[nested_spec.inner_zone_id]' exists without a data-driven nested room plan.")
-		else if(!length(state.geometry.internal_wall_turfs))
-			state.add_error("Nested zone '[nested_spec.inner_zone_id]' exists without internal walls.")
-
-/datum/world_edit_generator/building_layout/proc/validate_building_divider_rules(datum/world_edit_building_layout_state/state)
-	for(var/datum/world_edit_building_divider_plan/divider_plan as anything in state.geometry.divider_plans)
-		if(!istype(divider_plan))
-			continue
-		if(length(divider_plan.wall_turfs) && !length(divider_plan.opening_turfs))
-			state.add_error("Divider '[divider_plan.id]' has walls without a controlled opening.")
-		for(var/turf/wall_turf as anything in divider_plan.wall_turfs)
-			if(state.geometry.reserved_lookup[wall_turf])
-				state.add_error("Divider '[divider_plan.id]' overlaps a primary route.")
-			if(!state.geometry.wall_lookup[wall_turf])
-				state.add_error("Divider '[divider_plan.id]' planned wall was not emitted as a wall.")
-		for(var/turf/opening_turf as anything in divider_plan.opening_turfs)
-			if(!state.geometry.door_dirs[opening_turf])
-				state.add_error("Divider '[divider_plan.id]' opening is missing a controlled door.")
-			if(state.geometry.wall_lookup[opening_turf])
-				state.add_error("Divider '[divider_plan.id]' opening overlaps a wall.")
 
 /datum/world_edit_generator/building_layout/proc/validate_building_acceptance_counters(datum/world_edit_building_layout_state/state)
 	if(!istype(state))

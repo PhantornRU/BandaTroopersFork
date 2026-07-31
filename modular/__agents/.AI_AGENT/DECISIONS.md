@@ -1,46 +1,25 @@
-# DECISIONS - Canonical Building Layout Solver rewrite
+# DECISIONS - Canonical Building Layout correctness continuation
 
-## D-001: The 17.07.06 review supersedes prior green status
+## D-001: The `91afe9c71c` verdict supersedes the July 17 task-state
 
-The current `11.07.26` closeout is false-green under the new review. Task status returns to IN PROGRESS; prior generated reports are diagnostic baselines, not acceptance evidence.
+The original `cc210d` rewrite contract remains architectural context, but the appended head review is the active implementation contract. M4-M10 are partially scaffolded, not pending-from-zero and not complete.
 
-## D-002: Rewrite only inside the canonical pipeline
+## D-002: Preserve the scaffold, replace its weak guarantees
 
-Keep `build_building_layout_candidate_state() -> solve_building_layout() -> emit_building_layout_plan()`. Replace internals in-place and split them by responsibility; do not introduce a version, flag, fallback or parallel solver.
+Keep topology/program datums, bounded beam/A*, composition contract, quality vector and one canonical entrypoint. Rework their internals; do not revert to `cc210d` and do not add another solver.
 
-## D-003: Stage 0 regressions are living and hydroponics
+## D-003: Correctness proceeds in dependency order
 
-Because no different screenshot pair was supplied, use `building_living_target_rooms_6` and `building_hydroponics_target_rooms_7` exactly as stated in the approved plan. Their new expectations are immutable after Stage 0.
+Delete masking/dead paths and fix residual first, then normalize typed contracts, families, allocation, route/partitions, compositions, and finally reporting/legacy includes. Red cases during intermediate slices are valid evidence and must not be hidden.
 
-## D-004: Required topology is authored, not repaired
+## D-004: Current CI status is separate from generator acceptance
 
-A required disconnected graph is a compile error. Edge-kind precedence is nested, circulation endpoint, secure endpoint, public/open-bay pair, then shared functional adjacency.
+For HEAD, Windows Build and unit matrices passed, while linter/OpenDream/MapDiffBot checks failed. Those checks are tracked as final verification fallout; they do not prove or disprove spatial correctness.
 
-## D-005: Family policies own geometry
+## D-005: Baseline artifacts must be SHA-bound
 
-Family-specific constraints and seed regions live in DM canonical solver policy datums. Axial is a gated fallback considered only after non-axial hard-valid exhaustion.
+Existing July 17-18 reports do not include a commit SHA. Regenerate the seven fixed cases before product-code changes and add/report an exact SHA field rather than relying on timestamps.
 
-## D-006: Ownership precedes materialization
+## D-006: The main agent performs the plan challenge
 
-Room/open-bay/route ownership and partition edges are solved before walls/openings. RECT defects reject the candidate; irregular diagnostics may be at most 1% and never mutate a candidate.
-
-## D-007: Composition is atomic per declared instance policy
-
-Required composition groups use `GLOBAL_ONCE`, `PRIMARY_ONLY`, `PER_INSTANCE` or `DISTRIBUTE_TOTAL`. A complete module instance is the budget unit; negative space, interaction lanes and clearances are reserved before solving.
-
-## D-008: Selection is lexicographic and signature-aware
-
-Trial-emission evaluates every bounded candidate. Deduplicate by actual room/topology geometry signature. Seed is allowed only after all earlier quality layers tie and only within `max(1, 0.5% of best score)`.
-
-## D-009: Visual tooling remains an acceptance harness
-
-The matrix runner may create temporary case inputs, shard/resume execution and aggregate reports. It may not generate, repair or reinterpret layout geometry.
-
-## D-010: Legacy removal follows migration proof
-
-Move the reusable scene credit/validation helpers into canonical composition/quality first. Remove semantic, room-graph, BSP and divider includes/state only after exact zero-callsite audits.
-
-## D-011: Self challenge is required in the main agent
-
-No subagents are used because current collaboration instructions prohibit delegation unless explicitly requested. The primary agent performs and records the plan-mapping challenge.
-
+No subagents are used because repository and collaboration rules require explicit user authorization for delegation.

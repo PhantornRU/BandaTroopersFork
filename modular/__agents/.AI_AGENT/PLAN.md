@@ -1,69 +1,59 @@
-# PLAN - Canonical Building Layout Solver rewrite
+# PLAN - Canonical Building Layout correctness continuation
 
 Status: IN PROGRESS
-Date: 2026-07-17
-Contract: `modular/world_edit/docs/rework_docs/tech_rework/17.07.06_review.md`
-Baseline: `cc210d870f8fa774de38c59b83de86f09c933ff2`
+Date: 2026-07-31
+Contract: appended verdict for `91afe9c71c4a5e156c73d4972caac292e4745394` in `modular/world_edit/docs/rework_docs/tech_rework/17.07.06_review.md`
+Baseline: `91afe9c71c4a5e156c73d4972caac292e4745394`
+Approval: user explicitly requested implementation of this contract on 2026-07-31.
 
 ## Goal
 
-Replace the false-green topology, allocation, routing, composition, partition and selection internals of the canonical Building Layout solver while preserving one production pipeline:
+Keep the useful typed datums and bounded infrastructure added in `91afe9c71c`, but make the existing canonical pipeline enforce authored topology, routing, partition and composition geometry:
 
 `build_building_layout_candidate_state() -> solve_building_layout() -> emit_building_layout_plan()`.
 
 ## MUST
 
-- Compile explicit topology node kinds `FUNCTIONAL`, `CIRCULATION_TERMINAL`, `TRANSITION` and edge kinds `SHARED`, `OPEN_MERGE`, `NESTED`, `SECURE`, `ROUTE`.
-- Reject a disconnected required topology at compile time; never synthesize a root edge.
-- Select edge kind by precedence: nested, circulation endpoint, secure endpoint, public/open-bay pair, functional pair.
-- Introduce `world_edit_building_layout_family_policy` with family-owned constraints, seed regions, partial scoring and hard validation for hub-spoke, split-wing, open-bay-perimeter, secure-core, nested-service, compound-cells and axial-fallback.
-- Gate axial to compact, minimum side `<= 11`, or aspect `>= 1.7`; consider it only when no non-axial hard-valid result exists.
-- Allocate the 24-candidate cap fairly across family/orientation; use beam width 6, at most 8 rectangles per node and 96 partial expansions per topology.
-- Allocate root-first and parent-before-nested-child; validate topology edge geometry during partial allocation.
-- Build an owner-bound route overlay after rooms with one connected bounded A* network and explicit terminals.
-- Build ownership/partition edges directly, then openings; reject RECT cleanup, stubs, notches, stair-steps, misaligned joins and geometry-missing adjacency.
-- Compile all required composition groups, instance policies and atomic module budgets; reserve negative space and interaction lanes before module solve.
-- Select lexicographically by hard validity, mapping defects, composition deficits, residual/cleanup, topology, route efficiency and scene quality.
-- Deduplicate by actual topology signature and use seed only for candidates tied through earlier layers and within `max(1 point, 0.5% best score)`.
-- Repair room-report flow from normalized candidate room IDs and extend optional semantic v1 debug fields without breaking existing consumers.
-- Remove legacy semantic/BSP/room-graph/divider paths only after reusable helpers are migrated and zero-callsite audits pass.
+- Preserve circulation node identity through candidate connections and split edge kind, opening policy and route policy.
+- Give all seven topology families hard invariants and typed route constraints; axial remains dimension-gated and last-resort.
+- Make allocation edge-specific for `SHARED`, `OPEN_MERGE`, `SECURE`, `NESTED` and `ROUTE`, then compare the best complete route-feasible partials.
+- Build a minimum-incremental-cost, family-aware terminal route network with stable segment ownership and bounded cleanup.
+- Replace room-perimeter/corner-join wall rasterization with canonical ownership boundary segments and opening cuts.
+- Compute residual directly from interior minus explicit owners/materialized geometry; no legacy label-based false-green.
+- Size rooms from authored module footprint and require curated atomic compositions with explicit capacity/relations.
+- Unify validators, separate structural topology signature from exact geometry hash and export sufficient semantic/debug evidence.
+- Remove legacy route/overlay/support/fallback, duplicate validator and obsolete semantic/BSP/room-graph/divider paths after migration and zero-callsite audits.
 
 ## KEEP
 
-- Existing generator/config/UI identities and public preview/apply/undo behavior.
-- Existing plan metadata compatibility and `semantic.json` schema `world_edit_semantic/v1`.
-- Existing provider/emitter primitives and deterministic bounded execution.
-- `tools/world_edit_visual` as exporter, renderer and acceptance harness only.
-- The untracked review document and all unrelated user changes.
+- One production solver entrypoint and existing generator/config/UI preview/apply/undo contracts.
+- Existing bounded caps unless a contract-backed change is required: 24 candidates, beam 6, 8 rectangles per node, 96 expansions, bounded A*.
+- `world_edit_semantic/v1` compatibility; new fields remain optional.
+- `tools/world_edit_visual` as read-only exporter/renderer/acceptance harness.
+- The user's uncommitted review-document addition and unrelated repository state.
 
 ## REJECT
 
-- No v3, feature flag, parallel pipeline, compatibility solver, fallback solver or program-specific coordinate recipe.
-- No automatic topology repair, blanket circulation fill, universal room-to-route edge, synthetic required support spec, budget inflation, required singleton fallback or member-level required pruning.
-- No seed-only route stub, direct-route fast path, route-distance helper, ad-hoc parallel-spacing score or post-emission geometry repair.
-- No family-id deduplication, two-family early exit, old 10% seeded winner band or expectation weakening.
-- No generation or geometry repair in `tools/world_edit_visual`.
-
-## CHECK
-
-1. Stage 0: new hard counters and living/hydro expectations fail on the unchanged generator.
-2. Unit coverage proves disconnected topology, terminals, edge geometry, policies, axial gating, fair scheduling, bounded beam/A*, ownership, defects, atomic composition, signatures, selection and semantic payload.
-3. Hard gates: unassigned `<=3%` RECT / `<=5%` irregular; zero RECT cleanup/stubs/notches/stair-steps/canyon/adjacency misses; zero required fallback/reject/fragmentation/composition/capacity/underfill; route components exactly 1; no ownerless bay; exact functional count; topology signatures 2 standard/spacious and 1 compact.
-4. Runtime: living and hydro regressions, seven target programs, 840 temporary cases with shard/resume and summary v2, then preview/apply/undo for all 15 public programs.
-5. Final: prescribed Werror build, focused and full units, `git diff --check`, old-path/include/callsite audit and no temporary markers/processes.
-
-## Bounded contracts
-
-- Topology candidates: 24 total, scheduled round-robin by family/orientation.
-- Allocation: beam width 6, 8 rectangle variants per node, 96 partial expansions per topology.
-- Route A*: `min(4 * footprint, 4096)` expansions; width 1 first, width 2 only for required clearance/transition.
-- Composition: module instances are the indivisible budget unit; no required member pruning.
+- No v3/next/experimental path, runtime flag, fallback solver, compatibility wrapper or visualizer-side generation/repair.
+- No root auto-connect, universal room-to-route, blanket open-bay overlay, required singleton/generated fallback, budget inflation or per-member module pruning.
+- No family-name-only validation, first-complete beam winner, global farthest-terminal trunk, root-forced open bay, diagonal corner joins or label-based residual.
+- No score/counter tuning as a substitute for hard geometry.
 
 ## Delivery order
 
-1. Stage 0 hard counters and fixed regression expectations.
-2. Contracts, topology compilation and family policies.
-3. Bounded graph-aware allocation, route overlay, partitions and openings.
-4. Atomic compositions, lexicographic selection and reporting.
-5. Legacy cleanup, units, runtime matrices and final audits.
+1. Refresh seven-case baseline for exact HEAD and lock expectations.
+2. Remove dead/masking paths and fix residual ownership.
+3. Normalize typed topology/opening/route contracts and circulation IDs.
+4. Add seven family hard validators and typed route constraints.
+5. Implement edge-aware beam allocation and best-complete selection.
+6. Implement family-aware minimum-cost route ownership and canonical partition segments.
+7. Add module-aware sizing and authored atomic composition contracts.
+8. Unify quality/signatures/reporting, remove obsolete includes, and run the full acceptance matrix.
 
+## Acceptance
+
+- Fixed cases: living, hydroponics, workshop, kitchen, laboratory, dormitory and storage.
+- Hard geometry/composition counters from the review are zero or within RECT/irregular residual limits.
+- At least two hard-valid structural signatures for standard/spacious; compact may have one.
+- Same seed reproduces the exact geometry hash; seed only breaks quality-prefix ties within the 0.5%/1-point band.
+- Werror build, focused units, 840-case matrix, 15-program preview/apply/undo smoke, diff/old-path/process audits.
